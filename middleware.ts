@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const username = request.cookies.get(USERNAME_COOKIE)?.value;
   const { pathname } = request.nextUrl;
 
-  // Root: send to welcome if authenticated, else to auth
+  // Root: always send to the main menu (or auth if not logged in)
   if (pathname === "/") {
     return NextResponse.redirect(
       new URL(username ? "/welcome" : "/auth", request.url)
@@ -25,9 +25,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth", request.url));
   }
 
+  // Guard the game — must be authenticated to play
+  if (pathname.startsWith("/play") && !username) {
+    return NextResponse.redirect(new URL("/auth", request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/", "/auth", "/welcome/:path*"],
+  matcher: ["/", "/auth", "/welcome/:path*", "/play/:path*", "/play"],
 };

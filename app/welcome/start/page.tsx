@@ -26,13 +26,13 @@ export default function StartPage() {
             <MenuButton
               icon="📖"
               label="Tutorial"
-              href="/"
+              href="/play"
               description="Learn the ropes — recommended for new players"
             />
             <MenuButton
               icon="🗺️"
               label="New Game"
-              href="/"
+              href="/play"
               description="Begin your adventure from the start"
             />
             <MenuButton
