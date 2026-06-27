@@ -4,6 +4,7 @@ export interface TutorialInteractions {
   wardrobe: () => void;
   dresser:  () => void;
   door:     () => void;
+  bed:      () => void;
 }
 
 export function createInteractions(onDialog: DialogFn): TutorialInteractions {
@@ -14,5 +15,7 @@ export function createInteractions(onDialog: DialogFn): TutorialInteractions {
       onDialog("A hairbrush, some keys, and a carrot snack. Better not forget those!"),
     door: () =>
       onDialog("This door leads to the living room. Almost ready for the day!"),
+    bed: () =>
+      onDialog("Mr. Bunny yawns... maybe just five more minutes? 😴"),
   };
 }

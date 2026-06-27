@@ -7,6 +7,8 @@ import { createWalls } from "./objects/Walls";
 import { createWardrobe } from "./objects/Wardrobe";
 import { createDresser } from "./objects/Dresser";
 import { createRoomDoor } from "./objects/RoomDoor";
+import { createBed } from "./objects/Bed";
+import { createWindows } from "./objects/Windows";
 import { createInteractions } from "./data/interactions";
 import { BOUNDS } from "./data/layout";
 
@@ -14,11 +16,12 @@ export class TutorialScene extends BaseScene {
   readonly id    = "tutorial";
   readonly label = "Mr. Bunny's Room";
 
-  private mrBunny!:       MrBunny;
-  private interactables:  InteractableObject[] = [];
-  private floor!:         THREE.Mesh;
-  private walls:          THREE.Mesh[] = [];
-  private lights:         THREE.Light[] = [];
+  private mrBunny!:      MrBunny;
+  private interactables: InteractableObject[] = [];
+  private floor!:        THREE.Mesh;
+  private walls:         THREE.Mesh[]   = [];
+  private windows:       THREE.Group[]  = [];
+  private lights:        THREE.Light[]  = [];
 
   private progressFn: (p: number) => void = () => {};
   private dialogFn:   (m: string) => void = () => {};
@@ -27,18 +30,22 @@ export class TutorialScene extends BaseScene {
   onDialog(fn:   (m: string) => void): void { this.dialogFn   = fn; }
 
   async setup(scene: THREE.Scene): Promise<void> {
-    scene.background = new THREE.Color(0xE8D0A8); // warm ceiling/sky fill
+    scene.background = new THREE.Color(0xE8D0A8);
 
     this.progressFn(10);
     this.setupLighting(scene);
 
-    this.progressFn(30);
+    this.progressFn(25);
     this.floor = createFloor();
     scene.add(this.floor);
 
-    this.progressFn(50);
+    this.progressFn(40);
     this.walls = createWalls();
     this.walls.forEach((w) => scene.add(w));
+
+    this.progressFn(55);
+    this.windows = createWindows();
+    this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
     const interactions = createInteractions(this.dialogFn);
@@ -46,6 +53,7 @@ export class TutorialScene extends BaseScene {
       createWardrobe(interactions.wardrobe),
       createDresser(interactions.dresser),
       createRoomDoor(interactions.door),
+      createBed(interactions.bed),
     ];
     this.interactables.forEach((obj) => obj.addToScene(scene));
 
@@ -60,15 +68,19 @@ export class TutorialScene extends BaseScene {
     this.mrBunny?.update(delta);
   }
 
-  /** Meshes the raycaster should test each click */
   getCastTargets(): THREE.Object3D[] {
     return [this.floor, ...this.interactables.map((i) => i.mesh)];
+  }
+
+  onHoverChange(obj: THREE.Object3D | null): void {
+    for (const interactable of this.interactables) {
+      interactable.setHovered(obj !== null && interactable.mesh === obj);
+    }
   }
 
   handleClick(hit: THREE.Intersection): void {
     if (this.mrBunny.isMoving) return;
 
-    // Walk up the hierarchy — child meshes (door panel, knob) pass clicks to parent
     let obj: THREE.Object3D | null = hit.object;
     while (obj && !obj.userData.interactable && !obj.userData.isFloor) {
       obj = obj.parent;
@@ -81,7 +93,6 @@ export class TutorialScene extends BaseScene {
       this.mrBunny.walkTo(target);
 
     } else if (obj?.userData.interactable) {
-      // Walk toward the object, then trigger interaction on arrival
       const objPos   = obj.position.clone();
       const toCenter = new THREE.Vector3().sub(objPos);
       toCenter.y = 0;
@@ -93,12 +104,6 @@ export class TutorialScene extends BaseScene {
       this.mrBunny.walkTo(standPos, () => {
         obj!.userData.onInteract?.();
       });
-    }
-  }
-
-  onHoverChange(obj: THREE.Object3D | null): void {
-    for (const interactable of this.interactables) {
-      interactable.setHovered(obj !== null && interactable.mesh === obj);
     }
   }
 
@@ -114,6 +119,18 @@ export class TutorialScene extends BaseScene {
     this.walls.forEach((w) => {
       w.geometry.dispose();
       (w.material as THREE.Material).dispose();
+    });
+
+    this.windows.forEach((group) => {
+      group.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          (Array.isArray(child.material)
+            ? child.material
+            : [child.material as THREE.Material]
+          ).forEach((m) => m.dispose());
+        }
+      });
     });
 
     this.interactables.forEach((i) => i.dispose());
