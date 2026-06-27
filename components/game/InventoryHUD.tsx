@@ -8,10 +8,10 @@ import type { EquippedItems } from "@/hooks/useInventory";
 type Tab = "all" | "outerwear" | "top" | "bottom";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "all",      label: "All"       },
+  { id: "all",       label: "All"       },
   { id: "outerwear", label: "Outerwear" },
-  { id: "top",      label: "Tops"      },
-  { id: "bottom",   label: "Bottoms"   },
+  { id: "top",       label: "Tops"      },
+  { id: "bottom",    label: "Bottoms"   },
 ];
 
 const ALL_ITEMS: InventoryItem[] = [...WARDROBE_ITEMS, ...DRESSER_ITEMS];
@@ -22,13 +22,17 @@ const CATEGORY_LABELS: Record<ItemCategory, string> = {
   bottom:    "Bottoms",
 };
 
+const CATEGORY_SOURCE: Record<ItemCategory, string> = {
+  outerwear: "wardrobe",
+  top:       "dresser",
+  bottom:    "dresser",
+};
+
 interface Props {
-  equipped:  EquippedItems;
-  onEquip:   (item: InventoryItem) => void;
-  onUnequip: (category: ItemCategory) => void;
+  equipped: EquippedItems;
 }
 
-export function InventoryHUD({ equipped, onEquip, onUnequip }: Props) {
+export function InventoryHUD({ equipped }: Props) {
   const [isOpen,    setIsOpen]    = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("all");
 
@@ -37,16 +41,10 @@ export function InventoryHUD({ equipped, onEquip, onUnequip }: Props) {
 
   const isEquipped = (item: InventoryItem) => equipped[item.category]?.id === item.id;
 
-  function handleItem(item: InventoryItem) {
-    if (isEquipped(item)) onUnequip(item.category);
-    else onEquip(item);
-  }
-
   const filteredItems = activeTab === "all"
     ? ALL_ITEMS
     : ALL_ITEMS.filter((i) => i.category === activeTab);
 
-  // Group items by category for the "All" tab
   const grouped: Record<ItemCategory, InventoryItem[]> = {
     outerwear: filteredItems.filter((i) => i.category === "outerwear"),
     top:       filteredItems.filter((i) => i.category === "top"),
@@ -117,7 +115,7 @@ export function InventoryHUD({ equipped, onEquip, onUnequip }: Props) {
                           {equipped[cat]!.emoji}
                         </span>
                       ))
-                  : <span className="text-white/20 text-sm italic">Nothing yet!</span>
+                  : <span className="text-white/20 text-sm italic">Visit the wardrobe or dresser to get dressed!</span>
                 }
               </div>
             </div>
@@ -139,8 +137,8 @@ export function InventoryHUD({ equipped, onEquip, onUnequip }: Props) {
               ))}
             </div>
 
-            {/* Scrollable item grid */}
-            <div className="overflow-y-auto px-8 pb-8">
+            {/* Scrollable item grid — read only, visit source to change */}
+            <div className="overflow-y-auto px-8 pb-6">
               {categoriesToShow.map((cat) => {
                 const items = grouped[cat];
                 if (items.length === 0) return null;
@@ -155,31 +153,36 @@ export function InventoryHUD({ equipped, onEquip, onUnequip }: Props) {
                       {items.map((item) => {
                         const active = isEquipped(item);
                         return (
-                          <button
+                          <div
                             key={item.id}
-                            onClick={() => handleItem(item)}
-                            className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all min-h-[44px] ${
+                            className={`flex flex-col items-center gap-1 p-3 rounded-2xl border select-none ${
                               active
                                 ? "bg-summer-coral/25 border-summer-coral/70 text-white"
-                                : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/25"
+                                : "bg-white/5 border-white/10 text-white/40"
                             }`}
                           >
                             <span className="text-2xl leading-none">{item.emoji}</span>
                             <span className="text-xs text-center leading-tight mt-1">
                               {item.name}
                             </span>
-                            {active && (
-                              <span className="text-[10px] text-summer-coral font-bold uppercase tracking-wider">
-                                On
-                              </span>
-                            )}
-                          </button>
+                            {active
+                              ? <span className="text-[10px] text-summer-coral font-bold uppercase tracking-wider">On</span>
+                              : <span className="text-[10px] text-white/20 uppercase tracking-wider">{CATEGORY_SOURCE[cat]}</span>
+                            }
+                          </div>
                         );
                       })}
                     </div>
                   </div>
                 );
               })}
+            </div>
+
+            {/* Hint footer */}
+            <div className="px-8 pb-8 shrink-0">
+              <p className="text-white/25 text-xs text-center italic">
+                Visit the wardrobe or dresser to change clothes
+              </p>
             </div>
           </div>
         </div>

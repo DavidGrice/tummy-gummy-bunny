@@ -64,11 +64,7 @@ export function GameCanvas() {
       )}
 
       {showHUD && (
-        <InventoryHUD
-          equipped={equipped}
-          onEquip={equip}
-          onUnequip={unequip}
-        />
+        <InventoryHUD equipped={equipped} />
       )}
     </div>
   );
