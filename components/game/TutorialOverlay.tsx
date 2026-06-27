@@ -20,8 +20,6 @@ const STEPS = [
   },
 ] as const;
 
-const NEXT_DELAY_MS = 2500;
-
 interface TutorialOverlayProps {
   onDismiss: (doNotShowAgain: boolean) => void;
 }
@@ -29,16 +27,20 @@ interface TutorialOverlayProps {
 export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
   const [stepIndex,  setStepIndex]  = useState(0);
   const [canAdvance, setCanAdvance] = useState(false);
+  const [countdown,  setCountdown]  = useState(3);
   const [doNotShow,  setDoNotShow]  = useState(false);
 
   const step   = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
 
-  // Lock the Next/Got It button for NEXT_DELAY_MS on every step change
+  // 3-2-1 countdown, then unlock the button
   useEffect(() => {
     setCanAdvance(false);
-    const id = setTimeout(() => setCanAdvance(true), NEXT_DELAY_MS);
-    return () => clearTimeout(id);
+    setCountdown(3);
+    const t1 = setTimeout(() => setCountdown(2), 1000);
+    const t2 = setTimeout(() => setCountdown(1), 2000);
+    const t3 = setTimeout(() => setCanAdvance(true), 3000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [stepIndex]);
 
   function advance() {
@@ -55,7 +57,7 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
       {/* Backdrop — darkens game, blocks all clicks while overlay is visible */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Hint card — same glassmorphic style as nav cards */}
+      {/* Hint card — glassmorphic style matching nav cards */}
       <div className="relative z-10 w-full max-w-sm mx-4 rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-8 py-10 flex flex-col items-center">
 
         {/* Step progress dots */}
@@ -98,19 +100,21 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
           </label>
         )}
 
-        {/* Action button — locked for NEXT_DELAY_MS after each step change */}
+        {/* Action button — shows countdown then unlocks */}
         <button
           onClick={advance}
           disabled={!canAdvance}
           className={`w-full py-3 rounded-2xl font-black uppercase tracking-widest text-sm transition-all duration-300 min-h-[44px] ${
             canAdvance
               ? "bg-summer-coral text-white hover:brightness-110 active:scale-95 shadow-summer-sm"
-              : "bg-white/8 text-white/20 cursor-not-allowed"
+              : "bg-white/8 text-white/30 cursor-not-allowed"
           }`}
         >
-          {canAdvance
-            ? isLast ? "Got it!" : "Next →"
-            : "Read first…"}
+          {canAdvance ? (
+            isLast ? "Got it!" : "Next →"
+          ) : (
+            <span className="text-2xl leading-none tabular-nums">{countdown}</span>
+          )}
         </button>
 
       </div>
