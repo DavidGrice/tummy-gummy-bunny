@@ -35,8 +35,8 @@ function ToggleRow({
         }`}
       >
         <span
-          className={`absolute top-1 w-4 h-4 rounded-full bg-summer-cream shadow transition-transform duration-300 ${
-            enabled ? "translate-x-7" : "translate-x-1"
+          className={`absolute top-1 w-4 h-4 rounded-full bg-summer-cream shadow transition-all duration-300 ${
+            enabled ? "left-7" : "left-1"
           }`}
         />
       </button>
