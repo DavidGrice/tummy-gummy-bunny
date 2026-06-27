@@ -1,4 +1,6 @@
-export type DialogFn = (message: string) => void;
+export type DialogFn    = (message: string) => void;
+export type InventorySource = "wardrobe" | "dresser";
+export type InventoryFn = (source: InventorySource) => void;
 
 export interface TutorialInteractions {
   wardrobe: () => void;
@@ -7,15 +9,14 @@ export interface TutorialInteractions {
   bed:      () => void;
 }
 
-export function createInteractions(onDialog: DialogFn): TutorialInteractions {
+export function createInteractions(
+  onDialog:    DialogFn,
+  onInventory: InventoryFn,
+): TutorialInteractions {
   return {
-    wardrobe: () =>
-      onDialog("Mr. Bunny opens the wardrobe... so many outfits to choose from! 🐰"),
-    dresser: () =>
-      onDialog("A hairbrush, some keys, and a carrot snack. Better not forget those!"),
-    door: () =>
-      onDialog("This door leads to the living room. Almost ready for the day!"),
-    bed: () =>
-      onDialog("Mr. Bunny yawns... maybe just five more minutes? 😴"),
+    wardrobe: () => onInventory("wardrobe"),
+    dresser:  () => onInventory("dresser"),
+    door:     () => onDialog("This door leads to the living room. Almost ready for the day!"),
+    bed:      () => onDialog("Mr. Bunny yawns... maybe just five more minutes? 😴"),
   };
 }

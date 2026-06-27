@@ -10,6 +10,7 @@ import { createRoomDoor } from "./objects/RoomDoor";
 import { createBed } from "./objects/Bed";
 import { createWindows } from "./objects/Windows";
 import { createInteractions } from "./data/interactions";
+import type { InventorySource } from "./data/interactions";
 import { BOUNDS } from "./data/layout";
 
 export class TutorialScene extends BaseScene {
@@ -23,11 +24,13 @@ export class TutorialScene extends BaseScene {
   private windows:       THREE.Group[]  = [];
   private lights:        THREE.Light[]  = [];
 
-  private progressFn: (p: number) => void = () => {};
-  private dialogFn:   (m: string) => void = () => {};
+  private progressFn:  (p: number)           => void = () => {};
+  private dialogFn:    (m: string)           => void = () => {};
+  private inventoryFn: (src: InventorySource) => void = () => {};
 
-  onProgress(fn: (p: number) => void): void { this.progressFn = fn; }
-  onDialog(fn:   (m: string) => void): void { this.dialogFn   = fn; }
+  onProgress(fn: (p: number)            => void): void { this.progressFn  = fn; }
+  onDialog(fn:   (m: string)            => void): void { this.dialogFn    = fn; }
+  onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
 
   async setup(scene: THREE.Scene): Promise<void> {
     scene.background = new THREE.Color(0xE8D0A8);
@@ -48,7 +51,7 @@ export class TutorialScene extends BaseScene {
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
-    const interactions = createInteractions(this.dialogFn);
+    const interactions = createInteractions(this.dialogFn, this.inventoryFn);
     this.interactables = [
       createWardrobe(interactions.wardrobe),
       createDresser(interactions.dresser),

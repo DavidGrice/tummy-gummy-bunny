@@ -2,14 +2,23 @@
 
 import { useRef, useState } from "react";
 import { useGame } from "@/hooks/useGame";
+import { useInventory } from "@/hooks/useInventory";
 import { LoadingScreen } from "./LoadingScreen";
 import { DialogBox } from "./DialogBox";
 import { TutorialOverlay } from "./TutorialOverlay";
+import { InventoryPanel } from "./InventoryPanel";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { isLoading, loadProgress, dialog, dismissDialog } = useGame(canvasRef);
+
+  const {
+    isLoading, loadProgress,
+    dialog, dismissDialog,
+    inventorySource, dismissInventory,
+  } = useGame(canvasRef);
+
+  const { equipped, equip, unequip } = useInventory();
 
   // Tutorial overlay — check localStorage on first render (client-only)
   const [tutorialDismissed, setTutorialDismissed] = useState(() => {
@@ -22,7 +31,9 @@ export function GameCanvas() {
     setTutorialDismissed(true);
   }
 
-  const showTutorial = !isLoading && !tutorialDismissed;
+  const showTutorial   = !isLoading && !tutorialDismissed;
+  const showInventory  = !isLoading && !showTutorial && inventorySource !== null;
+  const showDialog     = !isLoading && !showTutorial && !showInventory && dialog !== null;
 
   return (
     <div className={styles.wrapper}>
@@ -34,8 +45,18 @@ export function GameCanvas() {
         <TutorialOverlay onDismiss={handleTutorialDismiss} />
       )}
 
-      {dialog && !showTutorial && (
-        <DialogBox message={dialog} onDismiss={dismissDialog} />
+      {showInventory && (
+        <InventoryPanel
+          source={inventorySource!}
+          equipped={equipped}
+          onEquip={equip}
+          onUnequip={unequip}
+          onClose={dismissInventory}
+        />
+      )}
+
+      {showDialog && (
+        <DialogBox message={dialog!} onDismiss={dismissDialog} />
       )}
     </div>
   );

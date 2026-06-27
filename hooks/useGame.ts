@@ -10,21 +10,27 @@ import { InputManager } from "@/engine/input/InputManager";
 import { Raycaster } from "@/engine/interaction/Raycaster";
 import { TutorialScene } from "@/scenes/tutorial/TutorialScene";
 
+export type InventorySource = "wardrobe" | "dresser";
+
 export interface UseGameResult {
-  isLoading:     boolean;
-  loadProgress:  number;
-  dialog:        string | null;
-  dismissDialog: () => void;
+  isLoading:        boolean;
+  loadProgress:     number;
+  dialog:           string | null;
+  dismissDialog:    () => void;
+  inventorySource:  InventorySource | null;
+  dismissInventory: () => void;
 }
 
 export function useGame(
   canvasRef: React.RefObject<HTMLCanvasElement | null>
 ): UseGameResult {
-  const [isLoading,    setIsLoading]    = useState(true);
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [dialog,       setDialog]       = useState<string | null>(null);
+  const [isLoading,       setIsLoading]       = useState(true);
+  const [loadProgress,    setLoadProgress]    = useState(0);
+  const [dialog,          setDialog]          = useState<string | null>(null);
+  const [inventorySource, setInventorySource] = useState<InventorySource | null>(null);
 
-  const dismissDialog = useCallback(() => setDialog(null), []);
+  const dismissDialog    = useCallback(() => setDialog(null), []);
+  const dismissInventory = useCallback(() => setInventorySource(null), []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -45,8 +51,9 @@ export function useGame(
 
     const scene = new TutorialScene();
 
-    scene.onProgress((p) => { if (mounted) setLoadProgress(p); });
-    scene.onDialog((msg)  => { if (mounted) setDialog(msg); });
+    scene.onProgress((p)   => { if (mounted) setLoadProgress(p); });
+    scene.onDialog((msg)   => { if (mounted) setDialog(msg); });
+    scene.onInventory((src) => { if (mounted) setInventorySource(src); });
 
     (async () => {
       try {
@@ -117,5 +124,5 @@ export function useGame(
     };
   }, [canvasRef]);
 
-  return { isLoading, loadProgress, dialog, dismissDialog };
+  return { isLoading, loadProgress, dialog, dismissDialog, inventorySource, dismissInventory };
 }
