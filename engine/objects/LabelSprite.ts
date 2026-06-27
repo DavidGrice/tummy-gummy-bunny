@@ -27,11 +27,16 @@ export class LabelSprite {
     ctx.textAlign     = "center";
     ctx.textBaseline  = "middle";
 
-    // Pill background
+    // Pill background — manual arc path for broad browser compatibility
     const r = canvas.height / 2;
     ctx.fillStyle = "rgba(20, 10, 0, 0.82)";
     ctx.beginPath();
-    ctx.roundRect(0, 0, canvas.width, canvas.height, r);
+    ctx.moveTo(r, 0);
+    ctx.arcTo(canvas.width, 0, canvas.width, canvas.height, r);
+    ctx.arcTo(canvas.width, canvas.height, 0, canvas.height, r);
+    ctx.arcTo(0, canvas.height, 0, 0, r);
+    ctx.arcTo(0, 0, canvas.width, 0, r);
+    ctx.closePath();
     ctx.fill();
 
     // Label text

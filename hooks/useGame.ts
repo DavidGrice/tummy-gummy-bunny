@@ -50,15 +50,20 @@ export function useGame(
 
     // Load scene async, then start the loop
     (async () => {
-      await sceneManager.load(scene);
-      scene.setupCamera?.(camera.instance);
+      try {
+        await sceneManager.load(scene);
+        scene.setupCamera?.(camera.instance);
 
-      // Minimum display time so loading screen is actually visible
-      await new Promise<void>((r) => setTimeout(r, 700));
+        // Minimum display time so loading screen is actually visible
+        await new Promise<void>((r) => setTimeout(r, 700));
 
-      if (mounted) {
-        setIsLoading(false);
-        loop.start();
+        if (mounted) {
+          setIsLoading(false);
+          loop.start();
+        }
+      } catch (err) {
+        // Surface as a proper Error so Next.js devtools shows a readable message
+        console.error("[TGB] Scene failed to load:", err);
       }
     })();
 
