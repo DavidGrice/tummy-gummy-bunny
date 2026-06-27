@@ -7,6 +7,7 @@ import { LoadingScreen } from "./LoadingScreen";
 import { DialogBox } from "./DialogBox";
 import { TutorialOverlay } from "./TutorialOverlay";
 import { InventoryPanel } from "./InventoryPanel";
+import { InventoryHUD } from "./InventoryHUD";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
@@ -31,9 +32,12 @@ export function GameCanvas() {
     setTutorialDismissed(true);
   }
 
-  const showTutorial   = !isLoading && !tutorialDismissed;
-  const showInventory  = !isLoading && !showTutorial && inventorySource !== null;
-  const showDialog     = !isLoading && !showTutorial && !showInventory && dialog !== null;
+  const showTutorial  = !isLoading && !tutorialDismissed;
+  const showInventory = !isLoading && !showTutorial && inventorySource !== null;
+  const showDialog    = !isLoading && !showTutorial && !showInventory && dialog !== null;
+
+  // FAB is only visible when the game is playable and no other overlay is blocking
+  const showHUD = !isLoading && !showTutorial && !showInventory;
 
   return (
     <div className={styles.wrapper}>
@@ -57,6 +61,14 @@ export function GameCanvas() {
 
       {showDialog && (
         <DialogBox message={dialog!} onDismiss={dismissDialog} />
+      )}
+
+      {showHUD && (
+        <InventoryHUD
+          equipped={equipped}
+          onEquip={equip}
+          onUnequip={unequip}
+        />
       )}
     </div>
   );
