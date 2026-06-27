@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════ */
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* No background-color here — page-level gradient wrappers own the bg.
+     Setting a body background would bleed through if a wrapper is short. */
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — Summer Evening Palette
+   Keep values in sync with config/theme.config.ts
+   Access anywhere in CSS as var(--color-coral), etc.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Dark anchors */
+  --color-char:   #180A00;
+  --color-soil:   #3D1C09;
+  --color-ember:  #BF3F1E;
+
+  /* Mid-range */
+  --color-coral:  #E8604A;
+  --color-bark:   #8B5A3C;
+
+  /* Light */
+  --color-sandy:  #F4923A;
+  --color-peach:  #F7B97A;
+  --color-gold:   #FFCF47;
+  --color-cream:  #FFF5E6;
+
+  /* Semantic */
+  --color-error:  #8B1A1A;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TYPOGRAPHY BASELINE
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Prevent iOS Safari viewport zoom when an input is focused.
+   Safari zooms in whenever font-size < 16px. This ensures every
+   native input element meets the threshold globally.
+   TODO (mobile): verify this doesn't break any designed font sizes. */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Credits page: content scrolls from its starting position to fully off-screen top */
+@keyframes credits-roll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-100%); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — see styles/MOBILE_TODO.md for full responsive checklist
+   Viewport targets: 375px | 390px | 768px
+   ═══════════════════════════════════════════════════════════════ */
