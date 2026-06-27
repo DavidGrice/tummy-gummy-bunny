@@ -29,6 +29,10 @@ export class InteractableObject {
     this.mesh.add(this.label.sprite);
   }
 
+  setHovered(hovered: boolean): void {
+    this.label.setHovered(hovered);
+  }
+
   addToScene(scene: THREE.Scene): void {
     scene.add(this.mesh);
   }

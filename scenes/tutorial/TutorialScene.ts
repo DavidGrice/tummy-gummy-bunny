@@ -96,6 +96,12 @@ export class TutorialScene extends BaseScene {
     }
   }
 
+  onHoverChange(obj: THREE.Object3D | null): void {
+    for (const interactable of this.interactables) {
+      interactable.setHovered(obj !== null && interactable.mesh === obj);
+    }
+  }
+
   setupCamera(camera: THREE.PerspectiveCamera): void {
     camera.position.set(0, 8, 8);
     camera.lookAt(0, 0, 0);

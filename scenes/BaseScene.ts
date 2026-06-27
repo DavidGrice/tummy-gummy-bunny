@@ -21,4 +21,7 @@ export abstract class BaseScene {
 
   /** Optional: position the camera when this scene loads */
   setupCamera?(camera: THREE.PerspectiveCamera): void;
+
+  /** Optional: called each pointermove with the currently-hovered interactable root, or null */
+  onHoverChange?(object: THREE.Object3D | null): void;
 }

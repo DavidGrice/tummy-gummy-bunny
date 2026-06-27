@@ -1,18 +1,40 @@
 import * as THREE from "three";
 
 interface LabelSpriteOptions {
-  text:     string;
+  text:      string;
   fontSize?: number;
-  padX?:    number;
-  padY?:    number;
+  padX?:     number;
+  padY?:     number;
 }
 
 export class LabelSprite {
-  readonly sprite:  THREE.Sprite;
-  private texture:  THREE.CanvasTexture;
-  private material: THREE.SpriteMaterial;
+  readonly sprite:      THREE.Sprite;
+  private material:     THREE.SpriteMaterial;
+  private normalTex:    THREE.CanvasTexture;
+  private hoveredTex:   THREE.CanvasTexture;
 
   constructor({ text, fontSize = 22, padX = 20, padY = 11 }: LabelSpriteOptions) {
+    this.normalTex  = this.buildTexture(text, fontSize, padX, padY, "rgba(20, 10, 0, 0.82)", "#FFF5E6");
+    this.hoveredTex = this.buildTexture(text, fontSize, padX, padY, "rgba(180, 55, 20, 0.95)", "#FFFFFF");
+
+    this.material = new THREE.SpriteMaterial({
+      map:         this.normalTex,
+      transparent: true,
+      depthTest:   false, // always renders on top of geometry
+    });
+    this.sprite = new THREE.Sprite(this.material);
+
+    const aspect = this.normalTex.image.width / this.normalTex.image.height;
+    this.sprite.scale.set(aspect * 0.55, 0.55, 1);
+
+    // Exclude from raycasting — clicks should hit the mesh, not the label
+    this.sprite.raycast = () => undefined;
+  }
+
+  private buildTexture(
+    text: string, fontSize: number, padX: number, padY: number,
+    bgColor: string, textColor: string
+  ): THREE.CanvasTexture {
     const canvas = document.createElement("canvas");
     const ctx    = canvas.getContext("2d")!;
 
@@ -23,13 +45,13 @@ export class LabelSprite {
     canvas.height = Math.ceil(fontSize + padY * 2);
 
     // Re-set font — canvas resize resets state
-    ctx.font          = `bold ${fontSize}px Arial`;
-    ctx.textAlign     = "center";
-    ctx.textBaseline  = "middle";
+    ctx.font         = `bold ${fontSize}px Arial`;
+    ctx.textAlign    = "center";
+    ctx.textBaseline = "middle";
 
-    // Pill background — manual arc path for broad browser compatibility
+    // Pill background — manual arcTo path for broad browser compatibility
     const r = canvas.height / 2;
-    ctx.fillStyle = "rgba(20, 10, 0, 0.82)";
+    ctx.fillStyle = bgColor;
     ctx.beginPath();
     ctx.moveTo(r, 0);
     ctx.arcTo(canvas.width, 0, canvas.width, canvas.height, r);
@@ -39,24 +61,16 @@ export class LabelSprite {
     ctx.closePath();
     ctx.fill();
 
-    // Label text
-    ctx.fillStyle = "#FFF5E6";
+    ctx.fillStyle = textColor;
     ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-    this.texture  = new THREE.CanvasTexture(canvas);
-    this.material = new THREE.SpriteMaterial({
-      map:         this.texture,
-      transparent: true,
-      depthTest:   false, // always renders on top of geometry
-    });
-    this.sprite = new THREE.Sprite(this.material);
+    return new THREE.CanvasTexture(canvas);
+  }
 
-    // Scale to consistent world-space width (~0.9 units)
-    const aspect = canvas.width / canvas.height;
-    this.sprite.scale.set(aspect * 0.55, 0.55, 1);
-
-    // Exclude from raycasting — clicks should hit the mesh, not the label
-    this.sprite.raycast = () => undefined;
+  /** Switch between normal (dark pill) and hovered (coral pill) appearance */
+  setHovered(hovered: boolean): void {
+    this.material.map = hovered ? this.hoveredTex : this.normalTex;
+    this.material.needsUpdate = true;
   }
 
   setVisible(visible: boolean): void {
@@ -64,7 +78,8 @@ export class LabelSprite {
   }
 
   dispose(): void {
-    this.texture.dispose();
+    this.normalTex.dispose();
+    this.hoveredTex.dispose();
     this.material.dispose();
   }
 }

@@ -59,7 +59,7 @@ export function useGame(
 
         if (!mounted) return;
 
-        // Hover: outline interactable objects and change cursor
+        // Hover: outline objects, flip label pill color, change cursor
         input.onHover((pointer) => {
           const hoverTargets = scene.getCastTargets().filter(
             (o) => !o.userData.isFloor
@@ -70,9 +70,11 @@ export function useGame(
             let obj: THREE.Object3D | null = hit.object;
             while (obj && !obj.userData.interactable) obj = obj.parent;
             renderer.setHoveredObjects(obj ? [obj] : []);
+            scene.onHoverChange?.(obj);
             canvas.style.cursor = obj ? "pointer" : "default";
           } else {
             renderer.setHoveredObjects([]);
+            scene.onHoverChange?.(null);
             canvas.style.cursor = "default";
           }
         });
