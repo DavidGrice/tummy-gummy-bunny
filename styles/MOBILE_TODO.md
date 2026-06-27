@@ -52,6 +52,16 @@
 
 ---
 
+## 🔲 Game Canvas (Touch / Mobile)
+
+- [ ] **Touch-action**: add `touch-action: none` on the canvas element so touch drags don't scroll the page while playing
+- [ ] **Tap vs drag**: `InputManager` uses `pointerdown` which fires on tap — but a swipe also fires it. Track `pointermove` delta and suppress click if pointer moved more than ~8px between down and up
+- [ ] **Multi-touch**: prevent pinch-to-zoom triggering movement — listen for `e.touches.length > 1` and bail early
+- [ ] **Hover on mobile**: `OutlinePass` highlights are driven by `pointermove` which doesn't fire on touch screens. On mobile, the outline should appear on tap (object is already selected when the click fires, so this is a no-op for now)
+- [ ] **iOS Safari pointer events**: Pointer Events API is complete on iOS 13+ but gesture behaviour (pan, zoom) can interfere — test on physical device
+
+---
+
 ## 🔲 Global
 
 - [ ] Audit all `text-xs` labels — ensure readable at default mobile font scale

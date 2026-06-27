@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { useCallback, useEffect, useState } from "react";
 import { Loop } from "@/engine/core/Loop";
 import { Renderer } from "@/engine/core/Renderer";
 import { Camera } from "@/engine/core/Camera";
@@ -44,25 +45,41 @@ export function useGame(
 
     const scene = new TutorialScene();
 
-    // Wire scene callbacks — guard with `mounted` to avoid state updates after unmount
     scene.onProgress((p) => { if (mounted) setLoadProgress(p); });
     scene.onDialog((msg)  => { if (mounted) setDialog(msg); });
 
-    // Load scene async, then start the loop
     (async () => {
       try {
         await sceneManager.load(scene);
         scene.setupCamera?.(camera.instance);
+        renderer.setup(sceneManager.instance, camera.instance, width, height);
 
-        // Minimum display time so loading screen is actually visible
+        // Minimum display time so the loading screen is actually visible
         await new Promise<void>((r) => setTimeout(r, 700));
 
-        if (mounted) {
-          setIsLoading(false);
-          loop.start();
-        }
+        if (!mounted) return;
+
+        // Hover: outline interactable objects and change cursor
+        input.onHover((pointer) => {
+          const hoverTargets = scene.getCastTargets().filter(
+            (o) => !o.userData.isFloor
+          );
+          const hit = raycaster.castFirst(pointer, camera.instance, hoverTargets);
+          if (hit) {
+            // Walk up to interactable root — handles child meshes (door panel/knob etc.)
+            let obj: THREE.Object3D | null = hit.object;
+            while (obj && !obj.userData.interactable) obj = obj.parent;
+            renderer.setHoveredObjects(obj ? [obj] : []);
+            canvas.style.cursor = obj ? "pointer" : "default";
+          } else {
+            renderer.setHoveredObjects([]);
+            canvas.style.cursor = "default";
+          }
+        });
+
+        setIsLoading(false);
+        loop.start();
       } catch (err) {
-        // Surface as a proper Error so Next.js devtools shows a readable message
         console.error("[TGB] Scene failed to load:", err);
       }
     })();
@@ -89,6 +106,7 @@ export function useGame(
 
     return () => {
       mounted = false;
+      canvas.style.cursor = "default";
       loop.stop();
       input.dispose();
       renderer.dispose();

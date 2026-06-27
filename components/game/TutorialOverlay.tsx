@@ -1,86 +1,119 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const STEPS = [
+  {
+    title: "Moving",
+    icon:  "🐾",
+    body:  "Click anywhere on the floor to walk Mr. Bunny to that spot.",
+  },
+  {
+    title: "Interacting",
+    icon:  "✨",
+    body:  "Click a labelled object — Mr. Bunny will walk over and interact with it automatically.",
+  },
+  {
+    title: "Patience",
+    icon:  "⏳",
+    body:  "Mr. Bunny must come to a complete stop before you can move him again.",
+  },
+] as const;
+
+const NEXT_DELAY_MS = 2500;
 
 interface TutorialOverlayProps {
   onDismiss: (doNotShowAgain: boolean) => void;
 }
 
-interface HintProps {
-  title:    string;
-  body:     string;
-  arrow?:   string; // Unicode arrow pointing toward the relevant area
-  className?: string;
-}
-
-function Hint({ title, body, arrow, className = "" }: HintProps) {
-  return (
-    <div className={`pointer-events-auto ${className}`}>
-      <div className="bg-gray-900/92 backdrop-blur-md rounded-2xl border border-white/10 p-4 max-w-[200px] shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-        <p className="text-summer-gold text-[10px] font-black uppercase tracking-widest mb-1">
-          {title}
-        </p>
-        <p className="text-summer-cream/80 text-xs leading-relaxed">{body}</p>
-      </div>
-      {arrow && (
-        <p className="text-summer-cream/70 text-2xl text-center mt-1 select-none">{arrow}</p>
-      )}
-    </div>
-  );
-}
-
 export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
-  const [doNotShow, setDoNotShow] = useState(false);
+  const [stepIndex,  setStepIndex]  = useState(0);
+  const [canAdvance, setCanAdvance] = useState(false);
+  const [doNotShow,  setDoNotShow]  = useState(false);
+
+  const step   = STEPS[stepIndex];
+  const isLast = stepIndex === STEPS.length - 1;
+
+  // Lock the Next/Got It button for NEXT_DELAY_MS on every step change
+  useEffect(() => {
+    setCanAdvance(false);
+    const id = setTimeout(() => setCanAdvance(true), NEXT_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [stepIndex]);
+
+  function advance() {
+    if (isLast) {
+      onDismiss(doNotShow);
+    } else {
+      setStepIndex((i) => i + 1);
+    }
+  }
 
   return (
-    <div className="absolute inset-0 z-50">
+    <div className="absolute inset-0 z-50 flex items-center justify-center">
 
-      {/* Darkened backdrop — also blocks game clicks while overlay is up */}
-      <div className="absolute inset-0 bg-black/35" />
+      {/* Backdrop — darkens game, blocks all clicks while overlay is visible */}
+      <div className="absolute inset-0 bg-black/40" />
 
-      {/* Hint: Move */}
-      <Hint
-        title="Move"
-        body="Click anywhere on the floor to walk Mr. Bunny there"
-        arrow="↓"
-        className="absolute bottom-28 left-1/2 -translate-x-1/2 flex flex-col items-center"
-      />
+      {/* Hint card — same glassmorphic style as nav cards */}
+      <div className="relative z-10 w-full max-w-sm mx-4 rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-8 py-10 flex flex-col items-center">
 
-      {/* Hint: Interact */}
-      <Hint
-        title="Interact"
-        body="Click a labelled object to walk up and interact with it"
-        arrow="→"
-        className="absolute top-1/3 left-4"
-      />
+        {/* Step progress dots */}
+        <div className="flex gap-1.5 mb-6">
+          {STEPS.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === stepIndex ? "w-6 bg-summer-coral" : "w-2 bg-white/20"
+              }`}
+            />
+          ))}
+        </div>
 
-      {/* Hint: Patience */}
-      <Hint
-        title="Patience"
-        body="Mr. Bunny must stop walking before you can move him again"
-        className="absolute top-4 right-4"
-      />
+        {/* Icon */}
+        <div className="text-5xl mb-4 select-none" aria-hidden>
+          {step.icon}
+        </div>
 
-      {/* Dismiss controls */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-auto">
+        {/* Title */}
+        <h2 className="text-lg font-black uppercase tracking-widest text-summer-cream mb-3 text-center">
+          {step.title}
+        </h2>
+
+        {/* Body */}
+        <p className="text-summer-cream/70 text-sm leading-relaxed text-center mb-8">
+          {step.body}
+        </p>
+
+        {/* "Do not show again" — only visible on the last step */}
+        {isLast && (
+          <label className="flex items-center gap-2 text-summer-cream/40 text-xs cursor-pointer select-none mb-4">
+            <input
+              type="checkbox"
+              checked={doNotShow}
+              onChange={(e) => setDoNotShow(e.target.checked)}
+              className="rounded accent-summer-coral"
+            />
+            Do not show again
+          </label>
+        )}
+
+        {/* Action button — locked for NEXT_DELAY_MS after each step change */}
         <button
-          onClick={() => onDismiss(doNotShow)}
-          className="px-8 py-3 rounded-2xl bg-summer-coral text-white font-black uppercase tracking-widest text-sm hover:brightness-110 active:scale-95 transition-all duration-150 min-h-[44px] shadow-summer-sm"
+          onClick={advance}
+          disabled={!canAdvance}
+          className={`w-full py-3 rounded-2xl font-black uppercase tracking-widest text-sm transition-all duration-300 min-h-[44px] ${
+            canAdvance
+              ? "bg-summer-coral text-white hover:brightness-110 active:scale-95 shadow-summer-sm"
+              : "bg-white/8 text-white/20 cursor-not-allowed"
+          }`}
         >
-          Got it!
+          {canAdvance
+            ? isLast ? "Got it!" : "Next →"
+            : "Read first…"}
         </button>
 
-        <label className="flex items-center gap-2 text-summer-cream/50 text-xs cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={doNotShow}
-            onChange={(e) => setDoNotShow(e.target.checked)}
-            className="rounded accent-summer-coral"
-          />
-          Do not show again
-        </label>
       </div>
-
     </div>
   );
 }
