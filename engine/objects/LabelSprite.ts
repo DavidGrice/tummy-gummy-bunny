@@ -15,7 +15,7 @@ export class LabelSprite {
 
   constructor({ text, fontSize = 22, padX = 20, padY = 11 }: LabelSpriteOptions) {
     this.normalTex  = this.buildTexture(text, fontSize, padX, padY, "rgba(20, 10, 0, 0.82)", "#FFF5E6");
-    this.hoveredTex = this.buildTexture(text, fontSize, padX, padY, "rgba(180, 55, 20, 0.95)", "#FFFFFF");
+    this.hoveredTex = this.buildTexture(text, fontSize, padX, padY, "rgba(20, 10, 0, 1.0)",   "#FFFFFF");
 
     this.material = new THREE.SpriteMaterial({
       map:         this.normalTex,

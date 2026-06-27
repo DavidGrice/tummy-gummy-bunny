@@ -5,8 +5,8 @@ interface DialogBoxProps {
 
 export function DialogBox({ message, onDismiss }: DialogBoxProps) {
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-40 p-4">
-      <div className="max-w-lg mx-auto bg-gray-900/92 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+    <div className="absolute inset-0 z-40 flex items-center justify-center p-6">
+      <div className="max-w-lg w-full bg-gray-900/92 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex items-center gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
 
         <span className="text-3xl shrink-0 select-none" aria-hidden>🐰</span>
 
