@@ -17,6 +17,11 @@ export default function CreditsPage() {
     <PageShell>
       <div className="min-h-screen overflow-hidden relative flex flex-col">
 
+        {/* Fixed dark backdrop card — sits behind scroll content, gradient visible around edges */}
+        <div aria-hidden className="pointer-events-none fixed inset-y-6 inset-x-4 z-[1] flex justify-center">
+          <div className="w-full max-w-4xl rounded-3xl bg-gray-900/60 backdrop-blur-md border border-white/8" />
+        </div>
+
         {/* Top fade */}
         <div
           className="pointer-events-none fixed top-0 left-0 right-0 h-32 z-10"
