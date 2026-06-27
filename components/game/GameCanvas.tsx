@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useGame } from "@/hooks/useGame";
 import { useInventory } from "@/hooks/useInventory";
 import { getUsername } from "@/lib/cookies";
@@ -19,9 +19,15 @@ export function GameCanvas() {
     isLoading, loadProgress,
     dialog, dismissDialog,
     inventorySource, dismissInventory,
+    setEquipped: pushEquippedToGame,
   } = useGame(canvasRef, playerName);
 
   const { equipped, equip, unequip } = useInventory();
+
+  // Mirror equipped state onto MrBunny in the game scene whenever it changes
+  useEffect(() => {
+    pushEquippedToGame(equipped);
+  }, [equipped, pushEquippedToGame]);
 
   // Tutorial overlay — check localStorage on first render (client-only)
   const [tutorialDismissed, setTutorialDismissed] = useState(() => {

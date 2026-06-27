@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loop } from "@/engine/core/Loop";
 import { Renderer } from "@/engine/core/Renderer";
 import { Camera } from "@/engine/core/Camera";
@@ -9,6 +9,7 @@ import { SceneManager } from "@/engine/core/SceneManager";
 import { InputManager } from "@/engine/input/InputManager";
 import { Raycaster } from "@/engine/interaction/Raycaster";
 import { TutorialScene } from "@/scenes/tutorial/TutorialScene";
+import type { EquippedClothing } from "@/lib/inventory";
 
 export type InventorySource = "wardrobe" | "dresser";
 
@@ -19,6 +20,8 @@ export interface UseGameResult {
   dismissDialog:    () => void;
   inventorySource:  InventorySource | null;
   dismissInventory: () => void;
+  /** Imperatively updates MrBunny's clothing without triggering a re-render. */
+  setEquipped:      (equipped: EquippedClothing) => void;
 }
 
 export function useGame(
@@ -30,8 +33,16 @@ export function useGame(
   const [dialog,          setDialog]          = useState<string | null>(null);
   const [inventorySource, setInventorySource] = useState<InventorySource | null>(null);
 
+  // Stable ref so the callback below never goes stale
+  const sceneRef = useRef<TutorialScene | null>(null);
+
   const dismissDialog    = useCallback(() => setDialog(null), []);
   const dismissInventory = useCallback(() => setInventorySource(null), []);
+
+  /** Stable callback — safe to put in a useEffect dependency array. */
+  const setEquipped = useCallback((equipped: EquippedClothing) => {
+    sceneRef.current?.setCharacterEquipped(equipped);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,6 +62,7 @@ export function useGame(
     renderer.setSize(width, height);
 
     const scene = new TutorialScene();
+    sceneRef.current = scene;
 
     scene.setPlayerName(playerName);
     scene.onProgress((p)    => { if (mounted) setLoadProgress(p); });
@@ -63,19 +75,16 @@ export function useGame(
         scene.setupCamera?.(camera.instance);
         renderer.setup(sceneManager.instance, camera.instance, width, height);
 
-        // Minimum display time so the loading screen is actually visible
         await new Promise<void>((r) => setTimeout(r, 700));
 
         if (!mounted) return;
 
-        // Hover: outline objects, flip label pill color, change cursor
         input.onHover((pointer) => {
           const hoverTargets = scene.getCastTargets().filter(
             (o) => !o.userData.isFloor
           );
           const hit = raycaster.castFirst(pointer, camera.instance, hoverTargets);
           if (hit) {
-            // Walk up to interactable root — handles child meshes (door panel/knob etc.)
             let obj: THREE.Object3D | null = hit.object;
             while (obj && !obj.userData.interactable) obj = obj.parent;
             renderer.setHoveredObjects(obj ? [obj] : []);
@@ -95,13 +104,11 @@ export function useGame(
       }
     })();
 
-    // Game loop — only runs after loading completes (loop.start() called above)
     loop.add((delta) => {
       sceneManager.update(delta);
       renderer.render(sceneManager.instance, camera.instance);
     });
 
-    // Click handler — delegates all logic to the active scene
     input.onClick((pointer) => {
       const targets = scene.getCastTargets();
       const hit     = raycaster.castFirst(pointer, camera.instance, targets);
@@ -117,6 +124,7 @@ export function useGame(
 
     return () => {
       mounted = false;
+      sceneRef.current = null;
       canvas.style.cursor = "default";
       loop.stop();
       input.dispose();
@@ -126,5 +134,10 @@ export function useGame(
     };
   }, [canvasRef, playerName]);
 
-  return { isLoading, loadProgress, dialog, dismissDialog, inventorySource, dismissInventory };
+  return {
+    isLoading, loadProgress,
+    dialog, dismissDialog,
+    inventorySource, dismissInventory,
+    setEquipped,
+  };
 }

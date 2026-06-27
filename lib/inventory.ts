@@ -15,6 +15,13 @@ export const WARDROBE_ITEMS: InventoryItem[] = [
   { id: "scarf",    name: "Scarf",     emoji: "🧣", category: "outerwear", colorHex: 0xC0392B },
 ];
 
+// Shared snapshot type — used by both engine (ClothingLayers) and React hooks
+export interface EquippedClothing {
+  outerwear: InventoryItem | null;
+  top:       InventoryItem | null;
+  bottom:    InventoryItem | null;
+}
+
 export const DRESSER_ITEMS: InventoryItem[] = [
   { id: "tshirt",   name: "T-Shirt",   emoji: "👕", category: "top",    colorHex: 0xFFFFFF },
   { id: "vest",     name: "Vest",      emoji: "🦺", category: "top",    colorHex: 0xFFA500 },

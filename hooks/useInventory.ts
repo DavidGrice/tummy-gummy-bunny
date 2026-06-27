@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { InventoryItem, ItemCategory } from "@/lib/inventory";
+import type { EquippedClothing, InventoryItem, ItemCategory } from "@/lib/inventory";
 
-export interface EquippedItems {
-  top:      InventoryItem | null;
-  bottom:   InventoryItem | null;
-  outerwear: InventoryItem | null;
-}
+// Backward-compat alias — all existing imports of EquippedItems still work
+export type EquippedItems = EquippedClothing;
 
 export interface UseInventoryResult {
   equipped: EquippedItems;

@@ -11,6 +11,7 @@ import { createBed } from "./objects/Bed";
 import { createWindows } from "./objects/Windows";
 import { createInteractions } from "./data/interactions";
 import type { InventorySource } from "./data/interactions";
+import type { EquippedClothing } from "@/lib/inventory";
 import { BOUNDS } from "./data/layout";
 
 export class TutorialScene extends BaseScene {
@@ -32,7 +33,12 @@ export class TutorialScene extends BaseScene {
   onProgress(fn: (p: number)             => void): void { this.progressFn  = fn; }
   onDialog(fn:   (m: string)             => void): void { this.dialogFn    = fn; }
   onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
-  setPlayerName(name: string):                     void { this.playerName  = name; }
+  setPlayerName(name: string):                      void { this.playerName  = name; }
+
+  /** Pushes the player's equipped clothing directly onto MrBunny's mesh. */
+  setCharacterEquipped(equipped: EquippedClothing): void {
+    this.mrBunny?.setEquipped(equipped);
+  }
 
   async setup(scene: THREE.Scene): Promise<void> {
     scene.background = new THREE.Color(0xE8D0A8);

@@ -1,8 +1,13 @@
 import * as THREE from "three";
 import { Character } from "@/engine/characters/Character";
+import { buildClothingLayers, applyEquipped } from "@/engine/characters/ClothingLayers";
+import type { ClothingLayers } from "@/engine/characters/ClothingLayers";
+import type { EquippedClothing } from "@/lib/inventory";
 import { BUNNY_START } from "@/scenes/tutorial/data/layout";
 
 export class MrBunny extends Character {
+  private clothing: ClothingLayers;
+
   constructor() {
     // CapsuleGeometry(radius=0.25, length=0.5) → total height = 1.0
     // Centered at origin: bottom at y=-0.5, top at y=0.5
@@ -14,8 +19,8 @@ export class MrBunny extends Character {
     body.position.set(BUNNY_START[0], 0.5, BUNNY_START[1]);
 
     // Ears — children of body, positioned in body's local space
-    const earGeo  = new THREE.CapsuleGeometry(0.07, 0.35, 4, 8);
-    const earMat  = new THREE.MeshLambertMaterial({ color: 0xE8C0A0 });
+    const earGeo   = new THREE.CapsuleGeometry(0.07, 0.35, 4, 8);
+    const earMat   = new THREE.MeshLambertMaterial({ color: 0xE8C0A0 });
     const innerMat = new THREE.MeshLambertMaterial({ color: 0xE89090 }); // pink inner
 
     const leftEar  = new THREE.Mesh(earGeo, earMat);
@@ -38,7 +43,16 @@ export class MrBunny extends Character {
 
     body.add(leftEar, rightEar, leftInner, rightInner);
 
+    // Clothing layers (added as body children, all invisible by default)
+    const clothing = buildClothingLayers(body);
+
     super(body, 3);
+    this.clothing = clothing;
+  }
+
+  /** Called whenever the player changes equipped items. */
+  setEquipped(equipped: EquippedClothing): void {
+    applyEquipped(this.clothing, equipped);
   }
 
   dispose(): void {
