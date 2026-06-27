@@ -10,21 +10,24 @@ export default function CreditsPage() {
   const [paused, setPaused] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Pull the top color of the sky gradient for the fade edges
+  const edgeColor = themeGradients.sky.match(/#[0-9a-fA-F]{6}/)?.[0] ?? "#F4923A";
+
   return (
-    <PageShell backHref="/welcome" backLabel="Main Menu">
+    <PageShell>
       <div className="min-h-screen overflow-hidden relative flex flex-col">
 
         {/* Top fade */}
         <div
           className="pointer-events-none fixed top-0 left-0 right-0 h-32 z-10"
-          style={{ background: `linear-gradient(to bottom, ${useGradientTop()}, transparent)` }}
+          style={{ background: `linear-gradient(to bottom, ${edgeColor}, transparent)` }}
           aria-hidden
         />
 
-        {/* Bottom fade */}
+        {/* Bottom fade — sits above the floating back button */}
         <div
           className="pointer-events-none fixed bottom-0 left-0 right-0 h-32 z-10"
-          style={{ background: `linear-gradient(to top, ${useGradientTop()}, transparent)` }}
+          style={{ background: `linear-gradient(to top, ${edgeColor}, transparent)` }}
           aria-hidden
         />
 
@@ -41,7 +44,6 @@ export default function CreditsPage() {
         >
           <div className="w-full max-w-sm py-[100vh] text-center space-y-12 cursor-pointer select-none">
 
-            {/* Title */}
             <section>
               <p
                 className="text-4xl font-black uppercase tracking-tight text-summer-cream mb-2"
@@ -54,7 +56,6 @@ export default function CreditsPage() {
               </p>
             </section>
 
-            {/* Developer */}
             <section>
               <p className="text-xs font-bold uppercase tracking-widest text-summer-coral mb-3">
                 Developed by
@@ -63,7 +64,6 @@ export default function CreditsPage() {
               <p className="text-sm text-summer-peach/70 mt-1">{CREDITS_CONFIG.developer.role}</p>
             </section>
 
-            {/* Tech */}
             <section>
               <p className="text-xs font-bold uppercase tracking-widest text-summer-coral mb-3">
                 Built With
@@ -78,7 +78,6 @@ export default function CreditsPage() {
               </div>
             </section>
 
-            {/* Special thanks */}
             <section>
               <p className="text-xs font-bold uppercase tracking-widest text-summer-coral mb-3">
                 Special Thanks
@@ -90,7 +89,6 @@ export default function CreditsPage() {
               </div>
             </section>
 
-            {/* Closing */}
             <section className="pt-4">
               <p className="text-2xl text-summer-gold font-bold">{CREDITS_CONFIG.closingLine}</p>
               <p className="text-xs text-summer-peach/50 mt-3 uppercase tracking-widest">
@@ -98,34 +96,30 @@ export default function CreditsPage() {
               </p>
             </section>
 
-            {/* Return prompt */}
-            <div className="pt-8">
-              <Link
-                href="/welcome"
-                className="text-xs uppercase tracking-widest text-summer-cream/40 hover:text-summer-cream/80 transition-colors"
-              >
-                ← Return to menu
-              </Link>
-            </div>
-
           </div>
         </div>
 
-        {/* Pause hint */}
+        {/* Pause indicator */}
         {paused && (
           <div className="fixed inset-0 flex items-center justify-center z-20 pointer-events-none">
-            <span className="text-xs uppercase tracking-widest text-summer-cream/50 bg-summer-char/60 px-4 py-2 rounded-full backdrop-blur-sm">
+            <span className="text-xs uppercase tracking-widest text-summer-cream/50 bg-gray-900/60 px-4 py-2 rounded-full backdrop-blur-sm">
               Paused — click to resume
             </span>
           </div>
         )}
 
+        {/* Floating Main Menu button — consistent with other pages */}
+        <div className="fixed bottom-8 left-0 right-0 z-30 flex justify-center">
+          <Link
+            href="/welcome"
+            className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900/70 backdrop-blur-md border border-white/10 text-xs font-semibold tracking-widest uppercase text-summer-cream/60 hover:text-summer-cream hover:bg-gray-900/90 transition-all duration-200 min-h-[44px]"
+          >
+            <span className="transition-transform duration-200 group-hover:-translate-x-1">←</span>
+            Main Menu
+          </Link>
+        </div>
+
       </div>
     </PageShell>
   );
-}
-
-// Helper to pull the page gradient top color for fade edges
-function useGradientTop() {
-  return themeGradients.sky.match(/#[0-9a-fA-F]{6}/)?.[0] ?? "#180A00";
 }
