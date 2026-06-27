@@ -39,7 +39,7 @@ export default function CreditsPage() {
         {/* Scrolling credits */}
         <div
           ref={scrollRef}
-          className="flex-1 flex items-start justify-center px-8"
+          className="relative z-[2] flex-1 flex items-start justify-center px-8"
           style={{
             animation: `credits-roll 38s linear forwards`,
             animationPlayState: paused ? "paused" : "running",
