@@ -2,36 +2,41 @@
 
 import { useState, useEffect } from "react";
 
-const STEPS = [
-  {
-    title: "Moving",
-    icon:  "🐾",
-    body:  "Click anywhere on the floor to walk Mr. Bunny to that spot.",
-  },
-  {
-    title: "Interacting",
-    icon:  "✨",
-    body:  "Click a labelled object — Mr. Bunny will walk over and interact with it automatically.",
-  },
-  {
-    title: "Patience",
-    icon:  "⏳",
-    body:  "Mr. Bunny must come to a complete stop before you can move him again.",
-  },
-] as const;
-
-interface TutorialOverlayProps {
-  onDismiss: (doNotShowAgain: boolean) => void;
+function makeSteps(name: string) {
+  return [
+    {
+      title: "Moving",
+      icon:  "🐾",
+      body:  `Click anywhere on the floor to walk ${name} to that spot.`,
+    },
+    {
+      title: "Interacting",
+      icon:  "✨",
+      body:  `Click a labelled object — ${name} will walk over and interact with it automatically.`,
+    },
+    {
+      title: "Patience",
+      icon:  "⏳",
+      body:  `${name} must come to a complete stop before you can issue a new command.`,
+    },
+  ];
 }
 
-export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
+interface TutorialOverlayProps {
+  playerName: string;
+  onDismiss:  (doNotShowAgain: boolean) => void;
+}
+
+export function TutorialOverlay({ playerName, onDismiss }: TutorialOverlayProps) {
+  const steps = makeSteps(playerName);
+
   const [stepIndex,  setStepIndex]  = useState(0);
   const [canAdvance, setCanAdvance] = useState(false);
   const [countdown,  setCountdown]  = useState(3);
   const [doNotShow,  setDoNotShow]  = useState(false);
 
-  const step   = STEPS[stepIndex];
-  const isLast = stepIndex === STEPS.length - 1;
+  const step   = steps[stepIndex];
+  const isLast = stepIndex === steps.length - 1;
 
   // 3-2-1 countdown, then unlock the button
   useEffect(() => {
@@ -62,7 +67,7 @@ export function TutorialOverlay({ onDismiss }: TutorialOverlayProps) {
 
         {/* Step progress dots */}
         <div className="flex gap-1.5 mb-6">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useGame } from "@/hooks/useGame";
 import { useInventory } from "@/hooks/useInventory";
+import { getUsername } from "@/lib/cookies";
 import { LoadingScreen } from "./LoadingScreen";
 import { DialogBox } from "./DialogBox";
 import { TutorialOverlay } from "./TutorialOverlay";
@@ -11,13 +12,14 @@ import { InventoryHUD } from "./InventoryHUD";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const playerName = getUsername() ?? "Bunny";
 
   const {
     isLoading, loadProgress,
     dialog, dismissDialog,
     inventorySource, dismissInventory,
-  } = useGame(canvasRef);
+  } = useGame(canvasRef, playerName);
 
   const { equipped, equip, unequip } = useInventory();
 
@@ -35,18 +37,16 @@ export function GameCanvas() {
   const showTutorial  = !isLoading && !tutorialDismissed;
   const showInventory = !isLoading && !showTutorial && inventorySource !== null;
   const showDialog    = !isLoading && !showTutorial && !showInventory && dialog !== null;
-
-  // FAB is only visible when the game is playable and no other overlay is blocking
-  const showHUD = !isLoading && !showTutorial && !showInventory;
+  const showHUD       = !isLoading && !showTutorial && !showInventory;
 
   return (
     <div className={styles.wrapper}>
       <canvas ref={canvasRef} className={styles.canvas} />
 
-      {isLoading && <LoadingScreen progress={loadProgress} />}
+      {isLoading && <LoadingScreen progress={loadProgress} playerName={playerName} />}
 
       {showTutorial && (
-        <TutorialOverlay onDismiss={handleTutorialDismiss} />
+        <TutorialOverlay playerName={playerName} onDismiss={handleTutorialDismiss} />
       )}
 
       {showInventory && (

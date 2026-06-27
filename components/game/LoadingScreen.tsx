@@ -1,15 +1,16 @@
 interface LoadingScreenProps {
-  progress: number; // 0–100
+  progress:    number; // 0–100
+  playerName?: string;
 }
 
-export function LoadingScreen({ progress }: LoadingScreenProps) {
+export function LoadingScreen({ progress, playerName = "Bunny" }: LoadingScreenProps) {
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-summer-char select-none">
 
       <div className="text-7xl mb-6 animate-bounce" aria-hidden>🐰</div>
 
       <p className="text-summer-cream font-black uppercase tracking-widest text-sm mb-8">
-        Loading Mr. Bunny&apos;s Room…
+        Loading {playerName}&apos;s Room…
       </p>
 
       {/* Progress bar */}

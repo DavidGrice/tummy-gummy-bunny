@@ -24,13 +24,15 @@ export class TutorialScene extends BaseScene {
   private windows:       THREE.Group[]  = [];
   private lights:        THREE.Light[]  = [];
 
-  private progressFn:  (p: number)           => void = () => {};
-  private dialogFn:    (m: string)           => void = () => {};
+  private progressFn:  (p: number)            => void = () => {};
+  private dialogFn:    (m: string)            => void = () => {};
   private inventoryFn: (src: InventorySource) => void = () => {};
+  private playerName = "Bunny";
 
-  onProgress(fn: (p: number)            => void): void { this.progressFn  = fn; }
-  onDialog(fn:   (m: string)            => void): void { this.dialogFn    = fn; }
+  onProgress(fn: (p: number)             => void): void { this.progressFn  = fn; }
+  onDialog(fn:   (m: string)             => void): void { this.dialogFn    = fn; }
   onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
+  setPlayerName(name: string):                     void { this.playerName  = name; }
 
   async setup(scene: THREE.Scene): Promise<void> {
     scene.background = new THREE.Color(0xE8D0A8);
@@ -51,7 +53,7 @@ export class TutorialScene extends BaseScene {
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
-    const interactions = createInteractions(this.dialogFn, this.inventoryFn);
+    const interactions = createInteractions(this.dialogFn, this.inventoryFn, this.playerName);
     this.interactables = [
       createWardrobe(interactions.wardrobe),
       createDresser(interactions.dresser),

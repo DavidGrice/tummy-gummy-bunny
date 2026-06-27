@@ -22,7 +22,8 @@ export interface UseGameResult {
 }
 
 export function useGame(
-  canvasRef: React.RefObject<HTMLCanvasElement | null>
+  canvasRef:  React.RefObject<HTMLCanvasElement | null>,
+  playerName: string,
 ): UseGameResult {
   const [isLoading,       setIsLoading]       = useState(true);
   const [loadProgress,    setLoadProgress]    = useState(0);
@@ -51,8 +52,9 @@ export function useGame(
 
     const scene = new TutorialScene();
 
-    scene.onProgress((p)   => { if (mounted) setLoadProgress(p); });
-    scene.onDialog((msg)   => { if (mounted) setDialog(msg); });
+    scene.setPlayerName(playerName);
+    scene.onProgress((p)    => { if (mounted) setLoadProgress(p); });
+    scene.onDialog((msg)    => { if (mounted) setDialog(msg); });
     scene.onInventory((src) => { if (mounted) setInventorySource(src); });
 
     (async () => {
@@ -122,7 +124,7 @@ export function useGame(
       sceneManager.dispose();
       window.removeEventListener("resize", onResize);
     };
-  }, [canvasRef]);
+  }, [canvasRef, playerName]);
 
   return { isLoading, loadProgress, dialog, dismissDialog, inventorySource, dismissInventory };
 }
