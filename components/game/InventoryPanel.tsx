@@ -1,42 +1,70 @@
 "use client";
 
-import type { EquippedItems } from "@/hooks/useInventory";
-import type { InventoryItem, ItemCategory } from "@/lib/inventory";
+import { useRef, useState } from "react";
+import { usePreviewRenderer } from "@/hooks/usePreviewRenderer";
 import { WARDROBE_ITEMS, DRESSER_ITEMS } from "@/lib/inventory";
+import type { InventoryItem, ItemCategory } from "@/lib/inventory";
+import type { EquippedItems } from "@/hooks/useInventory";
 
 export type InventorySource = "wardrobe" | "dresser";
 
+type Tab = "outerwear" | "top" | "bottom";
+
+const SOURCE_TABS: Record<InventorySource, Tab[]> = {
+  wardrobe: ["outerwear"],
+  dresser:  ["top", "bottom"],
+};
+
+const TAB_LABELS: Record<Tab, string> = {
+  outerwear: "Outerwear",
+  top:       "Tops",
+  bottom:    "Bottoms",
+};
+
 interface Props {
-  source:   InventorySource;
-  equipped: EquippedItems;
+  source:    InventorySource;
+  equipped:  EquippedItems;
   onEquip:   (item: InventoryItem) => void;
   onUnequip: (category: ItemCategory) => void;
   onClose:   () => void;
 }
 
 export function InventoryPanel({ source, equipped, onEquip, onUnequip, onClose }: Props) {
-  const allItems = source === "wardrobe" ? WARDROBE_ITEMS : DRESSER_ITEMS;
-  const tops     = allItems.filter((i) => i.category === "top");
-  const bottoms  = allItems.filter((i) => i.category === "bottom");
-  const outwear  = allItems.filter((i) => i.category === "outerwear");
+  const previewRef  = useRef<HTMLCanvasElement>(null);
+  const availTabs   = SOURCE_TABS[source];
+  const [activeTab, setActiveTab] = useState<Tab>(availTabs[0]);
 
-  const isEquipped = (item: InventoryItem) => equipped[item.category]?.id === item.id;
+  // Live 3-D preview of the bunny in the panel canvas
+  usePreviewRenderer(previewRef, equipped);
+
+  const allItems  = source === "wardrobe" ? WARDROBE_ITEMS : DRESSER_ITEMS;
+  const tabItems  = allItems.filter((i) => i.category === activeTab);
+  const isEquip   = (item: InventoryItem) => equipped[item.category]?.id === item.id;
 
   function handleItem(item: InventoryItem) {
-    if (isEquipped(item)) onUnequip(item.category);
+    if (isEquip(item)) onUnequip(item.category);
     else onEquip(item);
   }
 
-  const wearing = [equipped.outerwear, equipped.top, equipped.bottom].filter(Boolean);
+  const sourceTitle = source === "wardrobe" ? "🧥 Wardrobe" : "🗄️ Dresser";
 
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center p-6 bg-black/40">
-      <div className="rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] w-full max-w-sm px-8 py-8">
+    <div className="absolute inset-0 z-40 flex">
+
+      {/* Left: dim backdrop over the game — click to close */}
+      <div
+        className="flex-1 bg-black/30 cursor-pointer"
+        onClick={onClose}
+        aria-label="Close panel"
+      />
+
+      {/* Right: dressing-room panel */}
+      <div className="w-[45%] min-w-[260px] flex flex-col bg-gray-900/90 backdrop-blur-md border-l border-white/10 shadow-[-8px_0_32px_rgba(0,0,0,0.5)]">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-summer-cream font-black text-xl uppercase tracking-widest">
-            {source === "wardrobe" ? "🧥 Wardrobe" : "🗄️ Dresser"}
+        <div className="flex items-center justify-between px-6 pt-6 pb-3 shrink-0">
+          <h2 className="text-summer-cream font-black text-lg uppercase tracking-widest">
+            {sourceTitle}
           </h2>
           <button
             onClick={onClose}
@@ -47,99 +75,77 @@ export function InventoryPanel({ source, equipped, onEquip, onUnequip, onClose }
           </button>
         </div>
 
-        {/* Currently wearing */}
-        <div className="mb-6 rounded-2xl bg-white/5 border border-white/8 px-4 py-3">
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-2">Currently wearing</p>
-          <div className="flex gap-3 items-center min-h-[32px]">
-            {wearing.length > 0
-              ? wearing.map((item) => (
-                  <span key={item!.id} className="text-2xl" title={item!.name}>
-                    {item!.emoji}
+        {/* 3-D preview canvas */}
+        <div className="px-4 pb-1 shrink-0">
+          <div className="rounded-2xl overflow-hidden border border-white/8 bg-gradient-to-b from-gray-800/60 to-gray-900/60">
+            <canvas
+              ref={previewRef}
+              className="w-full h-52 block"
+            />
+          </div>
+          <p className="text-white/25 text-[10px] text-center mt-1.5 italic tracking-wide">
+            Live preview · tap an item below to try it on
+          </p>
+        </div>
+
+        {/* Tab pills (only shown if source has more than one tab) */}
+        {availTabs.length > 1 && (
+          <div className="flex gap-2 px-4 py-3 shrink-0">
+            {availTabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-all min-h-[32px] ${
+                  activeTab === tab
+                    ? "bg-summer-coral text-white"
+                    : "bg-white/8 text-white/50 hover:bg-white/15 hover:text-white/80"
+                }`}
+              >
+                {TAB_LABELS[tab]}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Item grid — scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4">
+          {availTabs.length === 1 && <p className="text-white/40 text-xs uppercase tracking-widest mb-3">{TAB_LABELS[activeTab]}</p>}
+          <div className="grid grid-cols-2 gap-2">
+            {tabItems.map((item) => {
+              const active = isEquip(item);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleItem(item)}
+                  className={`flex items-center gap-3 p-3 rounded-2xl border transition-all min-h-[56px] text-left ${
+                    active
+                      ? "bg-summer-coral/25 border-summer-coral/70 text-white"
+                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/25"
+                  }`}
+                >
+                  <span className="text-3xl leading-none shrink-0">{item.emoji}</span>
+                  <span className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold leading-tight truncate">{item.name}</span>
+                    {active && (
+                      <span className="text-[10px] text-summer-coral font-bold uppercase tracking-wider mt-0.5">Wearing</span>
+                    )}
                   </span>
-                ))
-              : <span className="text-white/20 text-sm italic">Nothing yet — pick something!</span>
-            }
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Item grids */}
-        {source === "wardrobe" && (
-          <ItemSection
-            label="Outerwear"
-            items={outwear}
-            equipped={equipped}
-            onItemClick={handleItem}
-            isEquipped={isEquipped}
-          />
-        )}
+        {/* Done */}
+        <div className="px-4 pb-6 shrink-0">
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-2xl bg-summer-coral text-white font-black uppercase tracking-widest text-sm min-h-[44px] hover:brightness-110 transition-all active:scale-95"
+          >
+            Done
+          </button>
+        </div>
 
-        {source === "dresser" && (
-          <>
-            <ItemSection
-              label="Tops"
-              items={tops}
-              equipped={equipped}
-              onItemClick={handleItem}
-              isEquipped={isEquipped}
-            />
-            <ItemSection
-              label="Bottoms"
-              items={bottoms}
-              equipped={equipped}
-              onItemClick={handleItem}
-              isEquipped={isEquipped}
-            />
-          </>
-        )}
-
-        {/* Done button */}
-        <button
-          onClick={onClose}
-          className="mt-6 w-full py-3 rounded-2xl bg-summer-coral text-white font-black uppercase tracking-widest text-sm min-h-[44px] hover:bg-summer-coral/80 transition-colors"
-        >
-          Done
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ItemSection({
-  label,
-  items,
-  onItemClick,
-  isEquipped,
-}: {
-  label:       string;
-  items:       InventoryItem[];
-  equipped:    EquippedItems;
-  onItemClick: (item: InventoryItem) => void;
-  isEquipped:  (item: InventoryItem) => boolean;
-}) {
-  return (
-    <div className="mb-5">
-      <p className="text-white/40 text-xs uppercase tracking-widest mb-3">{label}</p>
-      <div className="grid grid-cols-3 gap-2">
-        {items.map((item) => {
-          const active = isEquipped(item);
-          return (
-            <button
-              key={item.id}
-              onClick={() => onItemClick(item)}
-              className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all min-h-[44px] ${
-                active
-                  ? "bg-summer-coral/25 border-summer-coral/70 text-white"
-                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/25"
-              }`}
-            >
-              <span className="text-2xl leading-none">{item.emoji}</span>
-              <span className="text-xs text-center leading-tight mt-1">{item.name}</span>
-              {active && (
-                <span className="text-[10px] text-summer-coral font-bold uppercase tracking-wider">On</span>
-              )}
-            </button>
-          );
-        })}
       </div>
     </div>
   );
