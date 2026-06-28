@@ -1,4 +1,4 @@
-export type ItemCategory = "food" | "key" | "tool" | "special" | "misc";
+export type ItemCategory = "food" | "key" | "tool" | "quest" | "misc";
 
 export interface CollectableItem {
   id:          string;

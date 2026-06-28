@@ -29,28 +29,25 @@ const CLOTHING_LABEL: Record<ClothingCategory, string> = {
   bottom:    "Bottom",
 };
 
-type Filter = "all" | ClothingCategory | ItemCategory;
+// Two-level filter: a main tab + optional clothing sub-tab
+type MainTab = "all" | "clothing" | "quest" | "key" | "food" | "tool" | "misc";
+type ClothingSubTab = "all" | "outerwear" | "top" | "bottom";
 
-// Two-row filter groups — avoids horizontal overflow / scrollbar
-const FILTER_ROWS: { label: string; filters: { id: Filter; label: string }[] }[] = [
-  {
-    label:   "Clothing",
-    filters: [
-      { id: "all",       label: "All"       },
-      { id: "outerwear", label: "Outerwear" },
-      { id: "top",       label: "Tops"      },
-      { id: "bottom",    label: "Bottoms"   },
-    ],
-  },
-  {
-    label:   "Items",
-    filters: [
-      { id: "food",    label: "Food"    },
-      { id: "key",     label: "Keys"    },
-      { id: "tool",    label: "Tools"   },
-      { id: "special", label: "Special" },
-    ],
-  },
+const MAIN_TABS: { id: MainTab; icon: string; label: string }[] = [
+  { id: "all",      icon: "🔍", label: "All"     },
+  { id: "clothing", icon: "👗", label: "Clothing" },
+  { id: "quest",    icon: "⭐", label: "Quest"    },
+  { id: "key",      icon: "🗝", label: "Keys"     },
+  { id: "food",     icon: "🍎", label: "Food"     },
+  { id: "tool",     icon: "🔧", label: "Tools"    },
+  { id: "misc",     icon: "📦", label: "Misc"     },
+];
+
+const CLOTHING_SUBTABS: { id: ClothingSubTab; label: string }[] = [
+  { id: "all",       label: "All"      },
+  { id: "outerwear", label: "Outerwear"},
+  { id: "top",       label: "Tops"     },
+  { id: "bottom",    label: "Bottoms"  },
 ];
 
 // ─── Slot types ───────────────────────────────────────────────────────────────
@@ -176,55 +173,81 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
   );
 }
 
-/** Two-row filter chips — no horizontal overflow, grouped by Clothing / Items */
-function FilterChips({
-  active,
-  onChange,
-  items,
+/** Full-width RPG-style tab bar + optional clothing sub-row */
+function TabBar({
+  mainTab,
+  clothingSub,
+  onMainTab,
+  onClothingSub,
+  collectables,
   discoveredIds,
 }: {
-  active:        Filter;
-  onChange:      (f: Filter) => void;
-  items:         CollectedItem[];
+  mainTab:       MainTab;
+  clothingSub:   ClothingSubTab;
+  onMainTab:     (t: MainTab) => void;
+  onClothingSub: (s: ClothingSubTab) => void;
+  collectables:  CollectedItem[];
   discoveredIds: Set<string>;
 }) {
-  function hasContent(id: Filter): boolean {
-    if (id === "all") return true;
-    if (id === "outerwear" || id === "top" || id === "bottom")
-      return ALL_CLOTHING.some((i) => i.category === id && discoveredIds.has(i.id));
-    return items.some((c) => c.item.category === id);
+  function hasContent(id: MainTab): boolean {
+    if (id === "all" || id === "clothing") return true;
+    return collectables.some((c) => c.item.category === id);
   }
 
   return (
-    <div className="shrink-0 px-4 pt-2 pb-1 space-y-1 border-b border-white/8">
-      {FILTER_ROWS.map(({ label, filters }) => (
-        <div key={label} className="flex items-center gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-widest text-white/20 w-12 shrink-0">
-            {label}
-          </span>
-          <div className="flex gap-1 flex-wrap">
-            {filters.map(({ id, label: chipLabel }) => {
-              const enabled = hasContent(id);
-              return (
-                <button
-                  key={id}
-                  onClick={() => onChange(id)}
-                  disabled={!enabled}
-                  className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all duration-150 ${
-                    active === id
-                      ? "bg-summer-coral text-white"
-                      : enabled
-                        ? "bg-white/10 text-white/50 hover:bg-white/15 hover:text-white/80"
-                        : "bg-white/5 text-white/15 cursor-not-allowed"
-                  }`}
-                >
-                  {chipLabel}
-                </button>
-              );
-            })}
-          </div>
+    <div className="shrink-0">
+      {/* Main tab row */}
+      <div className="flex border-b border-white/10">
+        {MAIN_TABS.map(({ id, icon, label }) => {
+          const active  = mainTab === id;
+          const hasData = hasContent(id);
+          return (
+            <button
+              key={id}
+              onClick={() => onMainTab(id)}
+              aria-label={label}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-b-2 transition-all duration-150 ${
+                active
+                  ? "border-summer-coral text-summer-coral bg-summer-coral/8"
+                  : hasData
+                    ? "border-transparent text-white/40 hover:text-white/70 hover:bg-white/5"
+                    : "border-transparent text-white/20 hover:text-white/35"
+              }`}
+            >
+              <span className="text-base leading-none select-none" aria-hidden>{icon}</span>
+              <span className="text-[9px] font-black uppercase tracking-wide leading-none">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Clothing sub-tabs — only when Clothing tab is active */}
+      {mainTab === "clothing" && (
+        <div className="flex gap-1 px-3 py-1.5 bg-white/3 border-b border-white/8">
+          {CLOTHING_SUBTABS.map(({ id, label }) => {
+            const active = clothingSub === id;
+            const hasItems =
+              id === "all"
+                ? discoveredIds.size > 0
+                : ALL_CLOTHING.some((i) => i.category === id && discoveredIds.has(i.id));
+            return (
+              <button
+                key={id}
+                onClick={() => onClothingSub(id)}
+                className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all duration-150 ${
+                  active
+                    ? "bg-summer-coral/25 text-summer-coral"
+                    : hasItems
+                      ? "text-white/45 hover:text-white/70"
+                      : "text-white/20"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -234,29 +257,33 @@ function ItemGrid({
   equipped,
   collectables,
   discoveredIds,
-  filter,
+  mainTab,
+  clothingSub,
   selected,
   onSelect,
 }: {
   equipped:      EquippedItems;
   collectables:  CollectedItem[];
   discoveredIds: Set<string>;
-  filter:        Filter;
+  mainTab:       MainTab;
+  clothingSub:   ClothingSubTab;
   selected:      SelectedSlot;
   onSelect:      (slot: SelectedSlot) => void;
 }) {
-  // Only show clothing the player has discovered by visiting the wardrobe/dresser
-  const clothingSlots: GridSlot[] = ALL_CLOTHING
+  const showClothing = mainTab === "all" || mainTab === "clothing";
+  const showItems    = mainTab === "all" || mainTab !== "clothing";
+
+  const clothingSlots: GridSlot[] = !showClothing ? [] : ALL_CLOTHING
     .filter((item) => discoveredIds.has(item.id))
-    .filter((item) => filter === "all" || item.category === filter)
+    .filter((item) => mainTab !== "clothing" || clothingSub === "all" || item.category === clothingSub)
     .map((item) => ({
       kind:       "clothing" as const,
       item,
       isEquipped: equipped[item.category]?.id === item.id,
     }));
 
-  const collectableSlots: GridSlot[] = collectables
-    .filter((c) => filter === "all" || c.item.category === filter)
+  const collectableSlots: GridSlot[] = !showItems ? [] : collectables
+    .filter((c) => mainTab === "all" || c.item.category === mainTab)
     .map((c) => ({ kind: "collectable" as const, collected: c }));
 
   const filled: GridSlot[] = [...clothingSlots, ...collectableSlots];
@@ -354,7 +381,9 @@ function ItemGrid({
           <p className="text-white/25 text-xs leading-snug max-w-[160px]">
             {discoveredIds.size === 0 && collectables.length === 0
               ? "Visit the wardrobe or dresser to discover clothing"
-              : "Nothing in this category yet"}
+              : mainTab === "clothing"
+                ? "Explore the room to discover clothing"
+                : "No items here yet — explore to find them!"}
           </p>
         </div>
       )}
@@ -374,11 +403,18 @@ function InventoryModal({
   discoveredIds: Set<string>;
   onClose:       () => void;
 }) {
-  const [filter,   setFilter]   = useState<Filter>("all");
-  const [selected, setSelected] = useState<SelectedSlot>(null);
+  const [mainTab,     setMainTab]     = useState<MainTab>("all");
+  const [clothingSub, setClothingSub] = useState<ClothingSubTab>("all");
+  const [selected,    setSelected]    = useState<SelectedSlot>(null);
 
-  function handleFilterChange(f: Filter) {
-    setFilter(f);
+  function handleMainTab(t: MainTab) {
+    setMainTab(t);
+    setClothingSub("all");
+    setSelected(null);
+  }
+
+  function handleClothingSub(s: ClothingSubTab) {
+    setClothingSub(s);
     setSelected(null);
   }
 
@@ -410,20 +446,23 @@ function InventoryModal({
             <EquipmentSlots equipped={equipped} />
           </div>
 
-          {/* Right — detail + filters + grid */}
+          {/* Right — detail + tab bar + grid */}
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
             <DetailPanel selected={selected} equipped={equipped} />
-            <FilterChips
-              active={filter}
-              onChange={handleFilterChange}
-              items={items}
+            <TabBar
+              mainTab={mainTab}
+              clothingSub={clothingSub}
+              onMainTab={handleMainTab}
+              onClothingSub={handleClothingSub}
+              collectables={items}
               discoveredIds={discoveredIds}
             />
             <ItemGrid
               equipped={equipped}
               collectables={items}
               discoveredIds={discoveredIds}
-              filter={filter}
+              mainTab={mainTab}
+              clothingSub={clothingSub}
               selected={selected}
               onSelect={setSelected}
             />
