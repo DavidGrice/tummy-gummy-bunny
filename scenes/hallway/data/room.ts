@@ -1,94 +1,112 @@
 import type { RoomManifest } from "@/engine/loaders/types";
 
 /**
- * The hallway — a 3×8 unit corridor (≈ 1.5m × 4m real-world at 1 unit = 0.5m).
- * Connects Mr. Bunny's bedroom (south) to the living room (north, coming soon).
+ * The landing / upstairs hallway — 12×5 units (≈ 6m × 2.5m real-world).
+ * A wide horizontal landing connecting all the rooms on this floor.
  *
- * Coordinate convention (same as all rooms):
- *   -Z = north wall, +Z = south wall (bedroom side)
- *   -X = west wall,  +X = east wall
+ * Top-down layout (north = -Z, south = +Z, east = +X, west = -X):
+ *
+ *   ┌────────────────────────────────────────────────┐
+ *   │  [Sibling's]      [Bunny's Room →tutorial]    │
+ *   │                                         [Bath] │
+ *   │                                                │
+ *   │             [Parents']                         │
+ *   [Family Area] ──────────────────────────────────
+ *
+ *   North wall (-Z) : children's rooms (right cluster)
+ *   East wall  (+X) : bathroom
+ *   South wall (+Z) : parents' bedroom  ← camera looks in from here (panels hidden)
+ *   West wall  (-X) : family area / corridor to kitchen + dining room
+ *
+ * Door positions mirror real proportions: siblings at x≈+1.8, Bunny at x≈+4.0,
+ * parents at x≈+2.9 (midpoint of the kids), bathroom and family area centred on
+ * their respective walls.
  */
 export const HALLWAY_ROOM: RoomManifest = {
   id:         "hallway",
-  background: 0xC8BDA8,
-  dimensions: { width: 3, depth: 8, wallHeight: 3, wallThick: 0.2 },
+  background: 0xBFB5A0,
+  dimensions: { width: 12, depth: 5, wallHeight: 3, wallThick: 0.2 },
 
-  // Narrower X bounds to keep the bunny inside the corridor width
-  bounds: { min: -3.2, max: 3.2, minX: -0.9, maxX: 0.9 },
+  // Wide X range for the corridor, narrow Z (the hallway is shallow)
+  bounds: { min: -4.5, max: 4.5, minX: -4.8, maxX: 4.8, minZ: -1.8, maxZ: 1.8 },
 
-  bunnyStart: [0, 2.5],  // spawn near the bedroom door (south end)
-  wallColor:  0xD8CFBC,
-  floorColor: 0xA08060,
+  bunnyStart: [3.5, -1.0],   // spawns near Bunny's Room door on the north wall
 
-  windows: [],  // interior corridor — no windows
+  wallColor:  0xD4CABC,
+  floorColor: 0x9E7E58,
+  windows:    [],             // interior landing — no windows
 
-  doorId:      "door-south",
+  // Hide south panels so the camera (behind the south wall) can see the room
   hiddenWalls: ["southLeft", "southRight", "southLintel"],
 
   lighting: {
-    sunPosition:     [2, 8, 4],
-    sunIntensity:    1.0,       // slightly dimmer than the bedroom
+    sunPosition:      [2, 8, 4],
+    sunIntensity:     1.0,
     ambientIntensity: 0.65,
   },
 
   objects: [
-    // ── Doors ──────────────────────────────────────────────────────────────────
+    // ── North wall — children's rooms (right side cluster) ────────────────────
 
-    // South door → back to Mr. Bunny's bedroom
+    // Mr. Bunny's bedroom — right side, near east wall
     {
-      id:          "door-south",
+      id:          "door-bedroom",
       type:        "furniture",
-      label:       "Bedroom",
-      position:    [0,    1.1,  3.5],
+      label:       "Bunny's Room",
+      position:    [4.0,  1.1, -2.0],
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "tutorial" },
     },
 
-    // North door → living room (coming soon)
+    // Sibling's room — left of Bunny's room, proportional gap
     {
-      id:          "door-north",
+      id:          "door-sibling",
       type:        "furniture",
-      label:       "Living Room",
-      position:    [0,    1.1, -3.5],
+      label:       "Sibling's Room",
+      position:    [1.8,  1.1, -2.0],
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
-      interaction: { kind: "dialog", message: "The living room is just behind this door. Not quite ready yet… 🚪" },
+      interaction: { kind: "dialog", message: "Your sibling's room. It's suspiciously quiet in there… 🐾" },
     },
 
-    // ── Furniture ──────────────────────────────────────────────────────────────
+    // ── East wall — bathroom ──────────────────────────────────────────────────
 
-    // Coat rack — west wall, near the bedroom door
+    // Door width is along Z (0.9), thickness along X (0.15)
     {
-      id:          "coat-rack",
+      id:          "door-bathroom",
       type:        "furniture",
-      label:       "Coat Rack",
-      position:    [-1.1, 1.0,  2.0],
-      size:        [0.12, 2.0,  0.12],
-      color:       0x5C3820,
-      interaction: { kind: "dialog", message: "Mr. Bunny's favourite jacket hangs here, ready for an adventure. 🧥" },
+      label:       "Bathroom",
+      position:    [5.5,  1.1,  0],
+      size:        [0.15, 2.2,  0.9],
+      color:       0x5C3D1E,
+      interaction: { kind: "dialog", message: "The bathroom. Fresh towels, shiny tiles, and the scent of lavender. 🛁" },
     },
 
-    // Small side table — east wall, mid-corridor
+    // ── South wall — parents' bedroom ─────────────────────────────────────────
+    // Positioned at the midpoint of the two kids' door x-coordinates (4.0 + 1.8) / 2 = 2.9
+
     {
-      id:          "side-table",
+      id:          "door-parents",
       type:        "furniture",
-      label:       "Side Table",
-      position:    [1.1,  0.38, 0.0],
-      size:        [0.45, 0.76, 0.35],
-      color:       0xC4A882,
-      interaction: { kind: "dialog", message: "A little side table. A half-drunk cup of carrot tea sits on it. 🥕" },
+      label:       "Parents' Room",
+      position:    [2.9,  1.1,  2.0],
+      size:        [0.9,  2.2,  0.15],
+      color:       0x5C3D1E,
+      interaction: { kind: "dialog", message: "Mum and Dad's room. Always best to knock first! 🚪" },
     },
 
-    // Framed picture — west wall, mid-corridor
+    // ── West wall — corridor to family area ───────────────────────────────────
+
+    // Door width is along Z (0.9), thickness along X (0.15)
     {
-      id:          "picture",
+      id:          "door-family",
       type:        "furniture",
-      label:       "Family Photo",
-      position:    [-1.38, 1.6, -0.8],
-      size:        [0.06,  0.5,  0.7],
-      color:       0x8B6914,
-      interaction: { kind: "dialog", message: "A family portrait. Everyone looks very fluffy and very happy. 🐰" },
+      label:       "Family Area",
+      position:    [-5.5, 1.1,  0],
+      size:        [0.15, 2.2,  0.9],
+      color:       0x5C3D1E,
+      interaction: { kind: "dialog", message: "A corridor leads to the kitchen and dining room. Coming soon! 🍽️" },
     },
   ],
 };

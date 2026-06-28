@@ -37,13 +37,16 @@ export interface WallSet {
 }
 
 export function createWalls(manifest: RoomManifest): WallSet {
-  const { width, depth: D, wallHeight: H, wallThick: T } = manifest.dimensions;
-  const half  = width / 2;
+  const { width: W, depth: D, wallHeight: H, wallThick: T } = manifest.dimensions;
+  const halfW = W / 2;   // half-width  — X axis
+  const halfD = D / 2;   // half-depth  — Z axis
   const color = manifest.wallColor;
 
-  const north = makeWall(width + T * 2, H, T,  0,    -half, color, "wall-north");
-  const west  = makeWall(T, H, width,          -half,  0,    color, "wall-west");
-  const east  = makeWall(T, H, width,           half,  0,    color, "wall-east");
+  // North/south walls span the full room width (X).
+  // East/west walls span the full room depth (Z).
+  const north = makeWall(W + T * 2, H, T,  0,     -halfD, color, "wall-north");
+  const west  = makeWall(T, H, D,          -halfW,  0,     color, "wall-west");
+  const east  = makeWall(T, H, D,           halfW,  0,     color, "wall-east");
 
   // South wall — three panels forming a door frame.
   // Panels sit one wallThick behind the door to avoid z-fighting.
@@ -55,12 +58,12 @@ export function createWalls(manifest: RoomManifest): WallSet {
 
   // Fallback door geometry if no doorId is specified (solid south wall)
   const doorX = doorDef?.position[0] ?? 0;
-  const doorZ = doorDef?.position[2] ?? half;
+  const doorZ = doorDef?.position[2] ?? halfD;  // outer south wall face
   const doorW = doorDef?.size[0]     ?? 0;
   const doorH = doorDef?.size[1]     ?? H;
 
   const halfDoorW = doorW / 2;
-  const panelW    = half - halfDoorW;
+  const panelW    = halfW - halfDoorW;   // remaining wall on each side of the door opening
   const lintelH   = H - doorH;
   const wallZ     = doorZ - T;
 
