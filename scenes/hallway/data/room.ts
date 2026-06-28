@@ -76,7 +76,7 @@ export const HALLWAY_ROOM: RoomManifest = {
       position:    [5.5,  1.1,  0],
       size:        [0.15, 2.2,  0.9],
       color:       0x5C3D1E,
-      interaction: { kind: "dialog", message: "The bathroom. Fresh towels, shiny tiles, and the scent of lavender. 🛁" },
+      interaction: { kind: "scene-change", targetRoomId: "bathroom" },
     },
 
     // ── South wall — parents' bedroom ─────────────────────────────────────────

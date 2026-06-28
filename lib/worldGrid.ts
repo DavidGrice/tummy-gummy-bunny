@@ -15,8 +15,9 @@
  *   3. Set worldX/worldZ so the schematic layout makes spatial sense.
  */
 
-import { TUTORIAL_ROOM } from "@/scenes/tutorial/data/room";
-import { HALLWAY_ROOM }  from "@/scenes/hallway/data/room";
+import { TUTORIAL_ROOM }  from "@/scenes/tutorial/data/room";
+import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
+import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
 import type { RoomManifest, FurnitureObjectDef } from "@/engine/loaders/types";
 
 export const MINIMAP_SCALE = 5; // pixels per game unit
@@ -98,15 +99,24 @@ export const WORLD_ROOMS: RoomNode[] = [
     worldZ:  -9,
     objects: extractFurniture(HALLWAY_ROOM),  // empty — all hallway objects are thin doors
   },
-  // Future rooms — import manifest and call extractFurniture():
-  // { id: "sibling",  label: "Sibling's Room", fill: "#D8CCB8", dims: { w: 7, d: 7 }, worldX: -8, worldZ: -9, objects: extractFurniture(SIBLING_ROOM)  },
-  // { id: "bathroom", label: "Bathroom",        fill: "#C8D4D8", dims: { w: 4, d: 4 }, worldX:  8, worldZ: -9, objects: extractFurniture(BATHROOM_ROOM) },
+  {
+    id:      "bathroom",
+    label:   "Bathroom",
+    fill:    "#C8D8DC",
+    dims:    { w: 4, d: 4 },
+    // East of hallway: hallway right edge = 0 + 12/2 = 6, gap 1 unit, bathroom centre = 6+1+4/2 = 9
+    worldX:  9,
+    worldZ:  -9,
+    objects: extractFurniture(BATHROOM_ROOM),
+  },
+  // Future rooms:
+  // { id: "sibling", label: "Sibling's Room", fill: "#D8CCB8", dims: { w: 7, d: 7 }, worldX: -8, worldZ: -9, objects: extractFurniture(SIBLING_ROOM) },
 ];
 
 // ── Room links ────────────────────────────────────────────────────────────────
 
 export const ROOM_LINKS: RoomLink[] = [
-  { from: "tutorial", to: "hallway" },
-  // { from: "hallway",  to: "sibling"  },
-  // { from: "hallway",  to: "bathroom" },
+  { from: "tutorial", to: "hallway"  },
+  { from: "hallway",  to: "bathroom" },
+  // { from: "hallway", to: "sibling" },
 ];
