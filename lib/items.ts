@@ -15,5 +15,12 @@ export interface CollectedItem {
 
 export const INVENTORY_GRID_SIZE = 12; // 3 columns × 4 rows
 
-// Populated as game content grows — start empty
-export const GAME_ITEMS: CollectableItem[] = [];
+export const GAME_ITEMS: CollectableItem[] = [
+  {
+    id:          "golden-key",
+    name:        "Golden Key",
+    emoji:       "🗝",
+    category:    "key",
+    description: "A small golden key, warm to the touch. It must open something important.",
+  },
+];

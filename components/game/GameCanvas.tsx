@@ -5,6 +5,7 @@ import { useGame }                       from "@/hooks/useGame";
 import { useInventory }                  from "@/hooks/useInventory";
 import { useItems }                      from "@/hooks/useItems";
 import { useDiscoveredClothing }         from "@/hooks/useDiscoveredClothing";
+import { GAME_ITEMS }                    from "@/lib/items";
 import { getUsername }                   from "@/lib/cookies";
 import { getPlaystyle, type Playstyle }  from "@/lib/playstyle";
 import { Tooltip }                       from "@/components/ui/Tooltip";
@@ -26,17 +27,26 @@ export function GameCanvas() {
     isLoading, loadProgress,
     dialog, dismissDialog,
     inventorySource, dismissInventory,
+    pickedUpItemId, clearPickedUp,
     setEquipped: pushEquippedToGame,
   } = useGame(canvasRef, playerName);
 
   const { equipped, equip, unequip }           = useInventory();
-  const { items }                              = useItems();
+  const { items, addItem }                     = useItems();
   const { discoveredIds, discoverSource }      = useDiscoveredClothing();
 
   // Sync equipped clothing onto MrBunny whenever it changes
   useEffect(() => {
     pushEquippedToGame(equipped);
   }, [equipped, pushEquippedToGame]);
+
+  // When the scene fires a pickup, add the item to the React inventory
+  useEffect(() => {
+    if (!pickedUpItemId) return;
+    const item = GAME_ITEMS.find((i) => i.id === pickedUpItemId);
+    if (item) addItem(item);
+    clearPickedUp();
+  }, [pickedUpItemId, addItem, clearPickedUp]);
 
   // ── Playstyle ──────────────────────────────────────────────────────────────
   const [playstyle, setPlaystyleState] = useState<Playstyle | null>(

@@ -10,7 +10,9 @@ import { createRoomDoor } from "./objects/RoomDoor";
 import { createBed } from "./objects/Bed";
 import { createWindows } from "./objects/Windows";
 import { createInteractions } from "./data/interactions";
-import type { InventorySource } from "./data/interactions";
+import type { InventorySource, PickupFn } from "./data/interactions";
+import { PickupItem } from "@/engine/objects/PickupItem";
+import { createGoldenKey } from "./objects/GoldenKey";
 import type { EquippedClothing } from "@/lib/inventory";
 import { BOUNDS } from "./data/layout";
 
@@ -20,6 +22,7 @@ export class TutorialScene extends BaseScene {
 
   private mrBunny!:      MrBunny;
   private interactables: InteractableObject[] = [];
+  private pickupItems:   PickupItem[]         = [];
   private floor!:        THREE.Mesh;
   private walls:         THREE.Mesh[]   = [];
   private windows:       THREE.Group[]  = [];
@@ -28,11 +31,13 @@ export class TutorialScene extends BaseScene {
   private progressFn:  (p: number)            => void = () => {};
   private dialogFn:    (m: string)            => void = () => {};
   private inventoryFn: (src: InventorySource) => void = () => {};
+  private pickupFn:    PickupFn                       = () => {};
   private playerName = "Bunny";
 
   onProgress(fn: (p: number)             => void): void { this.progressFn  = fn; }
   onDialog(fn:   (m: string)             => void): void { this.dialogFn    = fn; }
   onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
+  onPickup(fn:    PickupFn):                        void { this.pickupFn    = fn; }
   setPlayerName(name: string):                      void { this.playerName  = name; }
 
   /** Pushes the player's equipped clothing directly onto MrBunny's mesh. */
@@ -68,6 +73,12 @@ export class TutorialScene extends BaseScene {
     ];
     this.interactables.forEach((obj) => obj.addToScene(scene));
 
+    this.progressFn(78);
+    this.pickupItems = [
+      createGoldenKey(this.pickupFn),
+    ];
+    this.pickupItems.forEach((item) => item.addToScene(scene));
+
     this.progressFn(85);
     this.mrBunny = new MrBunny();
     this.mrBunny.addToScene(scene);
@@ -77,10 +88,15 @@ export class TutorialScene extends BaseScene {
 
   update(delta: number): void {
     this.mrBunny?.update(delta);
+    for (const item of this.pickupItems) item.update(delta);
   }
 
   getCastTargets(): THREE.Object3D[] {
-    return [this.floor, ...this.interactables.map((i) => i.mesh)];
+    const pickupMeshes: THREE.Mesh[] = [];
+    for (const item of this.pickupItems) {
+      if (!item.isPickedUp) pickupMeshes.push(...item.getCastMeshes());
+    }
+    return [this.floor, ...this.interactables.map((i) => i.mesh), ...pickupMeshes];
   }
 
   onHoverChange(obj: THREE.Object3D | null): void {
@@ -145,6 +161,7 @@ export class TutorialScene extends BaseScene {
     });
 
     this.interactables.forEach((i) => i.dispose());
+    this.pickupItems.forEach((i) => i.dispose());
     this.mrBunny?.dispose();
     this.lights.forEach((l) => l.dispose());
   }

@@ -44,6 +44,13 @@ export const OBJECTS = {
   },
 } as const;
 
+/** Pickup items: world [x, z] positions (y is set by the item factory) */
+export const ITEMS = {
+  goldenKey: {
+    position: [0.8, 1.2] as const,
+  },
+} as const;
+
 /** Window positions on the north wall [x, y] pairs */
 export const WINDOWS = [
   { x: -1.0, y: 1.75 },

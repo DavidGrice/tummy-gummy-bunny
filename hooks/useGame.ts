@@ -20,6 +20,9 @@ export interface UseGameResult {
   dismissDialog:    () => void;
   inventorySource:  InventorySource | null;
   dismissInventory: () => void;
+  /** Fired when the player picks up a world item. Contains the item's ID. */
+  pickedUpItemId:   string | null;
+  clearPickedUp:    () => void;
   /** Imperatively updates MrBunny's clothing without triggering a re-render. */
   setEquipped:      (equipped: EquippedClothing) => void;
 }
@@ -32,12 +35,14 @@ export function useGame(
   const [loadProgress,    setLoadProgress]    = useState(0);
   const [dialog,          setDialog]          = useState<string | null>(null);
   const [inventorySource, setInventorySource] = useState<InventorySource | null>(null);
+  const [pickedUpItemId,  setPickedUpItemId]  = useState<string | null>(null);
 
   // Stable ref so the callback below never goes stale
   const sceneRef = useRef<TutorialScene | null>(null);
 
-  const dismissDialog    = useCallback(() => setDialog(null), []);
-  const dismissInventory = useCallback(() => setInventorySource(null), []);
+  const dismissDialog    = useCallback(() => setDialog(null),           []);
+  const dismissInventory = useCallback(() => setInventorySource(null),  []);
+  const clearPickedUp    = useCallback(() => setPickedUpItemId(null),   []);
 
   /** Stable callback — safe to put in a useEffect dependency array. */
   const setEquipped = useCallback((equipped: EquippedClothing) => {
@@ -68,6 +73,7 @@ export function useGame(
     scene.onProgress((p)    => { if (mounted) setLoadProgress(p); });
     scene.onDialog((msg)    => { if (mounted) setDialog(msg); });
     scene.onInventory((src) => { if (mounted) setInventorySource(src); });
+    scene.onPickup((id)     => { if (mounted) setPickedUpItemId(id); });
 
     (async () => {
       try {
@@ -138,6 +144,7 @@ export function useGame(
     isLoading, loadProgress,
     dialog, dismissDialog,
     inventorySource, dismissInventory,
+    pickedUpItemId, clearPickedUp,
     setEquipped,
   };
 }

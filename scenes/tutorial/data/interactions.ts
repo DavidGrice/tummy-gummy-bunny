@@ -1,6 +1,7 @@
 export type DialogFn        = (message: string) => void;
 export type InventorySource = "wardrobe" | "dresser";
 export type InventoryFn     = (source: InventorySource) => void;
+export type PickupFn        = (itemId: string) => void;
 
 export interface TutorialInteractions {
   wardrobe: () => void;
