@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { Playstyle } from "@/lib/playstyle";
 
-function makeSteps(name: string) {
+function makeSteps(name: string, playstyle: Playstyle) {
+  const isStory = playstyle === "story";
   return [
     {
       title: "Moving",
@@ -21,19 +23,22 @@ function makeSteps(name: string) {
     },
     {
       title: "Your Tools",
-      icon:  "🎒",
-      body:  `Tap the bag (🎒) to view what you're wearing. Tap ❓ any time to see these tips again.`,
+      icon:  isStory ? "🎒" : "🔍",
+      body:  isStory
+        ? `Tap 🎒 for your inventory and 📓 for your quest journal. Tap ❓ any time — play style can be changed in Settings!`
+        : `Explore the room to discover your tools. Tap ❓ any time to see these tips again — play style can be changed in Settings!`,
     },
   ];
 }
 
 interface TutorialOverlayProps {
   playerName: string;
+  playstyle:  Playstyle;
   onDismiss:  (doNotShowAgain: boolean) => void;
 }
 
-export function TutorialOverlay({ playerName, onDismiss }: TutorialOverlayProps) {
-  const steps = makeSteps(playerName);
+export function TutorialOverlay({ playerName, playstyle, onDismiss }: TutorialOverlayProps) {
+  const steps = makeSteps(playerName, playstyle);
 
   const [stepIndex,  setStepIndex]  = useState(0);
   const [canAdvance, setCanAdvance] = useState(false);

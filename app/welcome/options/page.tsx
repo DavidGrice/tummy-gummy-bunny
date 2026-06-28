@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/ui/nav/PageShell";
 import { useOptions } from "@/hooks/useOptions";
 import { clearUsername } from "@/lib/cookies";
 import { themeConfig } from "@/config/theme.config";
+import { getPlaystyle, setPlaystyle, type Playstyle } from "@/lib/playstyle";
 
 function ToggleRow({
   label,
@@ -44,9 +46,22 @@ function ToggleRow({
   );
 }
 
+const PLAYSTYLE_OPTIONS: { ps: Playstyle; icon: string; name: string; desc: string }[] = [
+  { ps: "story",    icon: "🌸", name: "Story Bunny",    desc: "Journal & inventory always at your side" },
+  { ps: "explorer", icon: "🔍", name: "Explorer Bunny", desc: "Find hints by exploring the room"       },
+];
+
 export default function OptionsPage() {
   const router = useRouter();
   const { options, setOption, loaded } = useOptions();
+
+  const [playstyle, setPlaystyleState] = useState<Playstyle | null>(null);
+  useEffect(() => { setPlaystyleState(getPlaystyle()); }, []);
+
+  function handlePlaystyleChange(ps: Playstyle) {
+    setPlaystyle(ps);
+    setPlaystyleState(ps);
+  }
 
   function handleChangeName() {
     clearUsername();
@@ -114,6 +129,45 @@ export default function OptionsPage() {
                   />
                 )}
               </div>
+            </div>
+
+            {/* ── Adventure Style ── */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-summer-peach/50 mb-2">
+                Adventure Style
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {PLAYSTYLE_OPTIONS.map(({ ps, icon, name, desc }) => {
+                  const active = playstyle === ps;
+                  return (
+                    <button
+                      key={ps}
+                      onClick={() => handlePlaystyleChange(ps)}
+                      className={`flex flex-col items-center gap-2 p-4 rounded-2xl border text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-summer-coral/50 active:scale-95 ${
+                        active
+                          ? "border-summer-coral bg-summer-coral/10 shadow-[0_0_0_2px_rgba(191,63,30,0.2)]"
+                          : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <span className="text-3xl leading-none select-none" aria-hidden>{icon}</span>
+                      <span className={`text-xs font-black tracking-wide ${active ? "text-summer-coral" : "text-summer-cream"}`}>
+                        {name}
+                      </span>
+                      <span className="text-[10px] text-summer-peach/50 leading-snug">{desc}</span>
+                      {active && (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-summer-coral border border-summer-coral/30 px-2 py-0.5 rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {playstyle === null && (
+                <p className="text-[10px] text-summer-peach/30 text-center mt-2 tracking-wide">
+                  Choose a style the first time you play
+                </p>
+              )}
             </div>
 
             {/* ── Theme ── */}
