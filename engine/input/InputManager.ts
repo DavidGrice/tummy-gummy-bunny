@@ -22,7 +22,12 @@ export class InputManager {
     this.hoverHandlers.forEach((fn) => fn(this.pointer.clone()));
   };
 
-  private onPointerDown = () => {
+  private onPointerDown = (e: PointerEvent) => {
+    // Always read position from the event — on touch, pointermove may not
+    // have fired yet, so this.pointer would be stale from a previous tap.
+    const rect = this.canvas.getBoundingClientRect();
+    this.pointer.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+    this.pointer.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
     this.clickHandlers.forEach((fn) => fn(this.pointer.clone()));
   };
 

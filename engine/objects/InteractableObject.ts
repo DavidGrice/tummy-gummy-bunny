@@ -33,6 +33,11 @@ export class InteractableObject {
     this.label.setHovered(hovered);
   }
 
+  /** Pin the label permanently visible — use on mobile where hover doesn't exist */
+  setLabelAlwaysVisible(v: boolean): void {
+    this.label.setAlwaysVisible(v);
+  }
+
   addToScene(scene: THREE.Scene): void {
     scene.add(this.mesh);
   }

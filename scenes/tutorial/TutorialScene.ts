@@ -135,11 +135,17 @@ export class TutorialScene extends BaseScene {
   setupCamera(camera: THREE.PerspectiveCamera): void {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
     if (isMobile) {
-      // Wider FOV + pulled-back position so the full room fits on a narrow screen
-      camera.fov = 72;
-      camera.position.set(0, 9, 13);
-      camera.lookAt(0, 0, -1);
+      // Zoom in close: standard FOV so objects appear large and tappable.
+      // Not all of the room is visible — the player explores by walking.
+      camera.fov = 50;
+      camera.position.set(0, 4.5, 6.5);
+      camera.lookAt(0, 0.5, -1);
       camera.updateProjectionMatrix();
+
+      // Labels can't rely on hover on touch screens — pin them permanently visible
+      for (const obj of this.interactables) {
+        obj.setLabelAlwaysVisible(true);
+      }
     } else {
       camera.position.set(0, 8, 8);
       camera.lookAt(0, 0, 0);

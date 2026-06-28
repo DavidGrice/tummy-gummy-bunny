@@ -8,9 +8,10 @@ interface LabelSpriteOptions {
 }
 
 export class LabelSprite {
-  readonly sprite:  THREE.Sprite;
-  private material: THREE.SpriteMaterial;
-  private tex:      THREE.CanvasTexture;
+  readonly sprite:   THREE.Sprite;
+  private material:  THREE.SpriteMaterial;
+  private tex:       THREE.CanvasTexture;
+  private _always = false;
 
   constructor({ text, fontSize = 16, padX = 14, padY = 8 }: LabelSpriteOptions) {
     this.tex = this.buildTexture(text, fontSize, padX, padY);
@@ -72,12 +73,20 @@ export class LabelSprite {
     return new THREE.CanvasTexture(canvas);
   }
 
-  /** Show the label while hovered, hide when not */
+  /** Keep the label permanently visible regardless of hover state */
+  setAlwaysVisible(v: boolean): void {
+    this._always = v;
+    this.sprite.visible = v;
+  }
+
+  /** Show the label while hovered, hide when not (no-op if alwaysVisible) */
   setHovered(hovered: boolean): void {
+    if (this._always) return;
     this.sprite.visible = hovered;
   }
 
   setVisible(visible: boolean): void {
+    if (this._always) return;
     this.sprite.visible = visible;
   }
 
