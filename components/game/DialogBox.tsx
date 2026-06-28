@@ -5,7 +5,7 @@ interface DialogBoxProps {
 
 export function DialogBox({ message, onDismiss }: DialogBoxProps) {
   return (
-    <div className="absolute inset-0 z-40 flex items-end sm:items-center justify-center p-4 sm:p-6" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center p-4 sm:p-6">
       <div className="max-w-lg w-full bg-gray-900/92 backdrop-blur-md rounded-2xl border border-white/10 p-4 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
 
         <span className="text-2xl sm:text-3xl shrink-0 select-none" aria-hidden>🐰</span>
