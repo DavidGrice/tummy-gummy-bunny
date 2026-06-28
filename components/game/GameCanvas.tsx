@@ -83,7 +83,9 @@ export function GameCanvas() {
     if (inventorySource === null) return;
     // Reveal those clothing items in the inventory grid
     discoverSource(inventorySource);
-    // Unlock the inventory FAB for Explorer Bunny mode
+    // Per-source flags used by quest objective triggers
+    localStorage.setItem(`tgb_${inventorySource}_visited`, "true");
+    // Unlock the inventory FAB for Explorer Bunny mode (either source counts)
     if (!wardrobeFound) {
       setWardrobeFound(true);
       localStorage.setItem("tgb_wardrobe_found", "true");

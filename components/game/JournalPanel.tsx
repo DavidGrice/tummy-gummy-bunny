@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { QUESTS, type Quest } from "@/lib/journal";
+import { useMemo, useState } from "react";
+import { QUESTS } from "@/data/quests";
+import {
+  isObjectiveComplete,
+  isQuestDone,
+  type Quest,
+  type QuestObjective,
+} from "@/lib/journal";
+import { useItems } from "@/hooks/useItems";
 import { PANEL_H } from "@/components/game/InventoryHUD";
 
 // ─── Styled constants ─────────────────────────────────────────────────────────
 
-// Cream paper with blue ruled lines, 32px line-height
 const LINED_PAPER: React.CSSProperties = {
   background:      "#FFF9F0",
   backgroundImage: [
-    // Red left margin line
     "linear-gradient(to right, transparent 48px, #E8A0A0 48px, #E8A0A0 50px, transparent 50px)",
-    // Blue horizontal rules every 32px
     "repeating-linear-gradient(transparent, transparent 31px, #C5D8E8 31px, #C5D8E8 32px)",
   ].join(", "),
   lineHeight: "32px",
@@ -20,16 +24,56 @@ const LINED_PAPER: React.CSSProperties = {
 
 const CAVEAT: React.CSSProperties = { fontFamily: "var(--font-caveat)" };
 
+// ─── Objective row ────────────────────────────────────────────────────────────
+
+function ObjectiveRow({
+  obj,
+  collectedItemIds,
+}: {
+  obj:              QuestObjective;
+  collectedItemIds: Set<string>;
+}) {
+  const done = isObjectiveComplete(obj, collectedItemIds);
+  return (
+    <li className="flex items-center gap-2.5">
+      {/* Status circle */}
+      <span
+        className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center text-[9px] font-black ${
+          done
+            ? "border-green-500 bg-green-500 text-white"
+            : "border-amber-500/70 bg-transparent"
+        }`}
+      >
+        {done ? "✓" : ""}
+      </span>
+
+      {/* Label — bold coral when pending, muted green when done */}
+      <span
+        className={`text-lg leading-snug ${
+          done
+            ? "text-green-700/70 font-normal"
+            : "text-amber-900 font-bold"
+        }`}
+        style={CAVEAT}
+      >
+        {obj.label}
+      </span>
+    </li>
+  );
+}
+
 // ─── Left sidebar — quest list ────────────────────────────────────────────────
 
 function QuestList({
   quests,
   selectedId,
+  collectedItemIds,
   onSelect,
 }: {
-  quests:     Quest[];
-  selectedId: string | null;
-  onSelect:   (id: string) => void;
+  quests:           Quest[];
+  selectedId:       string | null;
+  collectedItemIds: Set<string>;
+  onSelect:         (id: string) => void;
 }) {
   return (
     <div
@@ -37,10 +81,7 @@ function QuestList({
       style={{ background: "#F0E6D0", borderRight: "2px solid #D4C4A0" }}
     >
       {/* Notebook tab header */}
-      <div
-        className="px-5 py-4 border-b"
-        style={{ borderColor: "#D4C4A0" }}
-      >
+      <div className="px-5 py-4 border-b" style={{ borderColor: "#D4C4A0" }}>
         <p className="text-[10px] font-black uppercase tracking-widest text-amber-900/50">
           Quest Diary
         </p>
@@ -53,6 +94,7 @@ function QuestList({
       <div className="flex-1 overflow-y-auto py-2">
         {quests.map((q) => {
           const active = q.id === selectedId;
+          const done   = isQuestDone(q, collectedItemIds);
           return (
             <button
               key={q.id}
@@ -67,17 +109,17 @@ function QuestList({
                 {/* Completion circle */}
                 <span
                   className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center text-[9px] font-black ${
-                    q.completed
+                    done
                       ? "border-green-600 bg-green-500 text-white"
                       : "border-amber-500/50"
                   }`}
                 >
-                  {q.completed ? "✓" : ""}
+                  {done ? "✓" : ""}
                 </span>
                 <div className="min-w-0">
                   <p
                     className={`text-sm leading-snug font-bold ${
-                      q.completed
+                      done
                         ? "text-green-700"
                         : active
                           ? "text-amber-900"
@@ -85,7 +127,7 @@ function QuestList({
                     }`}
                     style={CAVEAT}
                   >
-                    {q.completed && <span className="mr-1">✓</span>}
+                    {done && <span className="mr-1">✓</span>}
                     {q.title}
                   </p>
                   <p className="text-[10px] text-amber-700/50 mt-0.5">{q.date}</p>
@@ -108,13 +150,16 @@ function QuestList({
 
 // ─── Right page — quest content ───────────────────────────────────────────────
 
-function QuestPage({ quest }: { quest: Quest | null }) {
+function QuestPage({
+  quest,
+  collectedItemIds,
+}: {
+  quest:            Quest | null;
+  collectedItemIds: Set<string>;
+}) {
   if (!quest) {
     return (
-      <div
-        className="flex-1 flex items-center justify-center"
-        style={LINED_PAPER}
-      >
+      <div className="flex-1 flex items-center justify-center" style={LINED_PAPER}>
         <p className="text-amber-400/40 text-lg pl-16" style={CAVEAT}>
           Select a quest from the left…
         </p>
@@ -122,6 +167,7 @@ function QuestPage({ quest }: { quest: Quest | null }) {
     );
   }
 
+  const done       = isQuestDone(quest, collectedItemIds);
   const paragraphs = quest.body.split("\n\n");
 
   return (
@@ -129,26 +175,23 @@ function QuestPage({ quest }: { quest: Quest | null }) {
       <div className="pl-16 pr-8 pt-6 pb-10">
 
         {/* Date stamp */}
-        <p
-          className="text-sm text-amber-600/60 mb-1"
-          style={CAVEAT}
-        >
+        <p className="text-sm text-amber-600/60 mb-1" style={CAVEAT}>
           {quest.date}
         </p>
 
-        {/* Quest heading — green when completed */}
+        {/* Quest heading — green when done */}
         <h1
           className={`text-4xl font-bold mb-3 leading-tight ${
-            quest.completed ? "text-green-700" : "text-amber-900"
+            done ? "text-green-700" : "text-amber-900"
           }`}
           style={CAVEAT}
         >
-          {quest.completed && <span className="mr-2">✓</span>}
+          {done && <span className="mr-2">✓</span>}
           {quest.heading}
         </h1>
 
         {/* Completion stamp */}
-        {quest.completed && (
+        {done && (
           <div
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-5 border border-green-400/40"
             style={{ background: "rgba(134,239,172,0.15)" }}
@@ -159,7 +202,7 @@ function QuestPage({ quest }: { quest: Quest | null }) {
           </div>
         )}
 
-        {/* Body paragraphs — each sits on the ruled lines */}
+        {/* Narrative body */}
         {paragraphs.map((para, i) => (
           <p
             key={i}
@@ -170,15 +213,31 @@ function QuestPage({ quest }: { quest: Quest | null }) {
           </p>
         ))}
 
+        {/* Objectives checklist */}
+        {quest.objectives.length > 0 && (
+          <div className="mb-8">
+            <p className="text-xs font-black uppercase tracking-widest text-amber-700/50 mb-3">
+              Objectives
+            </p>
+            <ul className="space-y-2.5">
+              {quest.objectives.map((obj) => (
+                <ObjectiveRow
+                  key={obj.id}
+                  obj={obj}
+                  collectedItemIds={collectedItemIds}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Hints — folded note style */}
         {quest.hints.length > 0 && (
           <div
             className="mt-4 mx-2 rounded-lg border border-amber-400/30 px-4 py-3"
             style={{ background: "rgba(255,220,130,0.15)" }}
           >
-            <p
-              className="text-xs font-black uppercase tracking-widest text-amber-700/50 mb-2"
-            >
+            <p className="text-xs font-black uppercase tracking-widest text-amber-700/50 mb-2">
               Hints
             </p>
             <ul className="space-y-1">
@@ -210,6 +269,12 @@ interface JournalPanelProps {
 export function JournalPanel({ onClose }: JournalPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(QUESTS[0]?.id ?? null);
 
+  const { items } = useItems();
+  const collectedItemIds = useMemo(
+    () => new Set(items.map((c) => c.item.id)),
+    [items],
+  );
+
   const selected = QUESTS.find((q) => q.id === selectedId) ?? null;
 
   return (
@@ -220,11 +285,7 @@ export function JournalPanel({ onClose }: JournalPanelProps) {
       {/* Journal book container */}
       <div
         className={`relative z-10 w-full max-w-2xl flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] ${PANEL_H}`}
-        style={{
-          borderRadius: "16px",
-          background:   "#8B6240",
-          padding:      "6px",
-        }}
+        style={{ borderRadius: "16px", background: "#8B6240", padding: "6px" }}
       >
         {/* Inner pages */}
         <div
@@ -236,17 +297,18 @@ export function JournalPanel({ onClose }: JournalPanelProps) {
             <QuestList
               quests={QUESTS}
               selectedId={selectedId}
+              collectedItemIds={collectedItemIds}
               onSelect={setSelectedId}
             />
           </div>
 
           {/* Right content page — 65% */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <QuestPage quest={selected} />
+            <QuestPage quest={selected} collectedItemIds={collectedItemIds} />
           </div>
         </div>
 
-        {/* Close button — sits in the leather cover corner */}
+        {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close journal"
