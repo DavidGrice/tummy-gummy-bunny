@@ -14,6 +14,7 @@ import { InventoryPanel }                from "./InventoryPanel";
 import { InventoryHUD }                  from "./InventoryHUD";
 import { PlaystyleSelect }               from "./PlaystyleSelect";
 import { JournalFAB }                    from "./JournalFAB";
+import { JournalPanel }                  from "./JournalPanel";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
@@ -140,9 +141,9 @@ export function GameCanvas() {
 
           {showJournalFAB && <JournalFAB onClick={() => setJournalOpen(true)} />}
 
-          {/* Help — always visible */}
+          {/* Help — always visible, tooltip to the right so it doesn't clip off-screen */}
           <div className="absolute bottom-5 left-5 z-20">
-            <Tooltip content="Show tutorial" position="top" align="start">
+            <Tooltip content="Show tutorial" position="right">
               <button
                 onClick={handleShowHelp}
                 aria-label="Show tutorial"
@@ -155,24 +156,8 @@ export function GameCanvas() {
         </>
       )}
 
-      {/* Journal panel — placeholder until JournalPanel is built */}
       {journalOpen && (
-        <div
-          className="absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setJournalOpen(false); }}
-        >
-          <div className="relative z-10 w-full max-w-xl mx-4 rounded-3xl bg-gray-900/90 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.7)] px-8 py-10 flex flex-col items-center gap-4">
-            <span className="text-5xl select-none" aria-hidden>📓</span>
-            <h2 className="text-lg font-black uppercase tracking-widest text-summer-cream">Quest Journal</h2>
-            <p className="text-summer-peach/60 text-sm text-center">Your quest diary is being prepared…</p>
-            <button
-              onClick={() => setJournalOpen(false)}
-              className="mt-2 px-6 py-2.5 rounded-2xl bg-summer-coral text-white text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <JournalPanel onClose={() => setJournalOpen(false)} />
       )}
     </div>
   );

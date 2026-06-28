@@ -9,7 +9,7 @@ interface JournalFABProps {
 export function JournalFAB({ onClick }: JournalFABProps) {
   return (
     <div className="absolute bottom-24 right-5 z-20">
-      <Tooltip content="Quest Journal" position="top" align="end">
+      <Tooltip content="Quest Journal" position="left">
         <button
           onClick={onClick}
           aria-label="Open quest journal"

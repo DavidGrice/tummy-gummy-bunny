@@ -274,7 +274,7 @@ export function InventoryHUD({ equipped, items }: InventoryHUDProps) {
     <>
       {/* FAB — wrapper holds absolute position so Tooltip nests cleanly */}
       <div className="absolute bottom-5 right-5 z-20">
-        <Tooltip content="Inventory" position="top" align="end">
+        <Tooltip content="Inventory" position="left">
           <button
             onClick={() => setIsOpen(true)}
             aria-label="Open inventory"
