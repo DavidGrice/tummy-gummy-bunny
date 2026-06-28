@@ -2,13 +2,14 @@
 
 > Hand this file to any LLM working on this project. It covers everything built so far,
 > the architecture, the patterns in use, and what still needs doing.
+> Last updated: 2026-06-27
 
 ---
 
 ## What This Is
 
 A **point-and-click adventure game** built with Next.js 15 + Three.js r177.
-The player controls Mr. Bunny (a capsule-geometry bunny) by clicking the floor to walk
+The player controls a bunny (named after the logged-in user) by clicking the floor to walk
 and clicking labelled objects to interact. It ships to Vercel as a web app.
 
 **Live stack:**
@@ -17,8 +18,6 @@ and clicking labelled objects to interact. It ships to Vercel as a web app.
 - Tailwind CSS v4
 - TypeScript strict
 - Vercel deployment (main branch auto-deploys)
-
-**GitHub:** david grice — see `git remote -v` for the repo URL.
 
 ---
 
@@ -34,9 +33,11 @@ Authentication is cookie-based (no passwords — just a username).
 - `/` → redirects to `/welcome` (authed) or `/auth` (not authed)
 - `/auth` → redirects to `/welcome` if already authed
 - `/welcome/*` → requires auth, else `/auth`
-- `/play` and `/play/*` → requires auth, else `/auth`
+- `/play` → requires auth, else `/auth`
 
-The game canvas lives at **`/play`** — do NOT move it back to `/`.
+`lib/cookies.ts` has `getUsername()`, `setUsername()`, `clearUsername()` — safe to call in client components.
+
+The game canvas lives at **`/play`**.
 
 ---
 
@@ -44,24 +45,23 @@ The game canvas lives at **`/play`** — do NOT move it back to `/`.
 
 ### Theme
 
-Summer-evening gradient background (defined in `config/theme.config.ts`):
+Summer-evening gradient background (`config/theme.config.ts`):
 ```
 linear-gradient(to bottom, sandy 0%, coral 40%, ember 70%, char 100%)
 ```
-Applied globally — all pages show this gradient as the page background.
 
-### Color palette (`tailwind.config.ts` + `app/globals.css`)
+### Color palette
 
 | Name | Hex | Usage |
 |------|-----|-------|
 | `summer-sandy` | `#F4923A` | Accent, warm mid-tone |
-| `summer-coral` | `#BF3F1E` | Primary CTA, buttons, highlights |
+| `summer-coral` | `#BF3F1E` | Primary CTA, active states |
 | `summer-ember` | `#7A1E0A` | Deep accent |
 | `summer-char` | `#1A0800` | Dark background |
 | `summer-cream` | `#FFF5E6` | Primary text on dark |
 | `summer-peach` | `#F5CBA7` | Secondary text |
-| `summer-gold` | `#FFCF47` | Hover/outline accent |
-| `summer-error` | `#E53E3E` | Form validation |
+| `summer-gold` | `#FFCF47` | Hover outline accent |
+| `summer-error` | `#E53E3E` | Validation errors |
 
 ### Glassmorphic Card Style (USER LOVES THIS — preserve everywhere)
 
@@ -70,21 +70,15 @@ Applied globally — all pages show this gradient as the page background.
 rounded-3xl bg-gray-900/60 backdrop-blur-md border border-white/8 shadow-[0_8px_32px_rgba(0,0,0,0.5)] px-8 py-10
 ```
 
-**Game overlay / modal card (max-w-sm, slightly more opaque):**
+**Game overlay / modal card (max-w-sm):**
 ```
 rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-8 py-10
 ```
 
-**Wide card (extras/credits, max-w-xl):**
+**Right-side drawer (wardrobe/dresser/journal panels):**
 ```
-rounded-3xl bg-gray-900/60 backdrop-blur-md border border-white/8 shadow-[0_8px_32px_rgba(0,0,0,0.5)]
+absolute right-0 top-0 bottom-0 w-[45%] min-w-[260px] bg-gray-900/90 backdrop-blur-md border-l border-white/10
 ```
-
-### Button / Touch targets
-
-- All interactive elements minimum `min-h-[44px]` (Apple HIG)
-- Primary CTA: `bg-summer-coral text-white font-black uppercase tracking-widest rounded-2xl`
-- Disabled: `bg-white/8 text-white/20 cursor-not-allowed`
 
 ---
 
@@ -92,14 +86,13 @@ rounded-3xl bg-gray-900/60 backdrop-blur-md border border-white/8 shadow-[0_8px_
 
 | Route | File | Notes |
 |-------|------|-------|
-| `/` | `app/page.tsx` | Middleware always redirects away; never renders |
 | `/auth` | `app/auth/page.tsx` | Username entry, cookie set on submit |
-| `/welcome` | `app/welcome/page.tsx` | Main menu with 4 MenuButtons |
-| `/welcome/start` | `app/welcome/start/page.tsx` | Tutorial / New Game / Continue (disabled) |
-| `/welcome/options` | `app/welcome/options/page.tsx` | Toggle switches (sound, music, tutorial hints) |
-| `/welcome/extras` | `app/welcome/extras/page.tsx` | Gallery grid placeholder |
-| `/welcome/credits` | `app/welcome/credits/page.tsx` | Cinematic auto-scroll with glass backdrop |
-| `/play` | `app/play/page.tsx` | Game canvas — loads `GameCanvasLoader` |
+| `/welcome` | `app/welcome/page.tsx` | Main menu |
+| `/welcome/start` | `app/welcome/start/page.tsx` | Tutorial / New Game / Continue |
+| `/welcome/options` | `app/welcome/options/page.tsx` | Sound/music/tutorial toggles |
+| `/welcome/extras` | `app/welcome/extras/page.tsx` | Gallery placeholder |
+| `/welcome/credits` | `app/welcome/credits/page.tsx` | Cinematic auto-scroll |
+| `/play` | `app/play/page.tsx` | Game canvas |
 
 ---
 
@@ -108,88 +101,102 @@ rounded-3xl bg-gray-900/60 backdrop-blur-md border border-white/8 shadow-[0_8px_
 ```
 components/
   ui/
-    auth/
-      AuthCard.tsx        — white card with 3D depth shadow (bg-white shadow-card-3d)
-      AuthForm.tsx        — form wrapper, dark text on white
-      UsernameInput.tsx   — input with validation states, font-size 16px (no iOS zoom)
-    nav/
-      PageShell.tsx       — wraps every nav page, ambient blobs, overflow-x-hidden
-      BackButton.tsx      — 44px touch target
-      MenuButton.tsx      — large nav tile with icon + label + description
+    auth/AuthCard.tsx, AuthForm.tsx, UsernameInput.tsx
+    nav/PageShell.tsx, BackButton.tsx, MenuButton.tsx
   game/
-    GameCanvasLoader.tsx  — dynamic(ssr:false) wrapper for GameCanvas
-    GameCanvas.tsx        — mounts the canvas ref, renders game UI overlays
-    LoadingScreen.tsx     — 🐰 bounce + progress bar, 700ms minimum display
-    TutorialOverlay.tsx   — stepped 3-page onboarding card (Move→Interact→Patience)
-    DialogBox.tsx         — centered speech bubble (absolute inset-0 flex items-center)
+    GameCanvasLoader.tsx  — dynamic(ssr:false) wrapper
+    GameCanvas.tsx        — canvas ref, all game overlays, syncs equipped→MrBunny
+    LoadingScreen.tsx     — 🐰 bounce + progress, shows playerName
+    TutorialOverlay.tsx   — 3-step onboarding (playerName in step text)
+    DialogBox.tsx         — centered glass speech bubble
+    InventoryPanel.tsx    — right-side drawer: 3D preview canvas + item grid (equip/unequip)
+    InventoryHUD.tsx      — 🎒 FAB + tabbed modal (READ-ONLY — visit furniture to change)
 ```
 
-### TutorialOverlay flow
-- 3 steps: **Moving** (🐾) → **Interacting** (✨) → **Patience** (⏳)
-- Each step locks the Next button for **3 seconds**, showing a `3→2→1` countdown
-- "Do not show again" checkbox + "Got it!" only appear on step 3
-- Controlled by `localStorage.tgb_tutorial_seen` flag
-- Backdrop `bg-black/40` blocks all game clicks while visible
+### InventoryPanel (wardrobe/dresser)
+- Right-side drawer layout (left half shows dim game, right half = panel)
+- Top: live 3D `PreviewBunny` rendered in a small `<canvas>` via `usePreviewRenderer`
+- Bottom: item grid with equip/unequip (this IS the source panel, so it's interactive)
+- Source "wardrobe" shows only outerwear tab; "dresser" shows Tops + Bottoms tabs
 
-### DialogBox
-- Centered on screen (`absolute inset-0 z-40 flex items-center justify-center`)
-- Glass card `bg-gray-900/92 backdrop-blur-md`, 🐰 icon, message text, OK button
+### InventoryHUD (🎒 FAB)
+- Always visible during gameplay (bottom-right corner)
+- Opens a tabbed modal: All | Outerwear | Tops | Bottoms
+- **Read-only** — items show "On" label if equipped, source location hint if not
+- Clicking items does nothing — player must visit wardrobe/dresser to change
+
+---
+
+## Inventory System
+
+**`lib/inventory.ts`** — canonical source:
+- `InventoryItem`: `{ id, name, emoji, category, colorHex }`
+- `ItemCategory`: `"top" | "bottom" | "outerwear"`
+- `EquippedClothing`: `{ outerwear, top, bottom }` — shared by engine + hooks
+- `WARDROBE_ITEMS`: 4 outerwear items (🧥 Raincoat, 🥼 Long Coat, 🎽 Hoodie, 🧣 Scarf)
+- `DRESSER_ITEMS`: 6 items — 3 tops (👕 T-Shirt, 🦺 Vest, 👔 Button-Up), 3 bottoms (👖 Jeans, 🩳 Shorts, 👗 Sundress)
+
+**`hooks/useInventory.ts`** — React state: `equipped`, `equip(item)`, `unequip(category)`
 
 ---
 
 ## Game Engine Architecture
 
-All engine code lives under `engine/`. It is **framework-agnostic** (no React imports).
-
 ```
 engine/
   core/
-    Camera.ts         — THREE.PerspectiveCamera wrapper, resize()
-    Loop.ts           — requestAnimationFrame loop, add(fn)/stop()/start()
-    Renderer.ts       — THREE.WebGLRenderer + EffectComposer post-processing
-    SceneManager.ts   — loads/unloads BaseScene, calls update() each frame
+    Camera.ts       — PerspectiveCamera wrapper, resize()
+    Loop.ts         — rAF loop, add(fn)/stop()/start()
+    Renderer.ts     — WebGLRenderer + EffectComposer (RenderPass→OutlinePass→OutputPass)
+    SceneManager.ts — loads/unloads BaseScene, update() each frame
   input/
-    InputManager.ts   — pointermove → onHover(), pointerdown → onClick()
+    InputManager.ts — pointermove→onHover(), pointerdown→onClick()
   interaction/
-    Raycaster.ts      — castFirst(pointer, camera, targets) → Intersection|null
+    Raycaster.ts    — castFirst(pointer, camera, targets)
   objects/
-    LabelSprite.ts    — floating pill label (CanvasTexture sprite), hover color swap
+    LabelSprite.ts        — floating pill label, dual CanvasTexture hover swap
     InteractableObject.ts — mesh + label + onInteract, setHovered() passthrough
   characters/
-    Character.ts      — abstract base: walkTo(target, onArrival?), isMoving gate
+    Character.ts       — abstract base: walkTo(), isMoving gate, update()
+    ClothingLayers.ts  — SHARED utility: buildClothingLayers(body), applyEquipped(layers, equipped)
+    PreviewBunny.ts    — dressing room preview bunny (auto-spin, setEquipped, eyes/nose)
 ```
 
-### Renderer (post-processing pipeline)
+### ClothingLayers (shared between MrBunny + PreviewBunny)
+`buildClothingLayers(body)` attaches 3 invisible Box mesh children to the body mesh:
+- Outerwear: `BoxGeometry(0.58, 0.92, 0.58)` at local y=-0.02
+- Top: `BoxGeometry(0.56, 0.40, 0.56)` at local y=+0.08
+- Bottom: `BoxGeometry(0.52, 0.38, 0.52)` at local y=-0.24
+- All use `polygonOffset` to prevent z-fighting with the capsule
 
-`Renderer.ts` runs a full EffectComposer after `renderer.setup()` is called:
-1. `RenderPass` — renders scene normally
-2. `OutlinePass` — gold outline (`#FFCF47`) on hovered interactables, sandy hidden edge (`#F4923A`)
-3. `OutputPass` — linear→sRGB color space conversion
+`applyEquipped(layers, equipped)` sets visibility + `colorHex` on each layer.
 
-`renderer.setup(scene, camera, width, height)` must be called **after** scene loads.
-`renderer.setHoveredObjects(objects[])` drives the outline.
+### usePreviewRenderer hook
+- Creates an independent `WebGLRenderer` pointing at the panel's small `<canvas>`
+- Warm dual lighting (sun + cool fill), transparent background
+- `ResizeObserver` keeps pixel dimensions correct
+- Second `useEffect` pushes `equipped` changes to the bunny without remounting
 
-### InputManager
+---
 
-- `onClick(handler)` — fires on `pointerdown` with normalized NDC coords
-- `onHover(handler)` — fires on every `pointermove` with NDC coords
-- Both use Pointer Events API (works for touch tap too, mobile future work)
-- `dispose()` removes all listeners, clears all handler sets
+## Characters
 
-### LabelSprite
+### MrBunny (`characters/MrBunny.ts`)
+- Extends `Character`, speed = 3
+- `CapsuleGeometry(0.25, 0.5)` cream body with ears + inner ears
+- **Clothing layers** via `buildClothingLayers` (from `ClothingLayers.ts`)
+- **Walking animation** (override `update()`):
+  - `Math.max(0, sin(time × 6π))` → clean periodic hops at 6 Hz
+  - Squash-and-stretch: scaleY up at hop peak, scaleXZ slightly in
+  - On arrival: emphatic landing squash `(1.14, 0.86, 1.14)` → spring back at 14× delta
+- **`setEquipped(equipped)`** → calls `applyEquipped(this.clothing, equipped)`
+- Driven from `GameCanvas` via `useEffect` watching `equipped` → `pushEquippedToGame(equipped)`
 
-- Bakes **two** CanvasTextures at construction: normal (dark pill `rgba(20,10,0,0.82)`, cream text) and hovered (same dark color fully opaque `rgba(20,10,0,1.0)`, white text)
-- `setHovered(boolean)` swaps `material.map` — no per-frame redraws
-- `sprite.raycast = () => undefined` — excluded from raycaster so clicks go to the mesh
-- Uses `arcTo` path for pill shape (NOT `roundRect` — browser compat issue)
-- `depthTest: false` so label always renders on top of geometry
-
-### InteractableObject
-
-- Wraps a `THREE.Mesh` + `LabelSprite`
-- Sets `mesh.userData.interactable = true` and `mesh.userData.onInteract`
-- `setHovered(boolean)` passes through to `LabelSprite`
-- Compound objects (e.g., door with frame/panel/knob children): raycaster may hit a child mesh, caller walks up via `.parent` until `userData.interactable` is found
+### PreviewBunny (`engine/characters/PreviewBunny.ts`)
+- Same body + ears + clothing layers as MrBunny
+- Also has eyes (SphereGeometry 0.045) and nose (SphereGeometry 0.03) — visible at close range
+- Auto-spins: `group.rotation.y += delta * 0.55`
+- `setEquipped()` uses same shared `applyEquipped`
 
 ---
 
@@ -197,135 +204,107 @@ engine/
 
 ```
 scenes/
-  BaseScene.ts         — abstract: setup(), update(), dispose(), getCastTargets(),
-                         handleClick(), setupCamera?(), onHoverChange?()
+  BaseScene.ts       — abstract: setup(), update(), dispose(), getCastTargets(),
+                       handleClick(), setupCamera?(), onHoverChange?()
   tutorial/
-    TutorialScene.ts   — Mr. Bunny's bedroom
+    TutorialScene.ts
     data/
-      layout.ts        — ROOM, BOUNDS, BUNNY_START, OBJECTS, WINDOWS constants
-      interactions.ts  — dialog strings for each interactable
+      layout.ts        — ROOM, BOUNDS, BUNNY_START, OBJECTS, WINDOWS
+      interactions.ts  — dialog + inventory callbacks; takes playerName
     objects/
-      Floor.ts         — PlaneGeometry, userData.isFloor = true
-      Walls.ts         — north/east/west solid walls + south door-frame panels (transparent)
-      Wardrobe.ts      — InteractableObject factory
-      Dresser.ts       — InteractableObject factory (with mirror child mesh)
-      RoomDoor.ts      — InteractableObject factory (frame + panel + knob children)
-      Bed.ts           — InteractableObject factory (frame + mattress + pillow)
-      Windows.ts       — THREE.Group[] factory (decorative, NOT interactable)
+      Floor.ts, Walls.ts, Wardrobe.ts, Dresser.ts, RoomDoor.ts, Bed.ts, Windows.ts
 ```
 
 ### TutorialScene room layout
 
-Camera: position `(0, 8, 8)` looking at `(0, 0, 0)` — top-down isometric angle.
-Room: 8×8 units, walls at x=±4 and z=±4. Floor at y=0.
+Camera: `(0, 8, 8)` looking at `(0, 0, 0)`. Room: 8×8 units.
 
-| Object | Position (x,y,z) | Size (w,h,d) | Notes |
-|--------|-----------------|--------------|-------|
-| Wardrobe | -3.65, 0, 0 | 0.5, 2.2, 1.2 | Left (west) wall, face along Z |
-| Dresser | 0, 0, -3.65 | 1.6, 1.0, 0.5 | North wall, under windows |
-| Door | 0, 0, 3.5 | 0.9, 2.2, 0.15 | South wall, interactable |
-| Bed | 3.4, 0, -0.5 | 1.0, 0.5, 2.2 | Right (east) wall, laid along Z |
-| Windows | ±1.0, 1.75, -3.9 | — | North wall, decorative, sky-blue glass |
+| Object | Position (x,y,z) | Size (w,h,d) | Interaction |
+|--------|-----------------|--------------|-------------|
+| Wardrobe | -3.65, 0, 0 | 0.5, 2.2, 1.2 | Opens wardrobe inventory panel |
+| Dresser | 0, 0, -3.65 | 1.6, 1.0, 0.5 | Opens dresser inventory panel |
+| Door | 0, 0, 3.5 | 0.9, 2.2, 0.15 | Dialog: almost ready |
+| Bed | 3.4, 0, -0.5 | 1.0, 0.5, 2.2 | Dialog: {playerName} yawns |
+| Windows | ±1.0, 1.75, -3.9 | — | Decorative only |
 
-Walkable BOUNDS: x and z clamped to `[-3.0, 3.0]`.
+South wall: 3 BoxGeometry panels (left, right, lintel) at z=3.3, opacity 0.7. No z-sorting issue.
 
-South wall: three BoxGeometry panels at `z = doorZ - wallThick = 3.3` (left, right, lintel),
-`opacity: 0.7`, framing the door opening. NOT a single plane — avoids z-sorting in front of door.
-
-### Click / hover flow
-
-```
-useGame (pointermove) → InputManager.onHover
-  → Raycaster.castFirst (interactable targets only, floor excluded)
-  → walk .parent chain until userData.interactable
-  → renderer.setHoveredObjects([obj])    ← OutlinePass gold glow
-  → scene.onHoverChange(obj)             ← LabelSprite pill darkens
-  → canvas.style.cursor = "pointer"
-
-useGame (pointerdown) → InputManager.onClick
-  → Raycaster.castFirst (all targets incl. floor)
-  → scene.handleClick(hit)
-
-TutorialScene.handleClick(hit):
-  → isFloor → mrBunny.walkTo(clamped point)
-  → isInteractable → mrBunny.walkTo(standPos 1 unit toward center, onArrival: onInteract())
-```
-
-### MrBunny
-
-- Extends `Character` (abstract), speed = 3
-- Geometry: `CapsuleGeometry(0.25, 0.5)` body cream `0xF0E0C8`, ear children
-- `walkTo(target, onArrival?)` — sets `isMoving = true`, lerps toward target each frame
-- `isMoving` blocks all new movement and click-handling until arrival
-- Starts at `BUNNY_START = [0, 1]` → world position `(0, 0.5, 1)`
+### TutorialScene callbacks
+- `onProgress(fn)` — loading %
+- `onDialog(fn)` — sets dialog string in useGame
+- `onInventory(fn)` — sets inventorySource ("wardrobe" | "dresser") in useGame
+- `setPlayerName(name)` — stored before setup(), passed to createInteractions()
+- `setCharacterEquipped(equipped)` — delegates to `mrBunny.setEquipped(equipped)`
 
 ---
 
 ## The `useGame` Hook
 
-`hooks/useGame.ts` is the single React bridge to the engine. It:
+`hooks/useGame.ts` — React bridge to engine. Returns:
+- `{ isLoading, loadProgress, dialog, dismissDialog, inventorySource, dismissInventory, setEquipped }`
+- `setEquipped` is a stable `useCallback` that reads `sceneRef.current` at call time
+- `sceneRef` is set to the TutorialScene instance inside the effect, cleared on unmount
 
-1. Creates: `SceneManager`, `Camera`, `Renderer`, `InputManager`, `Raycaster`, `Loop`
-2. Loads scene async (with try/catch — **no unhandled rejections**)
-3. Calls `renderer.setup()` after scene load
-4. Registers hover + click handlers (hover only after loading completes)
-5. Starts game loop (`loop.start()`)
-6. Exposes: `{ isLoading, loadProgress, dialog, dismissDialog }`
-7. Cleans up everything (including `canvas.style.cursor`) on unmount
+---
 
-The 700ms minimum loading delay ensures the loading screen is visible even on fast loads.
+## Player Name Personalisation
+
+`GameCanvas` calls `getUsername() ?? "Bunny"` and passes `playerName` to:
+- `useGame(canvasRef, playerName)` → `scene.setPlayerName()` → `createInteractions()`
+- `<LoadingScreen playerName={playerName} />` — "Loading {name}'s Room…"
+- `<TutorialOverlay playerName={playerName} />` — all 3 step bodies use the name
+- Bed dialog: "{playerName} yawns…"
 
 ---
 
 ## Known Issues / To-Do
 
+### Upcoming Features (in order)
+- [ ] **Journal / Quest Diary** — interactable in room, split-panel notebook UI (lined paper CSS, Caveat font, quest list left + content right)
+- [ ] **Write your own journal entry** — FUTURE (after journal). "New Entry" button, freeform text, persists in localStorage as `tgb_journal_{username}`. Quest type discriminated union: `"quest" | "personal"`.
+- [ ] **Scene transition** — door leads to a second room; needs SceneManager registry + fade transition
+- [ ] **Mobile touch pass** — see `styles/MOBILE_TODO.md`
+- [ ] **Audio** — toggles wired to localStorage, no sound yet
+- [ ] **Save system** — Continue is disabled; no persistence beyond username + tutorial flag + journal
+
 ### Engine
-- [ ] **Mobile touch**: `InputManager` uses Pointer Events (works for tap) but needs:
-  - `touch-action: none` on canvas to prevent scroll while playing
-  - Tap vs drag distinction (suppress click if pointer moved >8px between down/up)
-  - Multi-touch prevention
-  - See `styles/MOBILE_TODO.md` for full list
-- [ ] **Hover on mobile**: `OutlinePass` highlights won't show (no pointermove on touch) — plan is tap-selects-and-highlights
-- [ ] Future scenes need to be added to `SceneManager` scene registry
+- [ ] Hover on mobile: OutlinePass requires pointermove; plan is tap-selects-and-highlights
+- [ ] Future scenes need SceneManager scene registry
 
 ### Game Content
-- [ ] All 4 room objects have placeholder dialog only
-- [ ] No save system yet (Continue is disabled in the start menu)
-- [ ] Extras page is a placeholder gallery grid
-- [ ] No audio implemented (toggles exist in Options but are wired to localStorage only)
-
-### UI / Polish
-- [ ] Full mobile responsive audit pending (`styles/MOBILE_TODO.md`)
-- [ ] No game pause / escape menu
-- [ ] No transitions between scenes
+- [ ] All room interactions have placeholder dialog (door, bed)
+- [ ] Extras page is a placeholder gallery
 
 ---
 
 ## Key Patterns to Preserve
 
-1. **Glass cards**: `bg-gray-900/[60|70]/92 backdrop-blur-md border border-white/[8|10]` — user loves this, use on ALL card/panel UI
-2. **arcTo pill** in `LabelSprite.buildTexture()` — do NOT use `ctx.roundRect()` (not available in all browsers)
+1. **Glass cards**: `bg-gray-900/[60|70|90] backdrop-blur-md border border-white/[8|10]` — on ALL card/panel UI
+2. **arcTo pill** in `LabelSprite.buildTexture()` — do NOT use `ctx.roundRect()` (browser compat)
 3. **`ssr: false`** on `GameCanvasLoader` — Three.js must never run server-side
-4. **`scene.onHoverChange?.()` + `renderer.setHoveredObjects()`** — both must fire on hover (labels + outline)
-5. **`isMoving` gate** in Character — never remove this; clicking during a walk is intentionally a no-op
-6. **Hierarchy traversal** in handleClick: always walk `.parent` until `userData.interactable` — compound objects (door, bed) have child meshes that get hit first
-7. **try/catch on async IIFE** in useGame — prevents `[object Event]` unhandled rejection in Next.js devtools
-8. **Commit + push after every meaningful change** — user's workflow requires Vercel auto-deploy
+4. **`scene.onHoverChange?.()` + `renderer.setHoveredObjects()`** — both must fire on hover
+5. **`isMoving` gate** in Character — clicking during a walk is intentionally a no-op
+6. **Hierarchy traversal** in handleClick — walk `.parent` until `userData.interactable`
+7. **try/catch on async IIFE** in useGame — prevents unhandled rejection errors
+8. **Commit + push after every meaningful change** — Vercel auto-deploys on push
+9. **`EquippedClothing` from `lib/inventory.ts`** — canonical shared type; `EquippedItems` in `useInventory.ts` is just a re-export alias
+10. **`ClothingLayers.ts`** — always use the shared utility for clothing meshes; never duplicate the geometry values in PreviewBunny or MrBunny directly
+11. **`setEquipped` is imperative** — it uses `sceneRef.current` at call time; do not put it in a state-driven effect that re-creates the engine
+12. **Inventory HUD is read-only** — the FAB modal shows status only; equip/unequip only happens in the wardrobe/dresser panels
 
 ---
 
 ## File Naming Conventions
 
 - Engine classes: `PascalCase.ts`
-- Scene factories: `create{Name}.ts` returning `InteractableObject` or `THREE.Mesh[]`
+- Scene factories: `create{Name}.ts`
 - React components: `PascalCase.tsx` with named exports
-- Data files: `camelCase.ts` exporting `const` objects
+- Data files: `camelCase.ts`
 - Hooks: `use{Name}.ts`
 
 ---
 
 ## Git
 
-Branch: `main` (auto-deploys to Vercel on push)
-Always commit with descriptive messages and push immediately after.
-Last commit as of this writing: room redesign (bed, windows, wardrobe/dresser moved).
+Branch: `main` (auto-deploys to Vercel)
+Always commit with descriptive messages and push immediately after each feature.
