@@ -59,6 +59,7 @@ export class TutorialScene extends BaseScene {
 
     this.progressFn(40);
     this.walls = createWalls();
+    this.walls[2].visible = false; // east wall hidden — camera-side wall obscures light switch
     this.walls.forEach((w) => scene.add(w));
 
     this.progressFn(55);
