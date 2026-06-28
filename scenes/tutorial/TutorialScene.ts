@@ -59,7 +59,9 @@ export class TutorialScene extends BaseScene {
 
     this.progressFn(40);
     this.wallSet = createWalls();
-    this.wallSet.southRight.visible = false; // front-right panel faces camera and blocks light switch
+    this.wallSet.southLeft.visible   = false; // south panels face the camera — remove all three
+    this.wallSet.southRight.visible  = false;
+    this.wallSet.southLintel.visible = false;
     this.wallSet.all.forEach((w) => scene.add(w));
 
     this.progressFn(55);
