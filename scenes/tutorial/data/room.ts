@@ -79,14 +79,14 @@ export const TUTORIAL_ROOM: RoomManifest = {
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
     },
 
-    // Right wall, near back-right corner — outlet that controls the floor lamp
+    // Right wall near the door — light switch for the floor lamp
     {
-      id:          "outlet",
+      id:          "light-switch",
       type:        "furniture",
-      label:       "Outlet",
-      position:    [3.75,  0.4,  -2.5],
-      size:        [0.06,  0.16,  0.11],
-      color:       0xE8E8E0,
+      label:       "Light Switch",
+      position:    [3.75,  1.2,   2.5],
+      size:        [0.06,  0.12,  0.09],
+      color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
     },
 
