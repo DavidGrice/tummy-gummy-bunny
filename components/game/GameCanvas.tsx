@@ -188,7 +188,10 @@ export function GameCanvas() {
             />
           )}
 
-          <div className="absolute bottom-5 left-5 z-20">
+          <div
+            className="absolute left-5 z-20"
+            style={{ bottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}
+          >
             <Tooltip content="Show tutorial" position="right">
               <button
                 onClick={handleShowHelp}

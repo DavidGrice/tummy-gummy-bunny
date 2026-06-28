@@ -73,7 +73,7 @@ export function TutorialOverlay({ playerName, playstyle, onDismiss }: TutorialOv
       <div className="absolute inset-0 bg-black/40" />
 
       {/* Hint card — glassmorphic style matching nav cards */}
-      <div className="relative z-10 w-full max-w-sm mx-4 rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-8 py-10 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-sm mx-4 rounded-3xl bg-gray-900/70 backdrop-blur-md border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.6)] px-5 py-8 sm:px-8 sm:py-10 flex flex-col items-center">
 
         {/* Step progress dots */}
         <div className="flex gap-1.5 mb-6">

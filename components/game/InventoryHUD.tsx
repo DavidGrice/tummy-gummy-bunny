@@ -7,10 +7,11 @@ import type { EquippedItems } from "@/hooks/useInventory";
 import type { CollectedItem, ItemCategory } from "@/lib/items";
 import { INVENTORY_GRID_SIZE } from "@/lib/items";
 import { usePreviewRenderer } from "@/hooks/usePreviewRenderer";
+import { useViewport } from "@/hooks/useViewport";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Tooltip } from "@/components/ui/Tooltip";
 
-// ─── Shared panel size — must match JournalPanel ─────────────────────────────
-// Both panels use max-w-2xl + PANEL_H so they're always the same container.
+// ─── Shared panel size (desktop) ─────────────────────────────────────────────
 export const PANEL_H = "h-[68vh] min-h-[400px] max-h-[640px]";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -29,15 +30,14 @@ const CLOTHING_LABEL: Record<ClothingCategory, string> = {
   bottom:    "Bottom",
 };
 
-// Two-level filter: a main tab + optional clothing sub-tab
-type MainTab = "all" | "clothing" | "quest" | "key" | "food" | "tool" | "misc";
+type MainTab      = "all" | "clothing" | "quest" | "key" | "food" | "tool" | "misc";
 type ClothingSubTab = "all" | "outerwear" | "top" | "bottom";
 
 const MAIN_TABS: { id: MainTab; icon: string; label: string }[] = [
   { id: "all",      icon: "🔍", label: "All"     },
   { id: "clothing", icon: "👗", label: "Clothing" },
   { id: "quest",    icon: "⭐", label: "Quest"    },
-  { id: "key",      icon: "🗝", label: "Keys"     },
+  { id: "key",      icon: "🔑", label: "Keys"     },
   { id: "food",     icon: "🍎", label: "Food"     },
   { id: "tool",     icon: "🔧", label: "Tools"    },
   { id: "misc",     icon: "📦", label: "Misc"     },
@@ -61,7 +61,6 @@ type SelectedSlot = Exclude<GridSlot, { kind: "empty" }> | null;
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-/** Live 3D preview — self-contained so the hook mounts/unmounts with the modal */
 function InventoryPreview({ equipped }: { equipped: EquippedItems }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   usePreviewRenderer(canvasRef, equipped);
@@ -74,24 +73,34 @@ function InventoryPreview({ equipped }: { equipped: EquippedItems }) {
   );
 }
 
-/** Three equipment-slot indicators below the preview */
-function EquipmentSlots({ equipped }: { equipped: EquippedItems }) {
+function EquipmentSlots({
+  equipped,
+  compact = false,
+}: {
+  equipped: EquippedItems;
+  compact?: boolean;
+}) {
   const slots: { cat: ClothingCategory; label: string }[] = [
-    { cat: "outerwear", label: "Outer" },
-    { cat: "top",       label: "Top"   },
-    { cat: "bottom",    label: "Bottom"},
+    { cat: "outerwear", label: "Outer"  },
+    { cat: "top",       label: "Top"    },
+    { cat: "bottom",    label: "Bottom" },
   ];
   return (
-    <div className="shrink-0 px-3 py-3 border-t border-white/10">
-      <p className="text-[9px] font-black uppercase tracking-widest text-white/30 text-center mb-2">
-        Currently wearing
-      </p>
-      <div className="flex justify-around gap-1">
+    <div className={compact
+      ? "flex justify-center gap-4 px-4 py-2.5 border-b border-white/10"
+      : "shrink-0 px-3 py-3 border-t border-white/10"
+    }>
+      {!compact && (
+        <p className="text-[9px] font-black uppercase tracking-widest text-white/30 text-center mb-2">
+          Currently wearing
+        </p>
+      )}
+      <div className={compact ? "flex gap-4" : "flex justify-around gap-1"}>
         {slots.map(({ cat, label }) => {
           const item = equipped[cat];
           return (
             <div key={cat} className="flex flex-col items-center gap-1">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border text-xl ${
+              <div className={`${compact ? "w-11 h-11" : "w-10 h-10"} rounded-xl flex items-center justify-center border text-xl ${
                 item
                   ? "border-white/20 bg-white/8"
                   : "border-white/8 bg-white/3 border-dashed"
@@ -110,22 +119,29 @@ function EquipmentSlots({ equipped }: { equipped: EquippedItems }) {
   );
 }
 
-/** Fixed-height detail panel — populates on click, shows placeholder otherwise */
-function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped: EquippedItems }) {
+function DetailPanel({
+  selected,
+  equipped,
+  compact = false,
+}: {
+  selected: SelectedSlot;
+  equipped: EquippedItems;
+  compact?: boolean;
+}) {
+  const h = compact ? "h-20" : "h-28";
   if (!selected) {
     return (
-      <div className="shrink-0 h-28 flex items-center justify-center border-b border-white/10 px-4">
-        <p className="text-white/20 text-xs text-center">Click an item to see details</p>
+      <div className={`shrink-0 ${h} flex items-center justify-center border-b border-white/10 px-4`}>
+        <p className="text-white/20 text-xs text-center">Tap an item to see details</p>
       </div>
     );
   }
 
   if (selected.kind === "clothing") {
     const { item, isEquipped } = selected;
-    const source = CLOTHING_SOURCE[item.category];
     return (
-      <div className="shrink-0 h-28 flex items-start gap-3 border-b border-white/10 px-4 py-3">
-        <span className="text-4xl leading-none select-none shrink-0" aria-hidden>{item.emoji}</span>
+      <div className={`shrink-0 ${h} flex items-start gap-3 border-b border-white/10 px-4 py-3`}>
+        <span className="text-3xl leading-none select-none shrink-0" aria-hidden>{item.emoji}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
             <p className="text-sm font-black text-summer-cream truncate">{item.name}</p>
@@ -133,16 +149,16 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
               {CLOTHING_LABEL[item.category]}
             </span>
           </div>
-          <p className="text-xs text-summer-peach/60 leading-snug line-clamp-2 mb-1.5">
-            {item.description}
-          </p>
+          {!compact && (
+            <p className="text-xs text-summer-peach/60 leading-snug line-clamp-2 mb-1.5">
+              {item.description}
+            </p>
+          )}
           {isEquipped ? (
-            <span className="text-[10px] font-black text-summer-coral uppercase tracking-widest">
-              ● Equipped
-            </span>
+            <span className="text-[10px] font-black text-summer-coral uppercase tracking-widest">● Equipped</span>
           ) : (
             <span className="text-[10px] text-white/30 uppercase tracking-widest">
-              Visit {source} to equip
+              Visit {CLOTHING_SOURCE[item.category]} to equip
             </span>
           )}
         </div>
@@ -150,11 +166,10 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
     );
   }
 
-  // Collectable item
   const { collected } = selected;
   return (
-    <div className="shrink-0 h-28 flex items-start gap-3 border-b border-white/10 px-4 py-3">
-      <span className="text-4xl leading-none select-none shrink-0" aria-hidden>{collected.item.emoji}</span>
+    <div className={`shrink-0 ${h} flex items-start gap-3 border-b border-white/10 px-4 py-3`}>
+      <span className="text-3xl leading-none select-none shrink-0" aria-hidden>{collected.item.emoji}</span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5">
           <p className="text-sm font-black text-summer-cream truncate">{collected.item.name}</p>
@@ -162,9 +177,11 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
             {collected.item.category}
           </span>
         </div>
-        <p className="text-xs text-summer-peach/60 leading-snug line-clamp-2 mb-1.5">
-          {collected.item.description}
-        </p>
+        {!compact && (
+          <p className="text-xs text-summer-peach/60 leading-snug line-clamp-2 mb-1.5">
+            {collected.item.description}
+          </p>
+        )}
         <span className="text-[10px] text-white/30 uppercase tracking-widest">
           ×{collected.quantity} in inventory
         </span>
@@ -173,7 +190,6 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
   );
 }
 
-/** Full-width RPG-style tab bar + optional clothing sub-row */
 function TabBar({
   mainTab,
   clothingSub,
@@ -181,6 +197,7 @@ function TabBar({
   onClothingSub,
   collectables,
   discoveredIds,
+  iconOnly = false,
 }: {
   mainTab:       MainTab;
   clothingSub:   ClothingSubTab;
@@ -188,6 +205,7 @@ function TabBar({
   onClothingSub: (s: ClothingSubTab) => void;
   collectables:  CollectedItem[];
   discoveredIds: Set<string>;
+  iconOnly?:     boolean;
 }) {
   function hasContent(id: MainTab): boolean {
     if (id === "all" || id === "clothing") return true;
@@ -196,7 +214,6 @@ function TabBar({
 
   return (
     <div className="shrink-0">
-      {/* Main tab row */}
       <div className="flex border-b border-white/10">
         {MAIN_TABS.map(({ id, icon, label }) => {
           const active  = mainTab === id;
@@ -206,7 +223,9 @@ function TabBar({
               key={id}
               onClick={() => onMainTab(id)}
               aria-label={label}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2 border-b-2 transition-all duration-150 ${
+              className={`flex-1 flex flex-col items-center gap-0.5 border-b-2 transition-all duration-150 ${
+                iconOnly ? "py-3" : "py-2"
+              } ${
                 active
                   ? "border-summer-coral text-summer-coral bg-summer-coral/8"
                   : hasData
@@ -215,17 +234,18 @@ function TabBar({
               }`}
             >
               <span className="text-base leading-none select-none" aria-hidden>{icon}</span>
-              <span className="text-[9px] font-black uppercase tracking-wide leading-none">{label}</span>
+              {!iconOnly && (
+                <span className="text-[9px] font-black uppercase tracking-wide leading-none">{label}</span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Clothing sub-tabs — only when Clothing tab is active */}
       {mainTab === "clothing" && (
         <div className="flex gap-1 px-3 py-1.5 bg-white/3 border-b border-white/8">
           {CLOTHING_SUBTABS.map(({ id, label }) => {
-            const active = clothingSub === id;
+            const active   = clothingSub === id;
             const hasItems =
               id === "all"
                 ? discoveredIds.size > 0
@@ -252,7 +272,6 @@ function TabBar({
   );
 }
 
-/** Unified item grid with hover-only visual cue and click to select */
 function ItemGrid({
   equipped,
   collectables,
@@ -261,6 +280,7 @@ function ItemGrid({
   clothingSub,
   selected,
   onSelect,
+  cols = 5,
 }: {
   equipped:      EquippedItems;
   collectables:  CollectedItem[];
@@ -269,6 +289,7 @@ function ItemGrid({
   clothingSub:   ClothingSubTab;
   selected:      SelectedSlot;
   onSelect:      (slot: SelectedSlot) => void;
+  cols?:         4 | 5;
 }) {
   const showClothing = mainTab === "all" || mainTab === "clothing";
   const showItems    = mainTab === "all" || mainTab !== "clothing";
@@ -286,36 +307,28 @@ function ItemGrid({
     .filter((c) => mainTab === "all" || c.item.category === mainTab)
     .map((c) => ({ kind: "collectable" as const, collected: c }));
 
-  const filled: GridSlot[] = [...clothingSlots, ...collectableSlots];
-  const empties: GridSlot[] = Array(Math.max(0, INVENTORY_GRID_SIZE - filled.length))
-    .fill({ kind: "empty" } as GridSlot);
-  const slots = [...filled, ...empties].slice(0, INVENTORY_GRID_SIZE);
+  const filled  = [...clothingSlots, ...collectableSlots];
+  const empties = Array(Math.max(0, INVENTORY_GRID_SIZE - filled.length)).fill({ kind: "empty" } as GridSlot);
+  const slots   = [...filled, ...empties].slice(0, INVENTORY_GRID_SIZE);
 
   function toggle(slot: GridSlot) {
     if (slot.kind === "empty") return;
-
     if (slot.kind === "clothing") {
-      const alreadySelected =
-        selected?.kind === "clothing" && selected.item.id === slot.item.id;
-      onSelect(alreadySelected ? null : slot);
+      const already = selected?.kind === "clothing" && selected.item.id === slot.item.id;
+      onSelect(already ? null : slot);
     } else {
-      const alreadySelected =
-        selected?.kind === "collectable" &&
-        selected.collected.item.id === slot.collected.item.id;
-      onSelect(alreadySelected ? null : slot);
+      const already = selected?.kind === "collectable" && selected.collected.item.id === slot.collected.item.id;
+      onSelect(already ? null : slot);
     }
   }
 
   function isActive(slot: GridSlot): boolean {
     if (slot.kind === "empty" || !selected) return false;
-    if (slot.kind === "clothing" && selected.kind === "clothing")
-      return slot.item.id === selected.item.id;
-    if (slot.kind === "collectable" && selected.kind === "collectable")
-      return slot.collected.item.id === selected.collected.item.id;
+    if (slot.kind === "clothing"    && selected.kind === "clothing")    return slot.item.id === selected.item.id;
+    if (slot.kind === "collectable" && selected.kind === "collectable") return slot.collected.item.id === selected.collected.item.id;
     return false;
   }
 
-  // Nothing at all in the current filter — skip the grid and center the hint
   if (slots.every((s) => s.kind === "empty")) {
     return (
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
@@ -331,21 +344,20 @@ function ItemGrid({
     );
   }
 
+  const colsCls = cols === 4 ? "grid-cols-4" : "grid-cols-5";
+
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
-      <div className="grid grid-cols-5 gap-2">
+      <div className={`grid ${colsCls} gap-2`}>
         {slots.map((slot, i) => {
-          const active = isActive(slot);
+          const active  = isActive(slot);
           const isEmpty = slot.kind === "empty";
-          const emoji =
+          const emoji   =
             slot.kind === "clothing"    ? slot.item.emoji :
             slot.kind === "collectable" ? slot.collected.item.emoji : null;
-          const isEquippedClothing =
-            slot.kind === "clothing" && slot.isEquipped;
-          const qty =
-            slot.kind === "collectable" && slot.collected.quantity > 1
-              ? slot.collected.quantity
-              : null;
+          const isEquippedClothing = slot.kind === "clothing" && slot.isEquipped;
+          const qty = slot.kind === "collectable" && slot.collected.quantity > 1
+            ? slot.collected.quantity : null;
 
           return (
             <button
@@ -396,87 +408,135 @@ function ItemGrid({
   );
 }
 
-/** The full modal content — separate component so hooks run fresh each open */
-function InventoryModal({
-  equipped,
-  items,
-  discoveredIds,
-  onClose,
-}: {
+// ─── Shared state props for both layouts ──────────────────────────────────────
+
+interface ModalState {
   equipped:      EquippedItems;
   items:         CollectedItem[];
   discoveredIds: Set<string>;
   onClose:       () => void;
-}) {
-  const [mainTab,     setMainTab]     = useState<MainTab>("all");
-  const [clothingSub, setClothingSub] = useState<ClothingSubTab>("all");
-  const [selected,    setSelected]    = useState<SelectedSlot>(null);
+  mainTab:       MainTab;
+  clothingSub:   ClothingSubTab;
+  selected:      SelectedSlot;
+  onMainTab:     (t: MainTab) => void;
+  onClothingSub: (s: ClothingSubTab) => void;
+  onSelect:      (slot: SelectedSlot) => void;
+}
 
-  function handleMainTab(t: MainTab) {
-    setMainTab(t);
-    setClothingSub("all");
-    setSelected(null);
-  }
+// ─── Desktop layout ───────────────────────────────────────────────────────────
 
-  function handleClothingSub(s: ClothingSubTab) {
-    setClothingSub(s);
-    setSelected(null);
-  }
-
+function DesktopInventoryModal(p: ModalState) {
   return (
     <div
       className="absolute inset-0 z-40 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) p.onClose(); }}
     >
       <div className={`relative z-10 w-full max-w-2xl flex flex-col overflow-hidden rounded-2xl bg-gray-900/90 backdrop-blur-md border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.7)] ${PANEL_H}`}>
-
         {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-white/10">
           <h2 className="text-sm font-black uppercase tracking-widest text-summer-cream">Inventory</h2>
           <button
-            onClick={onClose}
+            onClick={p.onClose}
             aria-label="Close inventory"
             className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all text-sm leading-none"
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
 
         {/* Two-column body */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
-
-          {/* Left — preview + equipment slots */}
+          {/* Left — preview + equipment */}
           <div className="w-[200px] shrink-0 flex flex-col border-r border-white/10 bg-white/3">
-            <InventoryPreview equipped={equipped} />
-            <EquipmentSlots equipped={equipped} />
+            <InventoryPreview equipped={p.equipped} />
+            <EquipmentSlots equipped={p.equipped} />
           </div>
 
-          {/* Right — detail + tab bar + grid */}
+          {/* Right — detail + tabs + grid */}
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-            <DetailPanel selected={selected} equipped={equipped} />
+            <DetailPanel selected={p.selected} equipped={p.equipped} />
             <TabBar
-              mainTab={mainTab}
-              clothingSub={clothingSub}
-              onMainTab={handleMainTab}
-              onClothingSub={handleClothingSub}
-              collectables={items}
-              discoveredIds={discoveredIds}
+              mainTab={p.mainTab} clothingSub={p.clothingSub}
+              onMainTab={p.onMainTab} onClothingSub={p.onClothingSub}
+              collectables={p.items} discoveredIds={p.discoveredIds}
             />
             <ItemGrid
-              equipped={equipped}
-              collectables={items}
-              discoveredIds={discoveredIds}
-              mainTab={mainTab}
-              clothingSub={clothingSub}
-              selected={selected}
-              onSelect={setSelected}
+              equipped={p.equipped} collectables={p.items}
+              discoveredIds={p.discoveredIds} mainTab={p.mainTab}
+              clothingSub={p.clothingSub} selected={p.selected}
+              onSelect={p.onSelect}
             />
           </div>
-
         </div>
       </div>
     </div>
   );
+}
+
+// ─── Mobile layout (bottom sheet) ────────────────────────────────────────────
+
+function MobileInventorySheet(p: ModalState) {
+  return (
+    <BottomSheet onClose={p.onClose} heightCls="h-[88vh]">
+      <div className="flex flex-col h-full bg-gray-900/95 backdrop-blur-md pt-5">
+        {/* Header */}
+        <div className="shrink-0 flex items-center justify-between px-5 pb-3 border-b border-white/10">
+          <h2 className="text-sm font-black uppercase tracking-widest text-summer-cream">Inventory</h2>
+          <button
+            onClick={p.onClose}
+            aria-label="Close inventory"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all text-sm leading-none"
+          >✕</button>
+        </div>
+
+        {/* Compact equipment row */}
+        <EquipmentSlots equipped={p.equipped} compact />
+
+        {/* Icon-only tab bar */}
+        <TabBar
+          mainTab={p.mainTab} clothingSub={p.clothingSub}
+          onMainTab={p.onMainTab} onClothingSub={p.onClothingSub}
+          collectables={p.items} discoveredIds={p.discoveredIds}
+          iconOnly
+        />
+
+        {/* Grid — 4 cols on mobile */}
+        <ItemGrid
+          equipped={p.equipped} collectables={p.items}
+          discoveredIds={p.discoveredIds} mainTab={p.mainTab}
+          clothingSub={p.clothingSub} selected={p.selected}
+          onSelect={p.onSelect} cols={4}
+        />
+
+        {/* Detail panel pinned to bottom when an item is selected */}
+        {p.selected && (
+          <DetailPanel selected={p.selected} equipped={p.equipped} compact />
+        )}
+      </div>
+    </BottomSheet>
+  );
+}
+
+// ─── Controller — picks layout based on viewport ──────────────────────────────
+
+function InventoryModal(props: Omit<ModalState, "mainTab" | "clothingSub" | "selected" | "onMainTab" | "onClothingSub" | "onSelect">) {
+  const { isMobile } = useViewport();
+  const [mainTab,     setMainTab]     = useState<MainTab>("all");
+  const [clothingSub, setClothingSub] = useState<ClothingSubTab>("all");
+  const [selected,    setSelected]    = useState<SelectedSlot>(null);
+
+  function handleMainTab(t: MainTab) { setMainTab(t); setClothingSub("all"); setSelected(null); }
+  function handleClothingSub(s: ClothingSubTab) { setClothingSub(s); setSelected(null); }
+
+  const state: ModalState = {
+    ...props,
+    mainTab, clothingSub, selected,
+    onMainTab: handleMainTab,
+    onClothingSub: handleClothingSub,
+    onSelect: setSelected,
+  };
+
+  return isMobile
+    ? <MobileInventorySheet {...state} />
+    : <DesktopInventoryModal {...state} />;
 }
 
 // ─── Public component ─────────────────────────────────────────────────────────
@@ -495,8 +555,7 @@ export function InventoryHUD({ equipped, items, discoveredIds }: InventoryHUDPro
 
   return (
     <>
-      {/* FAB */}
-      <div className="absolute bottom-5 right-5 z-20">
+      <div className="absolute bottom-5 right-5 z-20" style={{ bottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}>
         <Tooltip content="Inventory" position="left">
           <button
             onClick={() => setIsOpen(true)}
@@ -513,7 +572,6 @@ export function InventoryHUD({ equipped, items, discoveredIds }: InventoryHUDPro
         </Tooltip>
       </div>
 
-      {/* Modal — separate component so preview hook lifecycle is clean */}
       {isOpen && (
         <InventoryModal
           equipped={equipped}

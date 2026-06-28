@@ -9,7 +9,10 @@ interface JournalFABProps {
 
 export function JournalFAB({ onClick, hasNotification }: JournalFABProps) {
   return (
-    <div className="absolute bottom-24 right-5 z-20">
+    <div
+      className="absolute right-5 z-20"
+      style={{ bottom: "max(6rem, calc(env(safe-area-inset-bottom, 0px) + 5.5rem))" }}
+    >
       <Tooltip content="Quest Journal" position="left">
         <button
           onClick={onClick}
