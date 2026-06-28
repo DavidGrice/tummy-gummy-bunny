@@ -190,7 +190,7 @@ export function GameCanvas() {
 
           <div
             className="absolute left-5 z-20"
-            style={{ bottom: "max(1.25rem, env(safe-area-inset-bottom, 0px))" }}
+            style={{ bottom: "max(5rem, calc(env(safe-area-inset-bottom, 0px) + 4.5rem))" }}
           >
             <Tooltip content="Show tutorial" position="right">
               <button

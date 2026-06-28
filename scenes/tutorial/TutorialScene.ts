@@ -3,7 +3,7 @@ import { BaseScene } from "@/scenes/BaseScene";
 import { MrBunny } from "@/characters/MrBunny";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { createFloor } from "./objects/Floor";
-import { createWalls } from "./objects/Walls";
+import { createWalls, type WallSet } from "./objects/Walls";
 import { createWindows } from "./objects/Windows";
 import type { InventorySource, PickupFn, JournalFn } from "./data/interactions";
 import { PickupItem } from "@/engine/objects/PickupItem";
@@ -20,7 +20,7 @@ export class TutorialScene extends BaseScene {
   private pickupItems:   PickupItem[]         = [];
   private decoratives:   THREE.Object3D[]     = [];
   private floor!:        THREE.Mesh;
-  private walls:         THREE.Mesh[]   = [];
+  private wallSet!:      WallSet;
   private windows:       THREE.Group[]  = [];
   private lights:        THREE.Light[]  = [];
 
@@ -58,9 +58,9 @@ export class TutorialScene extends BaseScene {
     scene.add(this.floor);
 
     this.progressFn(40);
-    this.walls = createWalls();
-    this.walls[2].visible = false; // east wall hidden — camera-side wall obscures light switch
-    this.walls.forEach((w) => scene.add(w));
+    this.wallSet = createWalls();
+    this.wallSet.southRight.visible = false; // front-right panel faces camera and blocks light switch
+    this.wallSet.all.forEach((w) => scene.add(w));
 
     this.progressFn(55);
     this.windows = createWindows();
@@ -179,7 +179,7 @@ export class TutorialScene extends BaseScene {
     this.floor.geometry.dispose();
     (this.floor.material as THREE.Material).dispose();
 
-    this.walls.forEach((w) => {
+    this.wallSet.all.forEach((w) => {
       w.geometry.dispose();
       (w.material as THREE.Material).dispose();
     });
