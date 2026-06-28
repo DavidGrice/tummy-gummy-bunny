@@ -166,6 +166,8 @@ export function loadRoomObjects(
           callbacks.onMap
             ? callbacks.onMap()
             : callbacks.onDialog("✨ A map of the house! It looks like there are more rooms to explore.");
+      case "scene-change":
+        return () => callbacks.onSceneChange?.(def.targetRoomId);
       case "dialog":
         return () => callbacks.onDialog(def.message);
       case "dialog-template":

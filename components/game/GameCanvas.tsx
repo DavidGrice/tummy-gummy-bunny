@@ -32,12 +32,13 @@ export function GameCanvas() {
     pickedUpItemId, clearPickedUp,
     journalTriggered, clearJournalTrigger,
     setEquipped: pushEquippedToGame,
+    currentRoomId,
   } = useGame(canvasRef, playerName);
 
   const { equipped, equip, unequip }      = useInventory();
   const { items, addItem }                = useItems();
   const { discoveredIds, discoverSource } = useDiscoveredClothing();
-  const { markCollected }                 = useRoomState("tutorial");
+  const { markCollected }                 = useRoomState(currentRoomId);
 
   // Stable set of collected item IDs — used by notification hook
   const collectedItemIds = useMemo(

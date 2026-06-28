@@ -3,23 +3,22 @@ import { Character } from "@/engine/characters/Character";
 import { buildClothingLayers, applyEquipped } from "@/engine/characters/ClothingLayers";
 import type { ClothingLayers } from "@/engine/characters/ClothingLayers";
 import type { EquippedClothing } from "@/lib/inventory";
-import { BUNNY_START } from "@/scenes/tutorial/data/layout";
 
-const BASE_Y      = 0.5;  // resting floor height
-const HOP_HEIGHT  = 0.10; // units per hop peak
-const HOP_FREQ    = 6;    // hops per second while walking
+const BASE_Y     = 0.5;  // resting floor height
+const HOP_HEIGHT = 0.10; // units per hop peak
+const HOP_FREQ   = 6;    // hops per second while walking
 
 export class MrBunny extends Character {
-  private clothing:  ClothingLayers;
-  private animTime   = 0;
+  private clothing: ClothingLayers;
+  private animTime  = 0;
 
-  constructor() {
-    // CapsuleGeometry(radius=0.25, length=0.5) → total height = 1.0
+  /** @param startPosition [x, z] spawn tile — read from RoomManifest.bunnyStart */
+  constructor(startPosition: [number, number] = [0, 1]) {
     const bodyGeo = new THREE.CapsuleGeometry(0.25, 0.5, 6, 12);
     const bodyMat = new THREE.MeshLambertMaterial({ color: 0xF0E0C8 });
     const body    = new THREE.Mesh(bodyGeo, bodyMat);
     body.castShadow = true;
-    body.position.set(BUNNY_START[0], BASE_Y, BUNNY_START[1]);
+    body.position.set(startPosition[0], BASE_Y, startPosition[1]);
 
     // Ears
     const earGeo   = new THREE.CapsuleGeometry(0.07, 0.35, 4, 8);
@@ -53,30 +52,24 @@ export class MrBunny extends Character {
 
   override update(delta: number): void {
     const wasMoving = this.isMoving;
-    super.update(delta); // handles position + arrival
+    super.update(delta);
     const justLanded = wasMoving && !this.isMoving;
 
     if (this.isMoving) {
       this.animTime += delta;
-
-      // Periodic hop: sin gives 0→peak→0 cleanly; max(0,…) keeps feet on ground between hops
       const hopPhase = Math.max(0, Math.sin(this.animTime * HOP_FREQ * Math.PI));
       this.mesh.position.y = BASE_Y + hopPhase * HOP_HEIGHT;
 
-      // Squash-and-stretch: taller at peak, wider at base
       const scaleY  = 1 + hopPhase * 0.10;
-      const scaleXZ = 1 / Math.sqrt(scaleY); // rough volume conservation
+      const scaleXZ = 1 / Math.sqrt(scaleY);
       this.mesh.scale.set(scaleXZ, scaleY, scaleXZ);
 
     } else {
-      // Landing squash, then ease back to neutral
       if (justLanded) {
         this.animTime = 0;
         this.mesh.position.y = BASE_Y;
-        this.mesh.scale.set(1.14, 0.86, 1.14); // emphatic squash on touchdown
+        this.mesh.scale.set(1.14, 0.86, 1.14);
       }
-
-      // Smooth spring back to (1, 1, 1)
       const s = delta * 14;
       this.mesh.scale.x = THREE.MathUtils.lerp(this.mesh.scale.x, 1, s);
       this.mesh.scale.y = THREE.MathUtils.lerp(this.mesh.scale.y, 1, s);

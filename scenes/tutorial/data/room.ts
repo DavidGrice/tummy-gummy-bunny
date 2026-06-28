@@ -21,6 +21,8 @@ export const TUTORIAL_ROOM: RoomManifest = {
     { x: -1.0, y: 1.75 },
     { x:  1.0, y: 1.75 },
   ],
+  doorId:      "door",
+  hiddenWalls: ["southLeft", "southRight", "southLintel"],
   objects: [
     // ── Furniture ─────────────────────────────────────────────────────────────
 
