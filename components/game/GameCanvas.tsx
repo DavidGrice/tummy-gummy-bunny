@@ -1,23 +1,24 @@
 "use client";
 
-import { useRef, useState, useEffect }  from "react";
-import { useGame }                       from "@/hooks/useGame";
-import { useInventory }                  from "@/hooks/useInventory";
-import { useItems }                      from "@/hooks/useItems";
-import { useDiscoveredClothing }         from "@/hooks/useDiscoveredClothing";
-import { useRoomState }                  from "@/hooks/useRoomState";
-import { GAME_ITEMS }                    from "@/lib/items";
-import { getUsername }                   from "@/lib/cookies";
-import { getPlaystyle, type Playstyle }  from "@/lib/playstyle";
-import { Tooltip }                       from "@/components/ui/Tooltip";
-import { LoadingScreen }                 from "./LoadingScreen";
-import { DialogBox }                     from "./DialogBox";
-import { TutorialOverlay }               from "./TutorialOverlay";
-import { InventoryPanel }                from "./InventoryPanel";
-import { InventoryHUD }                  from "./InventoryHUD";
-import { PlaystyleSelect }               from "./PlaystyleSelect";
-import { JournalFAB }                    from "./JournalFAB";
-import { JournalPanel }                  from "./JournalPanel";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { useGame }                               from "@/hooks/useGame";
+import { useInventory }                          from "@/hooks/useInventory";
+import { useItems }                              from "@/hooks/useItems";
+import { useDiscoveredClothing }                 from "@/hooks/useDiscoveredClothing";
+import { useRoomState }                          from "@/hooks/useRoomState";
+import { useQuestNotifications }                 from "@/hooks/useQuestNotifications";
+import { GAME_ITEMS }                            from "@/lib/items";
+import { getUsername }                           from "@/lib/cookies";
+import { getPlaystyle, type Playstyle }          from "@/lib/playstyle";
+import { Tooltip }                               from "@/components/ui/Tooltip";
+import { LoadingScreen }                         from "./LoadingScreen";
+import { DialogBox }                             from "./DialogBox";
+import { TutorialOverlay }                       from "./TutorialOverlay";
+import { InventoryPanel }                        from "./InventoryPanel";
+import { InventoryHUD }                          from "./InventoryHUD";
+import { PlaystyleSelect }                       from "./PlaystyleSelect";
+import { JournalFAB }                            from "./JournalFAB";
+import { JournalPanel }                          from "./JournalPanel";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
@@ -33,10 +34,22 @@ export function GameCanvas() {
     setEquipped: pushEquippedToGame,
   } = useGame(canvasRef, playerName);
 
-  const { equipped, equip, unequip }           = useInventory();
-  const { items, addItem }                     = useItems();
-  const { discoveredIds, discoverSource }      = useDiscoveredClothing();
-  const { markCollected }                      = useRoomState("tutorial");
+  const { equipped, equip, unequip }      = useInventory();
+  const { items, addItem }                = useItems();
+  const { discoveredIds, discoverSource } = useDiscoveredClothing();
+  const { markCollected }                 = useRoomState("tutorial");
+
+  // Stable set of collected item IDs — used by notification hook
+  const collectedItemIds = useMemo(
+    () => new Set(items.map((c) => c.item.id)),
+    [items],
+  );
+
+  // Incremented whenever a localStorage flag is written so the notification
+  // hook re-checks flag-based objectives (e.g. wardrobe/dresser visited).
+  const [flagTick, setFlagTick] = useState(0);
+
+  const { hasUnseen, markAllSeen } = useQuestNotifications(collectedItemIds, flagTick);
 
   // Sync equipped clothing onto MrBunny whenever it changes
   useEffect(() => {
@@ -73,7 +86,6 @@ export function GameCanvas() {
   }
 
   // ── Discovery flags (Explorer mode) ───────────────────────────────────────
-  // wardrobeFound: unlocked when player first opens wardrobe or dresser
   const [wardrobeFound, setWardrobeFound] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("tgb_wardrobe_found") === "true";
@@ -81,35 +93,40 @@ export function GameCanvas() {
 
   useEffect(() => {
     if (inventorySource === null) return;
-    // Reveal those clothing items in the inventory grid
     discoverSource(inventorySource);
-    // Per-source flags used by quest objective triggers
+    // Per-source flags checked by flag-based quest objectives
     localStorage.setItem(`tgb_${inventorySource}_visited`, "true");
-    // Unlock the inventory FAB for Explorer Bunny mode (either source counts)
+    setFlagTick((t) => t + 1); // re-check flag-based objectives
+    // Unlock inventory FAB for Explorer mode (either source counts)
     if (!wardrobeFound) {
       setWardrobeFound(true);
       localStorage.setItem("tgb_wardrobe_found", "true");
     }
   }, [inventorySource, wardrobeFound, discoverSource]);
 
-  // journalFound: unlocked when player first clicks the in-room journal object
+  // ── Journal panel ──────────────────────────────────────────────────────────
   const [journalFound, setJournalFound] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("tgb_journal_found") === "true";
   });
 
-  // ── Journal panel ──────────────────────────────────────────────────────────
   const [journalOpen, setJournalOpen] = useState(false);
 
-  // When scene fires journal interaction: unlock FAB (Explorer mode) + open panel
+  function handleJournalOpen() {
+    setJournalOpen(true);
+    markAllSeen(); // clears the notification dot
+  }
+
+  // When scene fires journal interaction: unlock FAB + open panel
   useEffect(() => {
     if (!journalTriggered) return;
     if (!journalFound) {
       setJournalFound(true);
       localStorage.setItem("tgb_journal_found", "true");
     }
-    setJournalOpen(true);
+    handleJournalOpen();
     clearJournalTrigger();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [journalTriggered, journalFound, clearJournalTrigger]);
 
   // ── Visibility rules ───────────────────────────────────────────────────────
@@ -119,7 +136,6 @@ export function GameCanvas() {
   const showDialog          = !isLoading && !showPlaystyleSelect && !showTutorial && !showInventory && dialog !== null;
   const showHUD             = !isLoading && !showPlaystyleSelect && !showTutorial && !showInventory;
 
-  // Story Bunny: FABs always visible. Explorer Bunny: unlocked after first discovery.
   const showInventoryHUD = showHUD && (playstyle === "story" || wardrobeFound);
   const showJournalFAB   = showHUD && (playstyle === "story" || journalFound);
 
@@ -165,9 +181,13 @@ export function GameCanvas() {
             />
           )}
 
-          {showJournalFAB && <JournalFAB onClick={() => setJournalOpen(true)} />}
+          {showJournalFAB && (
+            <JournalFAB
+              onClick={handleJournalOpen}
+              hasNotification={hasUnseen}
+            />
+          )}
 
-          {/* Help — always visible, tooltip to the right so it doesn't clip off-screen */}
           <div className="absolute bottom-5 left-5 z-20">
             <Tooltip content="Show tutorial" position="right">
               <button
