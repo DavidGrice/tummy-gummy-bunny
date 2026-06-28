@@ -7,7 +7,7 @@ import { createFloor } from "@/engine/builders/Floor";
 import { createWalls, type WallSet } from "@/engine/builders/Walls";
 import { createWindows } from "@/engine/builders/Windows";
 import { loadRoomObjects } from "@/engine/loaders/ObjectLoader";
-import { buildCollisionBoxes, resolveDestination, computeStandPos, type CollisionBox } from "@/engine/collision/CollisionBoxes";
+import { buildCollisionBoxes, resolveDestination, resolveWalkPath, computeStandPos, type CollisionBox } from "@/engine/collision/CollisionBoxes";
 import type { RoomManifest, RoomCallbacks, InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
@@ -154,9 +154,11 @@ export class RoomScene extends BaseScene {
       const { min, max, minX, maxX, minZ, maxZ } = this.manifest.bounds;
       target.x = THREE.MathUtils.clamp(target.x, minX ?? min, maxX ?? max);
       target.z = THREE.MathUtils.clamp(target.z, minZ ?? min, maxZ ?? max);
-      // Push the destination out of any furniture collision box
-      const resolved = resolveDestination(target, this.collisionBoxes);
-      this.mrBunny.walkTo(resolved);
+      // 1) push destination out of any box it lands inside
+      const dest = resolveDestination(target, this.collisionBoxes);
+      // 2) if the straight-line path still crosses a box, stop at the box edge
+      const safe = resolveWalkPath(this.mrBunny.mesh.position, dest, this.collisionBoxes);
+      this.mrBunny.walkTo(safe);
 
     } else if (obj?.userData.interactable) {
       // Compute a stand position on the bunny's side of the object, just outside its surface
