@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { useGame } from "@/hooks/useGame";
 import { useInventory } from "@/hooks/useInventory";
 import { getUsername } from "@/lib/cookies";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { LoadingScreen } from "./LoadingScreen";
 import { DialogBox } from "./DialogBox";
 import { TutorialOverlay } from "./TutorialOverlay";
@@ -40,6 +41,11 @@ export function GameCanvas() {
     setTutorialDismissed(true);
   }
 
+  // ❓ button re-shows tutorial for this session (does not clear the localStorage flag)
+  function handleShowHelp() {
+    setTutorialDismissed(false);
+  }
+
   const showTutorial  = !isLoading && !tutorialDismissed;
   const showInventory = !isLoading && !showTutorial && inventorySource !== null;
   const showDialog    = !isLoading && !showTutorial && !showInventory && dialog !== null;
@@ -70,7 +76,22 @@ export function GameCanvas() {
       )}
 
       {showHUD && (
-        <InventoryHUD equipped={equipped} />
+        <>
+          <InventoryHUD equipped={equipped} />
+
+          {/* Help button — bottom-left, mirrors inventory FAB position */}
+          <div className="absolute bottom-5 left-5 z-20">
+            <Tooltip content="Show tutorial" position="top" align="start">
+              <button
+                onClick={handleShowHelp}
+                aria-label="Show tutorial"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-gray-900/80 backdrop-blur-md border border-white/15 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:bg-gray-900/95 hover:border-white/30 transition-all active:scale-95"
+              >
+                <span className="text-2xl leading-none">❓</span>
+              </button>
+            </Tooltip>
+          </div>
+        </>
       )}
     </div>
   );

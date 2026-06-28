@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { WARDROBE_ITEMS, DRESSER_ITEMS } from "@/lib/inventory";
 import type { InventoryItem, ItemCategory } from "@/lib/inventory";
 import type { EquippedItems } from "@/hooks/useInventory";
@@ -57,19 +58,23 @@ export function InventoryHUD({ equipped }: Props) {
 
   return (
     <>
-      {/* Floating action button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        aria-label="Open inventory"
-        className="absolute bottom-5 right-5 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-gray-900/80 backdrop-blur-md border border-white/15 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:bg-gray-900/95 hover:border-white/30 transition-all active:scale-95"
-      >
-        <span className="text-2xl leading-none">🎒</span>
-        {equippedCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-summer-coral text-white text-[10px] font-black flex items-center justify-center leading-none">
-            {equippedCount}
-          </span>
-        )}
-      </button>
+      {/* Floating action button — wrapper holds the absolute position so Tooltip works */}
+      <div className="absolute bottom-5 right-5 z-20">
+        <Tooltip content="Inventory" position="top" align="end">
+          <button
+            onClick={() => setIsOpen(true)}
+            aria-label="Open inventory"
+            className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gray-900/80 backdrop-blur-md border border-white/15 shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:bg-gray-900/95 hover:border-white/30 transition-all active:scale-95"
+          >
+            <span className="text-2xl leading-none">🎒</span>
+            {equippedCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-summer-coral text-white text-[10px] font-black flex items-center justify-center leading-none">
+                {equippedCount}
+              </span>
+            )}
+          </button>
+        </Tooltip>
+      </div>
 
       {/* Modal */}
       {isOpen && (

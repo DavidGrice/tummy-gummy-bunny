@@ -19,6 +19,11 @@ function makeSteps(name: string) {
       icon:  "⏳",
       body:  `${name} must come to a complete stop before you can issue a new command.`,
     },
+    {
+      title: "Your Tools",
+      icon:  "🎒",
+      body:  `Tap the bag (🎒) to view what you're wearing. Tap ❓ any time to see these tips again.`,
+    },
   ];
 }
 
