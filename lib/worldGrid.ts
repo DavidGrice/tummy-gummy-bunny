@@ -19,6 +19,7 @@ import { TUTORIAL_ROOM }  from "@/scenes/tutorial/data/room";
 import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
 import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
 import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
+import { PARENTS_ROOM }   from "@/scenes/parents/data/room";
 import type { RoomManifest, FurnitureObjectDef } from "@/engine/loaders/types";
 
 export const MINIMAP_SCALE = 5; // pixels per game unit
@@ -120,6 +121,17 @@ export const WORLD_ROOMS: RoomNode[] = [
     worldZ:  -9,
     objects: extractFurniture(SIBLING_ROOM),
   },
+  {
+    id:      "parents",
+    label:   "Parents' Room",
+    fill:    "#DDD0C0",
+    dims:    { w: 9, d: 8 },
+    // South-west of hallway — offset west to avoid overlapping Bunny's Room (0,0).
+    // cx=-50, hw=22.5 → right edge=-27.5; bedroom left edge=-20 (7.5-unit gap).
+    worldX:  -10,
+    worldZ:  -2,
+    objects: extractFurniture(PARENTS_ROOM),
+  },
 ];
 
 // ── Room links ────────────────────────────────────────────────────────────────
@@ -128,4 +140,5 @@ export const ROOM_LINKS: RoomLink[] = [
   { from: "tutorial", to: "hallway"  },
   { from: "hallway",  to: "bathroom" },
   { from: "hallway",  to: "sibling"  },
+  { from: "hallway",  to: "parents"  },
 ];

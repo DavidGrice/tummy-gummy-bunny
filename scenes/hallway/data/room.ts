@@ -89,7 +89,7 @@ export const HALLWAY_ROOM: RoomManifest = {
       position:    [-0.5, 1.1,  2.0],
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
-      interaction: { kind: "dialog", message: "Mum and Dad's room. Always best to knock first! 🚪" },
+      interaction: { kind: "scene-change", targetRoomId: "parents" },
     },
 
     // ── West wall — corridor to family area ───────────────────────────────────

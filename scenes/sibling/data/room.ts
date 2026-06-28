@@ -126,7 +126,7 @@ export const SIBLING_ROOM: RoomManifest = {
     {
       id:          "supply-crate",
       type:        "furniture",
-      label:       "Supply Crate",
+      label:       "Crate",
       position:    [2.5, 0.3, 2.7],
       size:        [1.2, 0.6, 0.7],
       color:       0x8B6B3A,
