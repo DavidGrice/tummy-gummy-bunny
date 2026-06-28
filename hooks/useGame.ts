@@ -13,6 +13,7 @@ import { RoomScene } from "@/scenes/RoomScene";
 import { TUTORIAL_ROOM }  from "@/scenes/tutorial/data/room";
 import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
 import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
+import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import type { InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
@@ -21,7 +22,8 @@ const router = new SceneRouter();
 router
   .register("tutorial",  TUTORIAL_ROOM)
   .register("hallway",   HALLWAY_ROOM)
-  .register("bathroom",  BATHROOM_ROOM);
+  .register("bathroom",  BATHROOM_ROOM)
+  .register("sibling",   SIBLING_ROOM);
 
 // ─────────────────────────────────────────────────────────────────────────────
 

@@ -18,6 +18,7 @@
 import { TUTORIAL_ROOM }  from "@/scenes/tutorial/data/room";
 import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
 import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
+import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import type { RoomManifest, FurnitureObjectDef } from "@/engine/loaders/types";
 
 export const MINIMAP_SCALE = 5; // pixels per game unit
@@ -109,8 +110,16 @@ export const WORLD_ROOMS: RoomNode[] = [
     worldZ:  -9,
     objects: extractFurniture(BATHROOM_ROOM),
   },
-  // Future rooms:
-  // { id: "sibling", label: "Sibling's Room", fill: "#D8CCB8", dims: { w: 7, d: 7 }, worldX: -8, worldZ: -9, objects: extractFurniture(SIBLING_ROOM) },
+  {
+    id:      "sibling",
+    label:   "Sibling's Room",
+    fill:    "#D0D4E8",
+    dims:    { w: 7, d: 7 },
+    // West of hallway: hallway left edge = 0 - 12/2 = -6, gap 1.5 units, sibling centre = -6-1.5-7/2 = -11
+    worldX:  -11,
+    worldZ:  -9,
+    objects: extractFurniture(SIBLING_ROOM),
+  },
 ];
 
 // ── Room links ────────────────────────────────────────────────────────────────
@@ -118,5 +127,5 @@ export const WORLD_ROOMS: RoomNode[] = [
 export const ROOM_LINKS: RoomLink[] = [
   { from: "tutorial", to: "hallway"  },
   { from: "hallway",  to: "bathroom" },
-  // { from: "hallway", to: "sibling" },
+  { from: "hallway",  to: "sibling"  },
 ];
