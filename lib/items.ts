@@ -19,7 +19,7 @@ export const GAME_ITEMS: CollectableItem[] = [
   {
     id:          "golden-key",
     name:        "Golden Key",
-    emoji:       "🗝",
+    emoji:       "🔑",
     category:    "key",
     description: "A small golden key, warm to the touch. It must open something important.",
   },

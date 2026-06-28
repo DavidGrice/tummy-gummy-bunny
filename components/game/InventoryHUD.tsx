@@ -369,7 +369,11 @@ function ItemGrid({
               `}
             >
               {emoji && (
-                <span className="text-2xl leading-none select-none" aria-hidden>
+                <span
+                  className="text-2xl leading-none select-none"
+                  style={{ fontVariantEmoji: "emoji" } as React.CSSProperties}
+                  aria-hidden
+                >
                   {emoji}
                 </span>
               )}
