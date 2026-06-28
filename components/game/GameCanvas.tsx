@@ -19,7 +19,7 @@ import { InventoryHUD }                          from "./InventoryHUD";
 import { PlaystyleSelect }                       from "./PlaystyleSelect";
 import { JournalFAB }                            from "./JournalFAB";
 import { JournalPanel }                          from "./JournalPanel";
-import { MinimapHUD }                            from "./MinimapHUD";
+import { RoomMapHUD }                            from "./RoomMapHUD";
 import { useWorldDiscovery }                     from "@/hooks/useWorldDiscovery";
 import styles from "@/styles/game.module.css";
 
@@ -164,7 +164,7 @@ export function GameCanvas() {
 
   const showInventoryHUD = showHUD && (playstyle === "story" || wardrobeFound);
   const showJournalFAB   = showHUD && (playstyle === "story" || journalFound);
-  const showMinimap      = showHUD && minimapUnlocked;
+  const showRoomMap      = showHUD && minimapUnlocked;
 
   return (
     <div className={styles.wrapper}>
@@ -215,11 +215,8 @@ export function GameCanvas() {
             />
           )}
 
-          {showMinimap && (
-            <MinimapHUD
-              currentRoomId={currentRoomId}
-              discoveredIds={roomDiscoveredIds}
-            />
+          {showRoomMap && (
+            <RoomMapHUD currentRoomId={currentRoomId} />
           )}
 
           <div
@@ -240,7 +237,12 @@ export function GameCanvas() {
       )}
 
       {journalOpen && (
-        <JournalPanel onClose={() => setJournalOpen(false)} />
+        <JournalPanel
+          onClose={() => setJournalOpen(false)}
+          mapUnlocked={minimapUnlocked}
+          discoveredIds={roomDiscoveredIds}
+          currentRoomId={currentRoomId}
+        />
       )}
 
       {/* Room transition fade-to-black overlay */}

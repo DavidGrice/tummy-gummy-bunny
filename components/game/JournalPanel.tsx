@@ -12,6 +12,13 @@ import { useItems } from "@/hooks/useItems";
 import { useViewport } from "@/hooks/useViewport";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { PANEL_H } from "@/components/game/InventoryHUD";
+import { WorldMapPanel } from "@/components/game/WorldMapPanel";
+import { WORLD_ROOMS } from "@/lib/worldGrid";
+
+// id → human-readable label lookup for the sidebar room list
+const WORLD_ROOMS_MAP: Record<string, string> = Object.fromEntries(
+  WORLD_ROOMS.map((r) => [r.id, r.label]),
+);
 
 // ─── Styled constants ─────────────────────────────────────────────────────────
 
@@ -164,7 +171,8 @@ function QuestPage({
 
 // ─── Shared types ─────────────────────────────────────────────────────────────
 
-type QuestTab = "active" | "completed";
+type QuestTab    = "active" | "completed";
+type JournalSection = "quests" | "map";
 
 // ─── Desktop sidebar quest list ───────────────────────────────────────────────
 
@@ -304,13 +312,21 @@ function DesktopJournalPanel({
   collectedItemIds,
   onSelect,
   onClose,
+  mapUnlocked,
+  discoveredIds,
+  currentRoomId,
 }: {
   selectedId:       string | null;
   collectedItemIds: Set<string>;
   onSelect:         (id: string | null) => void;
   onClose:          () => void;
+  mapUnlocked:      boolean;
+  discoveredIds:    Set<string>;
+  currentRoomId:    string;
 }) {
+  const [section, setSection] = useState<JournalSection>("quests");
   const selected = QUESTS.find((q) => q.id === selectedId) ?? null;
+
   return (
     <div
       className="absolute inset-0 z-40 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4"
@@ -324,16 +340,67 @@ function DesktopJournalPanel({
           className="flex-1 flex overflow-hidden"
           style={{ borderRadius: "12px", minHeight: 0 }}
         >
+          {/* ── Left sidebar ─────────────────────────────────────────────── */}
           <div className="w-[35%] shrink-0 overflow-hidden flex flex-col">
-            <DesktopQuestList
-              quests={QUESTS}
-              selectedId={selectedId}
-              collectedItemIds={collectedItemIds}
-              onSelect={onSelect}
-            />
+            {/* Section tabs — only shown when map is unlocked */}
+            {mapUnlocked && (
+              <div
+                className="shrink-0 flex border-b"
+                style={{ background: "#F0E6D0", borderColor: "#D4C4A0" }}
+              >
+                {(["quests", "map"] as JournalSection[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSection(s)}
+                    className={`flex-1 py-2 text-[11px] font-black uppercase tracking-wide border-b-2 transition-all duration-150 ${
+                      section === s
+                        ? "border-amber-700 text-amber-800 bg-amber-50/60"
+                        : "border-transparent text-amber-700/45 hover:text-amber-700/70"
+                    }`}
+                  >
+                    {s === "quests" ? "Quests" : "Map"}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {section === "quests" && (
+              <DesktopQuestList
+                quests={QUESTS}
+                selectedId={selectedId}
+                collectedItemIds={collectedItemIds}
+                onSelect={onSelect}
+              />
+            )}
+
+            {section === "map" && (
+              <div
+                className="flex-1 flex flex-col justify-center px-5 gap-3"
+                style={{ background: "#F0E6D0" }}
+              >
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-700/50">
+                  Discovered
+                </p>
+                {[...discoveredIds].map((id) => (
+                  <p key={id} className="text-base font-bold text-amber-800/70" style={CAVEAT}>
+                    {id === currentRoomId ? "★ " : "· "}
+                    {WORLD_ROOMS_MAP[id] ?? id}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* ── Right content ─────────────────────────────────────────────── */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <QuestPage quest={selected} collectedItemIds={collectedItemIds} />
+            {section === "quests" ? (
+              <QuestPage quest={selected} collectedItemIds={collectedItemIds} />
+            ) : (
+              <WorldMapPanel
+                discoveredIds={discoveredIds}
+                currentRoomId={currentRoomId}
+              />
+            )}
           </div>
         </div>
 
@@ -397,10 +464,17 @@ type MobileView = "list" | "detail";
 function MobileJournalSheet({
   collectedItemIds,
   onClose,
+  mapUnlocked,
+  discoveredIds,
+  currentRoomId,
 }: {
   collectedItemIds: Set<string>;
   onClose:          () => void;
+  mapUnlocked:      boolean;
+  discoveredIds:    Set<string>;
+  currentRoomId:    string;
 }) {
+  const [section,    setSection]    = useState<JournalSection>("quests");
   const [view,       setView]       = useState<MobileView>("list");
   const [questTab,   setQuestTab]   = useState<QuestTab>("active");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -418,6 +492,11 @@ function MobileJournalSheet({
   function goBack() {
     setView("list");
     setSelectedId(null);
+  }
+
+  function switchSection(s: JournalSection) {
+    setSection(s);
+    if (view === "detail") goBack();
   }
 
   return (
@@ -446,105 +525,143 @@ function MobileJournalSheet({
             >✕</button>
           </div>
 
-          {/* Active / Completed tab bar */}
+          {/* Top-level section tabs — Quests | Map (Map only shown when unlocked) */}
           <div
             className="shrink-0 flex border-b"
             style={{ borderColor: "#D4C4A0" }}
           >
-            {(["active", "completed"] as QuestTab[]).map((tab) => {
-              const count  = tab === "active" ? activeQuests.length : completedQuests.length;
-              const isActive = questTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => { setQuestTab(tab); if (view === "detail") goBack(); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wide border-b-2 transition-all ${
-                    isActive
-                      ? "border-amber-700 text-amber-800 bg-amber-50/60"
-                      : "border-transparent text-amber-700/50 hover:text-amber-700/80"
-                  }`}
-                  style={CAVEAT}
-                >
-                  {tab === "active" ? "Active" : "Completed"}
-                  <span
-                    className={`text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none ${
-                      isActive
-                        ? "bg-amber-700 text-white"
-                        : "bg-amber-300/50 text-amber-800/60"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Sliding two-panel content area */}
-          <div className="relative flex-1 min-h-0 overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 flex transition-transform duration-300 ease-out"
-              style={{
-                width:     "200%",
-                transform: view === "detail" ? "translateX(-50%)" : "translateX(0%)",
-              }}
-            >
-              {/* Panel 1 — quest list */}
-              <div className="h-full overflow-y-auto" style={{ width: "50%" }}>
-                {visibleQuests.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
-                    <span className="text-4xl opacity-30 select-none" aria-hidden>
-                      {questTab === "active" ? "🎉" : "📓"}
-                    </span>
-                    <p className="text-amber-700/40 text-base text-center leading-snug" style={CAVEAT}>
-                      {questTab === "active"
-                        ? "All quests complete!"
-                        : "Nothing finished yet — get exploring!"}
-                    </p>
-                  </div>
-                ) : (
-                  visibleQuests.map((q) => (
-                    <MobileQuestRow
-                      key={q.id}
-                      quest={q}
-                      collectedItemIds={collectedItemIds}
-                      onTap={() => openQuest(q.id)}
-                    />
-                  ))
-                )}
-              </div>
-
-              {/* Panel 2 — quest detail */}
-              <div
-                className="h-full flex flex-col overflow-hidden"
-                style={{ width: "50%" }}
-                aria-hidden={view !== "detail"}
-              >
-                <QuestPage
-                  quest={selectedQuest}
-                  collectedItemIds={collectedItemIds}
-                  compact
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Back button — pinned to bottom center, only visible in detail view */}
-          <div
-            className={`shrink-0 flex justify-center py-3 border-t transition-all duration-200 ${
-              view === "detail" ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-            style={{ borderColor: "#D4C4A0" }}
-          >
             <button
-              onClick={goBack}
-              aria-label="Back to quest list"
-              className="flex items-center gap-2 px-8 py-2.5 rounded-full bg-amber-700 hover:bg-amber-800 active:scale-95 text-white text-sm font-black tracking-wide transition-all shadow-sm"
+              onClick={() => switchSection("quests")}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wide border-b-2 transition-all ${
+                section === "quests"
+                  ? "border-amber-700 text-amber-800 bg-amber-50/60"
+                  : "border-transparent text-amber-700/50 hover:text-amber-700/80"
+              }`}
               style={CAVEAT}
             >
-              ← Back
+              Quests
             </button>
+
+            {mapUnlocked && (
+              <button
+                onClick={() => switchSection("map")}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wide border-b-2 transition-all ${
+                  section === "map"
+                    ? "border-amber-700 text-amber-800 bg-amber-50/60"
+                    : "border-transparent text-amber-700/50 hover:text-amber-700/80"
+                }`}
+                style={CAVEAT}
+              >
+                Map
+              </button>
+            )}
           </div>
+
+          {/* ── Map section ─────────────────────────────────────────────────── */}
+          {section === "map" && (
+            <WorldMapPanel discoveredIds={discoveredIds} currentRoomId={currentRoomId} />
+          )}
+
+          {/* ── Quests section ───────────────────────────────────────────────── */}
+          {section === "quests" && (
+            <>
+              {/* Active / Completed sub-tabs */}
+              <div
+                className="shrink-0 flex border-b"
+                style={{ borderColor: "#D4C4A0" }}
+              >
+                {(["active", "completed"] as QuestTab[]).map((tab) => {
+                  const count    = tab === "active" ? activeQuests.length : completedQuests.length;
+                  const isActive = questTab === tab;
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => { setQuestTab(tab); if (view === "detail") goBack(); }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-wide border-b-2 transition-all ${
+                        isActive
+                          ? "border-amber-700 text-amber-800 bg-amber-50/60"
+                          : "border-transparent text-amber-700/50 hover:text-amber-700/80"
+                      }`}
+                      style={CAVEAT}
+                    >
+                      {tab === "active" ? "Active" : "Completed"}
+                      <span
+                        className={`text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none ${
+                          isActive
+                            ? "bg-amber-700 text-white"
+                            : "bg-amber-300/50 text-amber-800/60"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sliding two-panel content area */}
+              <div className="relative flex-1 min-h-0 overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 flex transition-transform duration-300 ease-out"
+                  style={{
+                    width:     "200%",
+                    transform: view === "detail" ? "translateX(-50%)" : "translateX(0%)",
+                  }}
+                >
+                  {/* Panel 1 — quest list */}
+                  <div className="h-full overflow-y-auto" style={{ width: "50%" }}>
+                    {visibleQuests.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
+                        <span className="text-4xl opacity-30 select-none" aria-hidden>
+                          {questTab === "active" ? "🎉" : "📓"}
+                        </span>
+                        <p className="text-amber-700/40 text-base text-center leading-snug" style={CAVEAT}>
+                          {questTab === "active"
+                            ? "All quests complete!"
+                            : "Nothing finished yet — get exploring!"}
+                        </p>
+                      </div>
+                    ) : (
+                      visibleQuests.map((q) => (
+                        <MobileQuestRow
+                          key={q.id}
+                          quest={q}
+                          collectedItemIds={collectedItemIds}
+                          onTap={() => openQuest(q.id)}
+                        />
+                      ))
+                    )}
+                  </div>
+
+                  {/* Panel 2 — quest detail */}
+                  <div
+                    className="h-full flex flex-col overflow-hidden"
+                    style={{ width: "50%" }}
+                    aria-hidden={view !== "detail"}
+                  >
+                    <QuestPage quest={selectedQuest} collectedItemIds={collectedItemIds} compact />
+                  </div>
+                </div>
+              </div>
+
+              {/* Back button */}
+              <div
+                className={`shrink-0 flex justify-center py-3 border-t transition-all duration-200 ${
+                  view === "detail" ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
+                style={{ borderColor: "#D4C4A0" }}
+              >
+                <button
+                  onClick={goBack}
+                  aria-label="Back to quest list"
+                  className="flex items-center gap-2 px-8 py-2.5 rounded-full bg-amber-700 hover:bg-amber-800 active:scale-95 text-white text-sm font-black tracking-wide transition-all shadow-sm"
+                  style={CAVEAT}
+                >
+                  ← Back
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </BottomSheet>
@@ -554,10 +671,15 @@ function MobileJournalSheet({
 // ─── Main panel — picks layout based on viewport ──────────────────────────────
 
 interface JournalPanelProps {
-  onClose: () => void;
+  onClose:       () => void;
+  mapUnlocked:   boolean;
+  discoveredIds: Set<string>;
+  currentRoomId: string;
 }
 
-export function JournalPanel({ onClose }: JournalPanelProps) {
+export function JournalPanel({
+  onClose, mapUnlocked, discoveredIds, currentRoomId,
+}: JournalPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(QUESTS[0]?.id ?? null);
   const { isMobile } = useViewport();
 
@@ -568,7 +690,15 @@ export function JournalPanel({ onClose }: JournalPanelProps) {
   );
 
   if (isMobile) {
-    return <MobileJournalSheet collectedItemIds={collectedItemIds} onClose={onClose} />;
+    return (
+      <MobileJournalSheet
+        collectedItemIds={collectedItemIds}
+        onClose={onClose}
+        mapUnlocked={mapUnlocked}
+        discoveredIds={discoveredIds}
+        currentRoomId={currentRoomId}
+      />
+    );
   }
 
   return (
@@ -577,6 +707,9 @@ export function JournalPanel({ onClose }: JournalPanelProps) {
       collectedItemIds={collectedItemIds}
       onSelect={setSelectedId}
       onClose={onClose}
+      mapUnlocked={mapUnlocked}
+      discoveredIds={discoveredIds}
+      currentRoomId={currentRoomId}
     />
   );
 }

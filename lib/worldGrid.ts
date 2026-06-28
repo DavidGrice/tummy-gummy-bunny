@@ -23,12 +23,13 @@ export const MINIMAP_SCALE = 5; // pixels per game unit
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 
-/** A single piece of furniture drawn on the minimap in room-local coordinates. */
+/** A single piece of furniture drawn on the local room map. */
 export interface MapObject {
-  x: number; // room-local center X
-  z: number; // room-local center Z
-  w: number; // width  (X axis)
-  d: number; // depth  (Z axis)
+  x:     number; // room-local center X
+  z:     number; // room-local center Z
+  w:     number; // width  (X axis)
+  d:     number; // depth  (Z axis)
+  label: string; // furniture label shown in expanded view
 }
 
 export interface RoomNode {
@@ -67,10 +68,11 @@ function extractFurniture(manifest: RoomManifest): MapObject[] {
       o.size[2] > 0.25,
     )
     .map((o) => ({
-      x: o.position[0],
-      z: o.position[2],
-      w: o.size[0],
-      d: o.size[2],
+      x:     o.position[0],
+      z:     o.position[2],
+      w:     o.size[0],
+      d:     o.size[2],
+      label: o.label,
     }));
 }
 
