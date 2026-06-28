@@ -28,6 +28,7 @@ export function GameCanvas() {
     dialog, dismissDialog,
     inventorySource, dismissInventory,
     pickedUpItemId, clearPickedUp,
+    journalTriggered, clearJournalTrigger,
     setEquipped: pushEquippedToGame,
   } = useGame(canvasRef, playerName);
 
@@ -86,27 +87,25 @@ export function GameCanvas() {
     }
   }, [inventorySource, wardrobeFound, discoverSource]);
 
-  // journalFound: unlocked when player first clicks the in-room journal object (TODO: wire via useGame)
+  // journalFound: unlocked when player first clicks the in-room journal object
   const [journalFound, setJournalFound] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("tgb_journal_found") === "true";
   });
 
-  function handleJournalFound() {
+  // ── Journal panel ──────────────────────────────────────────────────────────
+  const [journalOpen, setJournalOpen] = useState(false);
+
+  // When scene fires journal interaction: unlock FAB (Explorer mode) + open panel
+  useEffect(() => {
+    if (!journalTriggered) return;
     if (!journalFound) {
       setJournalFound(true);
       localStorage.setItem("tgb_journal_found", "true");
     }
-  }
-
-  // Temporary window bridge until journal callback is wired into useGame
-  useEffect(() => {
-    (window as unknown as Record<string, unknown>).__tgb_journalFound = handleJournalFound;
-    return () => { delete (window as unknown as Record<string, unknown>).__tgb_journalFound; };
-  });
-
-  // ── Journal panel ──────────────────────────────────────────────────────────
-  const [journalOpen, setJournalOpen] = useState(false);
+    setJournalOpen(true);
+    clearJournalTrigger();
+  }, [journalTriggered, journalFound, clearJournalTrigger]);
 
   // ── Visibility rules ───────────────────────────────────────────────────────
   const showPlaystyleSelect = !isLoading && playstyle === null;

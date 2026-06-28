@@ -10,9 +10,10 @@ import { createRoomDoor } from "./objects/RoomDoor";
 import { createBed } from "./objects/Bed";
 import { createWindows } from "./objects/Windows";
 import { createInteractions } from "./data/interactions";
-import type { InventorySource, PickupFn } from "./data/interactions";
+import type { InventorySource, PickupFn, JournalFn } from "./data/interactions";
 import { PickupItem } from "@/engine/objects/PickupItem";
 import { createGoldenKey } from "./objects/GoldenKey";
+import { createJournal } from "./objects/Journal";
 import type { EquippedClothing } from "@/lib/inventory";
 import { BOUNDS } from "./data/layout";
 
@@ -32,12 +33,14 @@ export class TutorialScene extends BaseScene {
   private dialogFn:    (m: string)            => void = () => {};
   private inventoryFn: (src: InventorySource) => void = () => {};
   private pickupFn:    PickupFn                       = () => {};
+  private journalFn:   JournalFn                      = () => {};
   private playerName = "Bunny";
 
   onProgress(fn: (p: number)             => void): void { this.progressFn  = fn; }
   onDialog(fn:   (m: string)             => void): void { this.dialogFn    = fn; }
   onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
   onPickup(fn:    PickupFn):                        void { this.pickupFn    = fn; }
+  onJournal(fn:   JournalFn):                       void { this.journalFn   = fn; }
   setPlayerName(name: string):                      void { this.playerName  = name; }
 
   /** Pushes the player's equipped clothing directly onto MrBunny's mesh. */
@@ -64,12 +67,13 @@ export class TutorialScene extends BaseScene {
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
-    const interactions = createInteractions(this.dialogFn, this.inventoryFn, this.playerName);
+    const interactions = createInteractions(this.dialogFn, this.inventoryFn, this.journalFn, this.playerName);
     this.interactables = [
       createWardrobe(interactions.wardrobe),
       createDresser(interactions.dresser),
       createRoomDoor(interactions.door),
       createBed(interactions.bed),
+      createJournal(interactions.journal),
     ];
     this.interactables.forEach((obj) => obj.addToScene(scene));
 

@@ -42,6 +42,13 @@ export const OBJECTS = {
     size:     [1.0, 0.5, 2.2] as const,
     color:    0x8B4513,
   },
+  // On top of the dresser — y=1.02 (dresser top y=1.0 + half journal height 0.02)
+  journal: {
+    name:     "Journal",
+    position: [0.42, 1.02, -3.47] as const,
+    size:     [0.22, 0.04,  0.28] as const,
+    color:    0x5C2E0A,
+  },
 } as const;
 
 /** Pickup items: world [x, z] positions (y is set by the item factory) */

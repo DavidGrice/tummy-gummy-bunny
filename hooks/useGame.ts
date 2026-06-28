@@ -21,10 +21,13 @@ export interface UseGameResult {
   inventorySource:  InventorySource | null;
   dismissInventory: () => void;
   /** Fired when the player picks up a world item. Contains the item's ID. */
-  pickedUpItemId:   string | null;
-  clearPickedUp:    () => void;
+  pickedUpItemId:    string | null;
+  clearPickedUp:     () => void;
+  /** Fired when the player clicks the in-room journal object. */
+  journalTriggered:  boolean;
+  clearJournalTrigger: () => void;
   /** Imperatively updates MrBunny's clothing without triggering a re-render. */
-  setEquipped:      (equipped: EquippedClothing) => void;
+  setEquipped:       (equipped: EquippedClothing) => void;
 }
 
 export function useGame(
@@ -36,13 +39,15 @@ export function useGame(
   const [dialog,          setDialog]          = useState<string | null>(null);
   const [inventorySource, setInventorySource] = useState<InventorySource | null>(null);
   const [pickedUpItemId,  setPickedUpItemId]  = useState<string | null>(null);
+  const [journalTriggered, setJournalTriggered] = useState(false);
 
   // Stable ref so the callback below never goes stale
   const sceneRef = useRef<TutorialScene | null>(null);
 
-  const dismissDialog    = useCallback(() => setDialog(null),           []);
-  const dismissInventory = useCallback(() => setInventorySource(null),  []);
-  const clearPickedUp    = useCallback(() => setPickedUpItemId(null),   []);
+  const dismissDialog        = useCallback(() => setDialog(null),            []);
+  const dismissInventory     = useCallback(() => setInventorySource(null),   []);
+  const clearPickedUp        = useCallback(() => setPickedUpItemId(null),    []);
+  const clearJournalTrigger  = useCallback(() => setJournalTriggered(false), []);
 
   /** Stable callback — safe to put in a useEffect dependency array. */
   const setEquipped = useCallback((equipped: EquippedClothing) => {
@@ -74,6 +79,7 @@ export function useGame(
     scene.onDialog((msg)    => { if (mounted) setDialog(msg); });
     scene.onInventory((src) => { if (mounted) setInventorySource(src); });
     scene.onPickup((id)     => { if (mounted) setPickedUpItemId(id); });
+    scene.onJournal(()      => { if (mounted) setJournalTriggered(true); });
 
     (async () => {
       try {
@@ -145,6 +151,7 @@ export function useGame(
     dialog, dismissDialog,
     inventorySource, dismissInventory,
     pickedUpItemId, clearPickedUp,
+    journalTriggered, clearJournalTrigger,
     setEquipped,
   };
 }
