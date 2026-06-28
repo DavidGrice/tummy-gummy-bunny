@@ -3,6 +3,11 @@ import type { RoomManifest } from "@/engine/loaders/types";
 /**
  * Single source of truth for Mr. Bunny's room.
  * Add, move, or remove objects here — no factory files or scene code changes needed.
+ *
+ * Room is 8×8 units. Coordinate convention (top-down):
+ *   -Z = back wall (north), +Z = front wall with door (south)
+ *   -X = left wall (west),  +X = right wall (east)
+ *   Windows on back wall at x=−1.0 (left) and x=+1.0 (right), y=1.75
  */
 export const TUTORIAL_ROOM: RoomManifest = {
   id:         "tutorial",
@@ -18,6 +23,8 @@ export const TUTORIAL_ROOM: RoomManifest = {
   ],
   objects: [
     // ── Furniture ─────────────────────────────────────────────────────────────
+
+    // Left wall — wardrobe stays centre of west wall
     {
       id:          "wardrobe",
       type:        "furniture",
@@ -27,15 +34,30 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x8B5A3C,
       interaction: { kind: "inventory", source: "wardrobe" },
     },
+
+    // Back-left area — dresser moved near the left (west) window
     {
       id:          "dresser",
       type:        "furniture",
       label:       "Dresser",
-      position:    [0,     0.5, -3.65],
-      size:        [1.6,   1.0,  0.5],
+      position:    [-2.2,  0.5,  -3.65],
+      size:        [1.6,   1.0,   0.5],
       color:       0x6B4423,
       interaction: { kind: "inventory", source: "dresser" },
     },
+
+    // Back-right area — white desk under the right (east) window
+    {
+      id:          "desk",
+      type:        "furniture",
+      label:       "Desk",
+      position:    [1.0,   0.45, -3.5],
+      size:        [1.4,   0.9,   0.6],
+      color:       0xF0EDE8,
+      interaction: { kind: "dialog", message: "A clean white desk. Great for homework… or doodles. 📝" },
+    },
+
+    // Front wall — door
     {
       id:          "door",
       type:        "furniture",
@@ -45,25 +67,58 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x5C3D1E,
       interaction: { kind: "dialog", message: "This door leads to the living room. Almost ready for the day!" },
     },
+
+    // Right wall — bed
     {
       id:          "bed",
       type:        "furniture",
       label:       "Bed",
       position:    [3.4,   0.25, -0.5],
-      size:        [1.0,   0.5,  2.2],
+      size:        [1.0,   0.5,   2.2],
       color:       0x8B4513,
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
     },
 
-    // ── Books / special meshes ─────────────────────────────────────────────────
+    // Right wall, near back-right corner — outlet that controls the floor lamp
+    {
+      id:          "outlet",
+      type:        "furniture",
+      label:       "Outlet",
+      position:    [3.75,  0.4,  -2.5],
+      size:        [0.06,  0.16,  0.11],
+      color:       0xE8E8E0,
+      interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+    },
+
+    // ── Books / special meshes ────────────────────────────────────────────────
+
+    // Journal — moved with the dresser, sits on top of it
     {
       id:          "journal",
       type:        "book",
       label:       "Journal",
-      position:    [0.42, 1.02, -3.47],
-      size:        [0.22, 0.04,  0.28],
+      position:    [-2.0,  1.02, -3.47],
+      size:        [0.22,  0.04,  0.28],
       color:       0x5C2E0A,
       interaction: { kind: "journal" },
+    },
+
+    // Map — rests on the desk, light tan/brown, unlocks minimap when picked up
+    {
+      id:          "room-map",
+      type:        "book",
+      label:       "Map",
+      position:    [0.85,  0.908, -3.28],
+      size:        [0.35,  0.015, 0.28],
+      color:       0xD4A574,
+      interaction: { kind: "map" },
+    },
+
+    // ── Decorative lamp (toggled via outlet above) ────────────────────────────
+    {
+      id:       "floor-lamp",
+      type:     "lamp",
+      position: [2.8, 0, -2.8],
     },
 
     // ── Pickup items ──────────────────────────────────────────────────────────

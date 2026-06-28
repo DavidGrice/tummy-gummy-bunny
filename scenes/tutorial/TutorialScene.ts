@@ -18,6 +18,7 @@ export class TutorialScene extends BaseScene {
   private mrBunny!:      MrBunny;
   private interactables: InteractableObject[] = [];
   private pickupItems:   PickupItem[]         = [];
+  private decoratives:   THREE.Object3D[]     = [];
   private floor!:        THREE.Mesh;
   private walls:         THREE.Mesh[]   = [];
   private windows:       THREE.Group[]  = [];
@@ -75,7 +76,9 @@ export class TutorialScene extends BaseScene {
     });
     this.interactables = loaded.interactables;
     this.pickupItems   = loaded.pickupItems;
-    this.interactables.forEach((obj)  => obj.addToScene(scene));
+    this.decoratives   = loaded.decoratives;
+    this.interactables.forEach((obj) => obj.addToScene(scene));
+    this.decoratives.forEach((obj)   => scene.add(obj));
 
     this.progressFn(78);
     this.pickupItems.forEach((item) => item.addToScene(scene));
@@ -194,6 +197,16 @@ export class TutorialScene extends BaseScene {
 
     this.interactables.forEach((i) => i.dispose());
     this.pickupItems.forEach((i) => i.dispose());
+    this.decoratives.forEach((obj) => {
+      obj.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          (Array.isArray(child.material) ? child.material : [child.material as THREE.Material])
+            .forEach((m) => m.dispose());
+        }
+        if (child instanceof THREE.Light) child.dispose();
+      });
+    });
     this.mrBunny?.dispose();
     this.lights.forEach((l) => l.dispose());
   }

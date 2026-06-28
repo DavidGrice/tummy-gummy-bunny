@@ -1,10 +1,12 @@
 // ─── Interaction descriptors ──────────────────────────────────────────────────
 
 export type InteractionDef =
-  | { kind: "inventory"; source: "wardrobe" | "dresser" }
+  | { kind: "inventory";       source:   "wardrobe" | "dresser" }
   | { kind: "journal" }
+  | { kind: "map" }
   | { kind: "dialog";          message:  string }
-  | { kind: "dialog-template"; template: string }; // {playerName} is replaced at runtime
+  | { kind: "dialog-template"; template: string }   // {playerName} replaced at runtime
+  | { kind: "lamp-toggle";     lampId:   string };  // toggles a lamp object by id
 
 // ─── Object definitions ───────────────────────────────────────────────────────
 
@@ -45,7 +47,14 @@ export interface PickupObjectDef {
   rotation?:  [number, number, number];
 }
 
-export type ObjectDef = FurnitureObjectDef | BookObjectDef | PickupObjectDef;
+/** Decorative floor lamp — toggled via a separate outlet object with kind:"lamp-toggle" */
+export interface LampObjectDef {
+  id:       string;
+  type:     "lamp";
+  position: [number, number, number];
+}
+
+export type ObjectDef = FurnitureObjectDef | BookObjectDef | PickupObjectDef | LampObjectDef;
 
 // ─── Room manifest ────────────────────────────────────────────────────────────
 
@@ -70,6 +79,7 @@ export interface RoomCallbacks {
   onInventory: (source: "wardrobe" | "dresser") => void;
   onJournal:   () => void;
   onPickup:    (itemId: string) => void;
+  onMap?:      () => void;
   playerName:  string;
   /** Item IDs already collected — matching pickups are skipped at load time. */
   collectedIds?: Set<string>;
