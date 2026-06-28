@@ -79,7 +79,7 @@ export const SIBLING_ROOM: RoomManifest = {
       id:          "bookshelf",
       type:        "furniture",
       label:       "Bookshelf",
-      position:    [-1.5, 1.1, -3.15],
+      position:    [-0.5, 1.1, -3.15],
       size:        [1.4, 2.2, 0.5],
       color:       0x6B4A2A,
       interaction: { kind: "dialog", message: "Comics, sketchbooks, and a wobbly tower of puzzle boxes. 📚" },
