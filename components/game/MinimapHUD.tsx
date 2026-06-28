@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { WORLD_ROOMS, ROOM_LINKS, MINIMAP_SCALE } from "@/lib/worldGrid";
 
 interface Props {
@@ -17,7 +17,6 @@ interface RoomRect {
   hw:        number;
   hd:        number;
   isCurrent: boolean;
-  /** Object rects in SVG coordinates, already positioned relative to room center. */
   objRects:  { x: number; y: number; w: number; h: number }[];
 }
 
@@ -27,31 +26,28 @@ const PAD = 12;
 const S   = MINIMAP_SCALE;
 
 export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
-  const { viewBox, svgHeight, roomRects, linkLines } = useMemo(() => {
+  const [expanded, setExpanded] = useState(false);
+
+  const { viewBox, vBoxW, vBoxH, roomRects, linkLines } = useMemo(() => {
     const visible = WORLD_ROOMS.filter((r) => discoveredIds.has(r.id));
     if (visible.length === 0) {
-      return { viewBox: "0 0 60 60", svgHeight: 60, roomRects: [], linkLines: [] };
+      return { viewBox: "0 0 60 60", vBoxW: 60, vBoxH: 60, roomRects: [], linkLines: [] };
     }
 
-    // World → SVG: X maps directly; Z is kept as-is (−Z = north = negative Y = up).
     const roomRects: RoomRect[] = visible.map((r) => {
       const cx = r.worldX * S;
       const cy = r.worldZ * S;
       const hw = (r.dims.w * S) / 2;
       const hd = (r.dims.d * S) / 2;
-
-      // Furniture objects in SVG coords (room-local positions offset from room centre)
       const objRects = r.objects.map((o) => ({
         x: cx + o.x * S - (o.w * S) / 2,
         y: cy + o.z * S - (o.d * S) / 2,
         w: o.w * S,
         h: o.d * S,
       }));
-
       return { ...r, cx, cy, hw, hd, isCurrent: r.id === currentRoomId, objRects };
     });
 
-    // Dynamic viewBox from bounding box of all visible rooms
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
     for (const r of roomRects) {
@@ -64,17 +60,12 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
     const vw = maxX - minX + PAD * 2;
     const vh = maxY - minY + PAD * 2;
 
-    const svgHeight = Math.round((130 * vh) / vw);
-
-    // Edge-to-edge corridor lines between adjacent discovered rooms
     const linkLines: LinkLine[] = ROOM_LINKS.flatMap((link) => {
       const from = roomRects.find((r) => r.id === link.from);
       const to   = roomRects.find((r) => r.id === link.to);
       if (!from || !to) return [];
-
       const dy = to.cy - from.cy;
       const dx = to.cx - from.cx;
-
       if (Math.abs(dy) >= Math.abs(dx)) {
         const goingNorth = dy < 0;
         return [{
@@ -89,30 +80,31 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
       }];
     });
 
-    return { viewBox: `${vx} ${vy} ${vw} ${vh}`, svgHeight, roomRects, linkLines };
+    return { viewBox: `${vx} ${vy} ${vw} ${vh}`, vBoxW: vw, vBoxH: vh, roomRects, linkLines };
   }, [currentRoomId, discoveredIds]);
 
   if (roomRects.length === 0) return null;
 
-  return (
-    <div className="absolute top-4 right-4 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-white/20 bg-black/40 backdrop-blur-md px-3 pt-2 pb-3 shadow-[0_4px_20px_rgba(0,0,0,0.45)]">
-      <span className="text-white/45 text-[9px] font-semibold tracking-[0.18em] uppercase select-none">
-        Map
-      </span>
+  // ── Shared SVG markup ──────────────────────────────────────────────────────
+  // `size` = "sm" for the corner minimap, "lg" for the expanded modal.
+  // Filter IDs must be unique per SVG so both can coexist in the DOM.
+  function MapSVG({ size }: { size: "sm" | "lg" }) {
+    const isLg = size === "lg";
+    // Scale-5 displacement looks great at 130px; at ~400px it'd be ~25px — far too wobbly.
+    // At large size, keep physical displacement ≈ 7–9px by scaling proportionally.
+    const crayonScale = isLg ? 1.8 : 5;
+    const cr = `mm-cr-${size}`;
+    const gl = `mm-gl-${size}`;
 
+    return (
       <svg
         viewBox={viewBox}
-        width={130}
-        height={svgHeight}
+        width={isLg ? "100%" : 130}
+        height={isLg ? "100%" : Math.round((130 * vBoxH) / vBoxW)}
         className="block overflow-visible"
       >
         <defs>
-          {/*
-            Crayon / pencil wobble.
-            type="turbulence" gives sharp, jagged displacement (vs fractalNoise which is smooth).
-            scale="5" displaces ~7–8 screen pixels at 130px display width — clearly hand-drawn.
-          */}
-          <filter id="mm-crayon" x="-10%" y="-10%" width="120%" height="120%">
+          <filter id={cr} x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence
               type="turbulence"
               baseFrequency="0.055"
@@ -123,14 +115,13 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
             <feDisplacementMap
               in="SourceGraphic"
               in2="noise"
-              scale="5"
+              scale={crayonScale}
               xChannelSelector="R"
               yChannelSelector="G"
             />
           </filter>
 
-          {/* Warm amber glow drawn behind the current room's rect */}
-          <filter id="mm-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <filter id={gl} x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur in="SourceAlpha" stdDeviation="2.5" result="blur" />
             <feFlood floodColor="rgba(255,200,40,0.5)" result="colour" />
             <feComposite in="colour" in2="blur" operator="in" result="glow" />
@@ -140,17 +131,14 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
             </feMerge>
           </filter>
 
-          {/* Clip paths — one per room so furniture never bleeds outside its rect */}
           {roomRects.map((r) => (
-            <clipPath key={`clip-${r.id}`} id={`mm-clip-${r.id}`}>
+            <clipPath key={`clip-${r.id}-${size}`} id={`mm-clip-${r.id}-${size}`}>
               <rect x={r.cx - r.hw} y={r.cy - r.hd} width={r.hw * 2} height={r.hd * 2} />
             </clipPath>
           ))}
         </defs>
 
-        {/* Everything inside this group gets the crayon wobble */}
-        <g filter="url(#mm-crayon)">
-
+        <g filter={`url(#${cr})`}>
           {/* Corridor connectors */}
           {linkLines.map((l, i) => (
             <line
@@ -164,8 +152,7 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
 
           {/* Rooms */}
           {roomRects.map((r) => (
-            <g key={r.id} filter={r.isCurrent ? "url(#mm-glow)" : undefined}>
-
+            <g key={r.id} filter={r.isCurrent ? `url(#${gl})` : undefined}>
               {/* Room fill + border */}
               <rect
                 x={r.cx - r.hw}
@@ -180,9 +167,9 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
                 rx="2"
               />
 
-              {/* Furniture items — clipped to room bounds */}
+              {/* Furniture — clipped to room bounds */}
               {r.objRects.length > 0 && (
-                <g clipPath={`url(#mm-clip-${r.id})`}>
+                <g clipPath={`url(#mm-clip-${r.id}-${size})`}>
                   {r.objRects.map((o, i) => (
                     <rect
                       key={i}
@@ -201,7 +188,7 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
                 y={r.cy}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fontSize={4.5}
+                fontSize={isLg ? 5.5 : 4.5}
                 fill={r.isCurrent ? "rgba(255,228,110,0.95)" : "rgba(235,220,195,0.65)"}
                 fontFamily="system-ui, sans-serif"
                 fontWeight={r.isCurrent ? "700" : "500"}
@@ -210,9 +197,81 @@ export function MinimapHUD({ currentRoomId, discoveredIds }: Props) {
               </text>
             </g>
           ))}
-
         </g>
       </svg>
+    );
+  }
+
+  // ── Small corner minimap ───────────────────────────────────────────────────
+  const smallMinimap = (
+    <div
+      className="absolute top-4 right-4 z-20 flex flex-col items-center gap-1.5 rounded-2xl border border-white/20 bg-black/40 backdrop-blur-md px-3 pt-2 pb-3 shadow-[0_4px_20px_rgba(0,0,0,0.45)] cursor-pointer hover:border-white/35 hover:bg-black/50 transition-colors"
+      onClick={() => setExpanded(true)}
+      title="Tap to expand map"
+    >
+      <div className="flex w-full items-center justify-between">
+        <span className="text-white/45 text-[9px] font-semibold tracking-[0.18em] uppercase select-none">
+          Map
+        </span>
+        {/* Expand icon — two diagonal outward arrows */}
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="text-white/35">
+          <path d="M7 1.5h2.5V4M9.5 1.5 6 5M4 9.5H1.5V7M1.5 9.5 5 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      <MapSVG size="sm" />
     </div>
+  );
+
+  // ── Full-screen expanded modal ─────────────────────────────────────────────
+  const expandedModal = (
+    <div
+      className="absolute inset-0 z-40 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.72)" }}
+      onClick={() => setExpanded(false)}
+    >
+      <div
+        className="relative flex flex-col gap-0 rounded-3xl border border-white/25 bg-black/55 backdrop-blur-xl shadow-[0_12px_60px_rgba(0,0,0,0.7)] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: "min(82vw, 520px)" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
+          <div>
+            <p className="text-white/40 text-[9px] font-semibold tracking-[0.2em] uppercase">House</p>
+            <h3 className="text-white/80 text-base font-semibold tracking-tight leading-none">Map</h3>
+          </div>
+          <button
+            onClick={() => setExpanded(false)}
+            aria-label="Close map"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/90 transition-colors text-sm"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Map SVG — fills up to 82vw but no more than 520px; height from aspect ratio */}
+        <div
+          className="px-4 pb-1"
+          style={{
+            width: "100%",
+            aspectRatio: `${vBoxW} / ${vBoxH}`,
+          }}
+        >
+          <MapSVG size="lg" />
+        </div>
+
+        {/* Footer */}
+        <p className="pb-3 text-center text-white/30 text-[10px] select-none">
+          Tap outside to close
+        </p>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {smallMinimap}
+      {expanded && expandedModal}
+    </>
   );
 }
