@@ -37,6 +37,8 @@ export interface UseGameResult {
   clearPickedUp:       () => void;
   journalTriggered:    boolean;
   clearJournalTrigger: () => void;
+  mapTriggered:        boolean;
+  clearMapTrigger:     () => void;
   setEquipped:         (equipped: EquippedClothing) => void;
   /** Current active room id */
   currentRoomId:       string;
@@ -56,6 +58,7 @@ export function useGame(
   const [inventorySource,  setInventorySource]  = useState<InventorySource | null>(null);
   const [pickedUpItemId,   setPickedUpItemId]   = useState<string | null>(null);
   const [journalTriggered, setJournalTriggered] = useState(false);
+  const [mapTriggered,     setMapTriggered]     = useState(false);
   const [currentRoomId,    setCurrentRoomId]    = useState("tutorial");
   const [isFading,         setIsFading]         = useState(false);
 
@@ -67,6 +70,7 @@ export function useGame(
   const dismissInventory     = useCallback(() => setInventorySource(null),   []);
   const clearPickedUp        = useCallback(() => setPickedUpItemId(null),    []);
   const clearJournalTrigger  = useCallback(() => setJournalTriggered(false), []);
+  const clearMapTrigger      = useCallback(() => setMapTriggered(false),     []);
 
   const setEquipped = useCallback((equipped: EquippedClothing) => {
     sceneRef.current?.setCharacterEquipped(equipped);
@@ -90,6 +94,7 @@ export function useGame(
       newScene.onInventory((src) => setInventorySource(src));
       newScene.onPickup((itemId) => setPickedUpItemId(itemId));
       newScene.onJournal(() => setJournalTriggered(true));
+      newScene.onMap(() => setMapTriggered(true));
       newScene.onSceneChange((targetId) => switchRoom(targetId));
       newScene.onProgress((p) => setLoadProgress(p));
 
@@ -141,6 +146,7 @@ export function useGame(
     scene.onInventory((src) => { if (mounted) setInventorySource(src); });
     scene.onPickup((id)     => { if (mounted) setPickedUpItemId(id); });
     scene.onJournal(()      => { if (mounted) setJournalTriggered(true); });
+    scene.onMap(()          => { if (mounted) setMapTriggered(true); });
     scene.onSceneChange((id) => { if (mounted) switchRoom(id); });
 
     (async () => {
@@ -217,6 +223,7 @@ export function useGame(
     inventorySource, dismissInventory,
     pickedUpItemId, clearPickedUp,
     journalTriggered, clearJournalTrigger,
+    mapTriggered, clearMapTrigger,
     setEquipped,
     currentRoomId,
     switchRoom,

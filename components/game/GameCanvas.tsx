@@ -19,6 +19,8 @@ import { InventoryHUD }                          from "./InventoryHUD";
 import { PlaystyleSelect }                       from "./PlaystyleSelect";
 import { JournalFAB }                            from "./JournalFAB";
 import { JournalPanel }                          from "./JournalPanel";
+import { MinimapHUD }                            from "./MinimapHUD";
+import { useWorldDiscovery }                     from "@/hooks/useWorldDiscovery";
 import styles from "@/styles/game.module.css";
 
 export function GameCanvas() {
@@ -31,10 +33,13 @@ export function GameCanvas() {
     inventorySource, dismissInventory,
     pickedUpItemId, clearPickedUp,
     journalTriggered, clearJournalTrigger,
+    mapTriggered, clearMapTrigger,
     setEquipped: pushEquippedToGame,
     currentRoomId,
     isFading,
   } = useGame(canvasRef, playerName);
+
+  const { discoveredIds: roomDiscoveredIds, discover } = useWorldDiscovery();
 
   const { equipped, equip, unequip }      = useInventory();
   const { items, addItem }                = useItems();
@@ -71,6 +76,25 @@ export function GameCanvas() {
   const [playstyle, setPlaystyleState] = useState<Playstyle | null>(
     () => getPlaystyle()
   );
+
+  // ── Minimap ────────────────────────────────────────────────────────────────
+  const [minimapUnlocked, setMinimapUnlocked] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("tgb_minimap_unlocked") === "true";
+  });
+
+  // Discover every room on first entry
+  useEffect(() => {
+    discover(currentRoomId);
+  }, [currentRoomId, discover]);
+
+  // Unlock minimap when the map book is interacted with
+  useEffect(() => {
+    if (!mapTriggered) return;
+    setMinimapUnlocked(true);
+    localStorage.setItem("tgb_minimap_unlocked", "true");
+    clearMapTrigger();
+  }, [mapTriggered, clearMapTrigger]);
 
   // ── Tutorial ───────────────────────────────────────────────────────────────
   const [tutorialDismissed, setTutorialDismissed] = useState(() => {
@@ -140,6 +164,7 @@ export function GameCanvas() {
 
   const showInventoryHUD = showHUD && (playstyle === "story" || wardrobeFound);
   const showJournalFAB   = showHUD && (playstyle === "story" || journalFound);
+  const showMinimap      = showHUD && minimapUnlocked;
 
   return (
     <div className={styles.wrapper}>
@@ -187,6 +212,13 @@ export function GameCanvas() {
             <JournalFAB
               onClick={handleJournalOpen}
               hasNotification={hasUnseen}
+            />
+          )}
+
+          {showMinimap && (
+            <MinimapHUD
+              currentRoomId={currentRoomId}
+              discoveredIds={roomDiscoveredIds}
             />
           )}
 
