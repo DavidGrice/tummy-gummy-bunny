@@ -76,11 +76,16 @@ function QuestList({
                 </span>
                 <div className="min-w-0">
                   <p
-                    className={`text-sm leading-snug ${
-                      active ? "text-amber-900 font-bold" : "text-amber-800/80"
-                    } ${q.completed ? "line-through opacity-60" : ""}`}
+                    className={`text-sm leading-snug font-bold ${
+                      q.completed
+                        ? "text-green-700"
+                        : active
+                          ? "text-amber-900"
+                          : "text-amber-800/80"
+                    }`}
                     style={CAVEAT}
                   >
+                    {q.completed && <span className="mr-1">✓</span>}
                     {q.title}
                   </p>
                   <p className="text-[10px] text-amber-700/50 mt-0.5">{q.date}</p>
@@ -131,13 +136,28 @@ function QuestPage({ quest }: { quest: Quest | null }) {
           {quest.date}
         </p>
 
-        {/* Quest heading */}
+        {/* Quest heading — green when completed */}
         <h1
-          className="text-4xl font-bold text-amber-900 mb-6 leading-tight"
+          className={`text-4xl font-bold mb-3 leading-tight ${
+            quest.completed ? "text-green-700" : "text-amber-900"
+          }`}
           style={CAVEAT}
         >
+          {quest.completed && <span className="mr-2">✓</span>}
           {quest.heading}
         </h1>
+
+        {/* Completion stamp */}
+        {quest.completed && (
+          <div
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-5 border border-green-400/40"
+            style={{ background: "rgba(134,239,172,0.15)" }}
+          >
+            <span className="text-green-600 text-[10px] font-black uppercase tracking-widest">
+              ✓ Quest Complete
+            </span>
+          </div>
+        )}
 
         {/* Body paragraphs — each sits on the ruled lines */}
         {paragraphs.map((para, i) => (
