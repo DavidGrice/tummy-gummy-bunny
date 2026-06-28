@@ -4,6 +4,7 @@ import { useRef, useState, useEffect }  from "react";
 import { useGame }                       from "@/hooks/useGame";
 import { useInventory }                  from "@/hooks/useInventory";
 import { useItems }                      from "@/hooks/useItems";
+import { useDiscoveredClothing }         from "@/hooks/useDiscoveredClothing";
 import { getUsername }                   from "@/lib/cookies";
 import { getPlaystyle, type Playstyle }  from "@/lib/playstyle";
 import { Tooltip }                       from "@/components/ui/Tooltip";
@@ -28,8 +29,9 @@ export function GameCanvas() {
     setEquipped: pushEquippedToGame,
   } = useGame(canvasRef, playerName);
 
-  const { equipped, equip, unequip } = useInventory();
-  const { items }                    = useItems();
+  const { equipped, equip, unequip }           = useInventory();
+  const { items }                              = useItems();
+  const { discoveredIds, discoverSource }      = useDiscoveredClothing();
 
   // Sync equipped clothing onto MrBunny whenever it changes
   useEffect(() => {
@@ -64,11 +66,15 @@ export function GameCanvas() {
   });
 
   useEffect(() => {
-    if (inventorySource !== null && !wardrobeFound) {
+    if (inventorySource === null) return;
+    // Reveal those clothing items in the inventory grid
+    discoverSource(inventorySource);
+    // Unlock the inventory FAB for Explorer Bunny mode
+    if (!wardrobeFound) {
       setWardrobeFound(true);
       localStorage.setItem("tgb_wardrobe_found", "true");
     }
-  }, [inventorySource, wardrobeFound]);
+  }, [inventorySource, wardrobeFound, discoverSource]);
 
   // journalFound: unlocked when player first clicks the in-room journal object (TODO: wire via useGame)
   const [journalFound, setJournalFound] = useState(() => {
@@ -137,7 +143,13 @@ export function GameCanvas() {
 
       {showHUD && (
         <>
-          {showInventoryHUD && <InventoryHUD equipped={equipped} items={items} />}
+          {showInventoryHUD && (
+            <InventoryHUD
+              equipped={equipped}
+              items={items}
+              discoveredIds={discoveredIds}
+            />
+          )}
 
           {showJournalFAB && <JournalFAB onClick={() => setJournalOpen(true)} />}
 

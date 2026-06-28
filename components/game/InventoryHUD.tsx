@@ -31,15 +31,26 @@ const CLOTHING_LABEL: Record<ClothingCategory, string> = {
 
 type Filter = "all" | ClothingCategory | ItemCategory;
 
-const FILTERS: { id: Filter; label: string; group: "clothing" | "items" | "all" }[] = [
-  { id: "all",      label: "All",       group: "all"     },
-  { id: "outerwear",label: "Outerwear", group: "clothing" },
-  { id: "top",      label: "Tops",      group: "clothing" },
-  { id: "bottom",   label: "Bottoms",   group: "clothing" },
-  { id: "food",     label: "Food",      group: "items"   },
-  { id: "key",      label: "Keys",      group: "items"   },
-  { id: "tool",     label: "Tools",     group: "items"   },
-  { id: "special",  label: "Special",   group: "items"   },
+// Two-row filter groups — avoids horizontal overflow / scrollbar
+const FILTER_ROWS: { label: string; filters: { id: Filter; label: string }[] }[] = [
+  {
+    label:   "Clothing",
+    filters: [
+      { id: "all",       label: "All"       },
+      { id: "outerwear", label: "Outerwear" },
+      { id: "top",       label: "Tops"      },
+      { id: "bottom",    label: "Bottoms"   },
+    ],
+  },
+  {
+    label:   "Items",
+    filters: [
+      { id: "food",    label: "Food"    },
+      { id: "key",     label: "Keys"    },
+      { id: "tool",    label: "Tools"   },
+      { id: "special", label: "Special" },
+    ],
+  },
 ];
 
 // ─── Slot types ───────────────────────────────────────────────────────────────
@@ -165,43 +176,55 @@ function DetailPanel({ selected, equipped }: { selected: SelectedSlot; equipped:
   );
 }
 
-/** Flat filter chip row */
+/** Two-row filter chips — no horizontal overflow, grouped by Clothing / Items */
 function FilterChips({
   active,
   onChange,
   items,
+  discoveredIds,
 }: {
-  active:   Filter;
-  onChange: (f: Filter) => void;
-  items:    CollectedItem[];
+  active:        Filter;
+  onChange:      (f: Filter) => void;
+  items:         CollectedItem[];
+  discoveredIds: Set<string>;
 }) {
-  return (
-    <div className="shrink-0 flex gap-1.5 px-4 py-2 overflow-x-auto">
-      {FILTERS.map(({ id, label, group }) => {
-        const hasContent =
-          id === "all"
-            ? true
-            : group === "clothing"
-              ? ALL_CLOTHING.some((i) => i.category === id)
-              : items.some((c) => c.item.category === id);
+  function hasContent(id: Filter): boolean {
+    if (id === "all") return true;
+    if (id === "outerwear" || id === "top" || id === "bottom")
+      return ALL_CLOTHING.some((i) => i.category === id && discoveredIds.has(i.id));
+    return items.some((c) => c.item.category === id);
+  }
 
-        return (
-          <button
-            key={id}
-            onClick={() => onChange(id)}
-            disabled={!hasContent && id !== "all"}
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wide uppercase whitespace-nowrap shrink-0 transition-all duration-150 ${
-              active === id
-                ? "bg-summer-coral text-white"
-                : hasContent
-                  ? "bg-white/10 text-white/50 hover:bg-white/15 hover:text-white/80"
-                  : "bg-white/5 text-white/20 cursor-not-allowed"
-            }`}
-          >
+  return (
+    <div className="shrink-0 px-4 pt-2 pb-1 space-y-1 border-b border-white/8">
+      {FILTER_ROWS.map(({ label, filters }) => (
+        <div key={label} className="flex items-center gap-1.5">
+          <span className="text-[9px] font-black uppercase tracking-widest text-white/20 w-12 shrink-0">
             {label}
-          </button>
-        );
-      })}
+          </span>
+          <div className="flex gap-1 flex-wrap">
+            {filters.map(({ id, label: chipLabel }) => {
+              const enabled = hasContent(id);
+              return (
+                <button
+                  key={id}
+                  onClick={() => onChange(id)}
+                  disabled={!enabled}
+                  className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wide uppercase transition-all duration-150 ${
+                    active === id
+                      ? "bg-summer-coral text-white"
+                      : enabled
+                        ? "bg-white/10 text-white/50 hover:bg-white/15 hover:text-white/80"
+                        : "bg-white/5 text-white/15 cursor-not-allowed"
+                  }`}
+                >
+                  {chipLabel}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -210,18 +233,21 @@ function FilterChips({
 function ItemGrid({
   equipped,
   collectables,
+  discoveredIds,
   filter,
   selected,
   onSelect,
 }: {
-  equipped:    EquippedItems;
-  collectables: CollectedItem[];
-  filter:      Filter;
-  selected:    SelectedSlot;
-  onSelect:    (slot: SelectedSlot) => void;
+  equipped:      EquippedItems;
+  collectables:  CollectedItem[];
+  discoveredIds: Set<string>;
+  filter:        Filter;
+  selected:      SelectedSlot;
+  onSelect:      (slot: SelectedSlot) => void;
 }) {
-  // Build unified slot list from clothing + collectables
+  // Only show clothing the player has discovered by visiting the wardrobe/dresser
   const clothingSlots: GridSlot[] = ALL_CLOTHING
+    .filter((item) => discoveredIds.has(item.id))
     .filter((item) => filter === "all" || item.category === filter)
     .map((item) => ({
       kind:       "clothing" as const,
@@ -322,10 +348,15 @@ function ItemGrid({
         })}
       </div>
 
-      {slots.every((s) => s.kind === "empty") && filter !== "all" && (
-        <p className="text-center text-white/20 text-xs py-4">
-          Nothing here yet — explore to find items!
-        </p>
+      {slots.every((s) => s.kind === "empty") && (
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
+          <span className="text-3xl opacity-20 select-none" aria-hidden>🎒</span>
+          <p className="text-white/25 text-xs leading-snug max-w-[160px]">
+            {discoveredIds.size === 0 && collectables.length === 0
+              ? "Visit the wardrobe or dresser to discover clothing"
+              : "Nothing in this category yet"}
+          </p>
+        </div>
       )}
     </div>
   );
@@ -335,16 +366,17 @@ function ItemGrid({
 function InventoryModal({
   equipped,
   items,
+  discoveredIds,
   onClose,
 }: {
-  equipped: EquippedItems;
-  items:    CollectedItem[];
-  onClose:  () => void;
+  equipped:      EquippedItems;
+  items:         CollectedItem[];
+  discoveredIds: Set<string>;
+  onClose:       () => void;
 }) {
   const [filter,   setFilter]   = useState<Filter>("all");
   const [selected, setSelected] = useState<SelectedSlot>(null);
 
-  // Clear selection when filter changes
   function handleFilterChange(f: Filter) {
     setFilter(f);
     setSelected(null);
@@ -357,7 +389,7 @@ function InventoryModal({
     >
       <div className={`relative z-10 w-full max-w-2xl flex flex-col overflow-hidden rounded-2xl bg-gray-900/90 backdrop-blur-md border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.7)] ${PANEL_H}`}>
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-white/10">
           <h2 className="text-sm font-black uppercase tracking-widest text-summer-cream">Inventory</h2>
           <button
@@ -369,7 +401,7 @@ function InventoryModal({
           </button>
         </div>
 
-        {/* ── Two-column body ── */}
+        {/* Two-column body */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
 
           {/* Left — preview + equipment slots */}
@@ -381,10 +413,16 @@ function InventoryModal({
           {/* Right — detail + filters + grid */}
           <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
             <DetailPanel selected={selected} equipped={equipped} />
-            <FilterChips active={filter} onChange={handleFilterChange} items={items} />
+            <FilterChips
+              active={filter}
+              onChange={handleFilterChange}
+              items={items}
+              discoveredIds={discoveredIds}
+            />
             <ItemGrid
               equipped={equipped}
               collectables={items}
+              discoveredIds={discoveredIds}
               filter={filter}
               selected={selected}
               onSelect={setSelected}
@@ -400,11 +438,12 @@ function InventoryModal({
 // ─── Public component ─────────────────────────────────────────────────────────
 
 interface InventoryHUDProps {
-  equipped: EquippedItems;
-  items:    CollectedItem[];
+  equipped:      EquippedItems;
+  items:         CollectedItem[];
+  discoveredIds: Set<string>;
 }
 
-export function InventoryHUD({ equipped, items }: InventoryHUDProps) {
+export function InventoryHUD({ equipped, items, discoveredIds }: InventoryHUDProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const equippedCount = (["outerwear", "top", "bottom"] as ClothingCategory[])
@@ -435,6 +474,7 @@ export function InventoryHUD({ equipped, items }: InventoryHUDProps) {
         <InventoryModal
           equipped={equipped}
           items={items}
+          discoveredIds={discoveredIds}
           onClose={() => setIsOpen(false)}
         />
       )}
