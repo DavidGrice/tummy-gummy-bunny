@@ -30,6 +30,10 @@ export class TutorialScene extends BaseScene {
   private journalFn:   JournalFn                      = () => {};
   private playerName = "Bunny";
 
+  // Follow-cam state (mobile only)
+  private followCam:    THREE.PerspectiveCamera | null = null;
+  private readonly _camTarget = new THREE.Vector3();
+
   onProgress(fn: (p: number)             => void): void { this.progressFn  = fn; }
   onDialog(fn:   (m: string)             => void): void { this.dialogFn    = fn; }
   onInventory(fn: (src: InventorySource) => void): void { this.inventoryFn = fn; }
@@ -86,6 +90,18 @@ export class TutorialScene extends BaseScene {
   update(delta: number): void {
     this.mrBunny?.update(delta);
     for (const item of this.pickupItems) item.update(delta);
+    this.updateFollowCam(delta);
+  }
+
+  private updateFollowCam(delta: number): void {
+    if (!this.followCam || !this.mrBunny) return;
+
+    const char = this.mrBunny.mesh.position;
+
+    // Fixed Y so the camera doesn't bob with the hop animation
+    this._camTarget.set(char.x, 3.5, char.z + 5);
+    this.followCam.position.lerp(this._camTarget, Math.min(1, delta * 10));
+    this.followCam.lookAt(char.x, char.y + 0.5, char.z);
   }
 
   getCastTargets(): THREE.Object3D[] {
@@ -135,14 +151,17 @@ export class TutorialScene extends BaseScene {
   setupCamera(camera: THREE.PerspectiveCamera): void {
     const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
     if (isMobile) {
-      // Zoom in close: standard FOV so objects appear large and tappable.
-      // Not all of the room is visible — the player explores by walking.
-      camera.fov = 50;
-      camera.position.set(0, 4.5, 6.5);
-      camera.lookAt(0, 0.5, -1);
+      this.followCam = camera;
+
+      camera.fov = 60;
       camera.updateProjectionMatrix();
 
-      // Labels can't rely on hover on touch screens — pin them permanently visible
+      // Seed position over the bunny's start tile so there's no first-frame jump
+      const [sx, sz] = TUTORIAL_ROOM.bunnyStart;
+      camera.position.set(sx, 3.5, sz + 5);
+      camera.lookAt(sx, 0.5, sz);
+
+      // Labels can't rely on hover on touch — pin them permanently visible
       for (const obj of this.interactables) {
         obj.setLabelAlwaysVisible(true);
       }
