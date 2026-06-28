@@ -62,55 +62,60 @@ export const SIBLING_ROOM: RoomManifest = {
     },
 
     // ── West wall — bed ───────────────────────────────────────────────────────
+    // West inner face at x = -(7/2 - 0.1) = -3.4. Left face flush: x = -3.4 + 1.0/2 = -2.9
     {
       id:          "bed",
       type:        "furniture",
       label:       "Bed",
-      position:    [-3.25, 0.25, -0.5],
+      position:    [-2.9, 0.25, -0.5],
       size:        [1.0, 0.5, 2.2],
       color:       0x7B5EA7,  // purple bedding
       interaction: { kind: "dialog", message: "This bed looks like a very comfortable nest. Very on-brand. 🛏️" },
     },
 
     // ── North wall, west side — tall bookshelf ────────────────────────────────
+    // North inner face at z = -(7/2 - 0.1) = -3.4. Back face flush: z = -3.4 + 0.5/2 = -3.15
     {
       id:          "bookshelf",
       type:        "furniture",
       label:       "Bookshelf",
-      position:    [-1.5, 1.1, -3.4],
+      position:    [-1.5, 1.1, -3.15],
       size:        [1.4, 2.2, 0.5],
       color:       0x6B4A2A,
       interaction: { kind: "dialog", message: "Comics, sketchbooks, and a wobbly tower of puzzle boxes. 📚" },
     },
 
     // ── North wall, east side — desk ──────────────────────────────────────────
+    // Back face flush: z = -3.4 + 0.6/2 = -3.1
     {
       id:          "desk",
       type:        "furniture",
       label:       "Desk",
-      position:    [1.5, 0.45, -3.35],
+      position:    [1.5, 0.45, -3.1],
       size:        [1.4, 0.9, 0.6],
       color:       0x4A6B8A,  // blue-grey desk — different from Bunny's white
       interaction: { kind: "dialog", message: "A desk buried under pencil shavings and half-finished drawings. ✏️" },
     },
 
     // ── Sketchbook on the desk ────────────────────────────────────────────────
+    // Desk top = 0.45 + 0.9/2 = 0.9. Book center y = 0.9 + 0.04/2 = 0.92
     {
       id:          "sketchbook",
       type:        "book",
       label:       "Sketchbook",
-      position:    [1.2, 0.915, -3.12],
+      position:    [1.2, 0.92, -3.0],
       size:        [0.3, 0.04, 0.24],
       color:       0x3A5A7A,
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
     },
 
-    // ── Light switch — right of the south door ────────────────────────────────
+    // ── Light switch — right of the south door, on south wall ─────────────────
+    // South inner face at z = 7/2 - 0.1 = 3.4. Center at z = 3.4 - 0.09/2 = 3.355
     {
       id:          "light-switch",
       type:        "furniture",
       label:       "Light Switch",
-      position:    [0.75, 1.2, 3.4],
+      position:    [0.75, 1.2, 3.35],
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },

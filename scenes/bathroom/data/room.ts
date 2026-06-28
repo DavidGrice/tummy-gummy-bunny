@@ -46,45 +46,50 @@ export const BATHROOM_ROOM: RoomManifest = {
 
   objects: [
     // ── Door — west wall, back to hallway ─────────────────────────────────────
-    // Width along Z (0.9), thin along X (0.15) — matches hallway east-wall door
+    // West wall center at x=-2.0. Inner face at x = -(2.0 - 0.1) = -1.9.
+    // Door center at x=-1.9 so it sits in/against the wall opening.
+    // Width along Z (0.9), thin along X (0.15).
     {
       id:          "door-hallway",
       type:        "furniture",
       label:       "Hallway",
-      position:    [-1.95, 1.1, 0],
+      position:    [-1.9, 1.1, 0],
       size:        [0.15, 2.2, 0.9],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
     },
 
     // ── Toilet — north-west corner ────────────────────────────────────────────
+    // North inner face at z = -(2.0 - 0.1) = -1.9. Back face flush: z = -1.9 + 0.7/2 = -1.55
     {
       id:          "toilet",
       type:        "furniture",
       label:       "Toilet",
-      position:    [-1.3, 0.42, -1.5],
+      position:    [-1.3, 0.425, -1.55],
       size:        [0.65, 0.85, 0.7],
       color:       0xF0F2F0,
       interaction: { kind: "dialog", message: "Just a toilet. Nothing to see here. 🚽" },
     },
 
     // ── Bathtub — north wall, east side ──────────────────────────────────────
+    // Back face flush: z = -1.9 + 0.62/2 = -1.59
     {
       id:          "bathtub",
       type:        "furniture",
       label:       "Bathtub",
-      position:    [0.8, 0.35, -1.62],
+      position:    [0.8, 0.35, -1.59],
       size:        [1.4, 0.7, 0.62],
       color:       0xE8F0F6,
       interaction: { kind: "dialog", message: "A deep bubble bath with lavender salts. Maybe after the adventure! 🛁" },
     },
 
     // ── Sink / vanity — east wall ─────────────────────────────────────────────
+    // East inner face at x = 2.0 - 0.1 = 1.9. Right face flush: x = 1.9 - 0.4/2 = 1.7
     {
       id:          "sink",
       type:        "furniture",
       label:       "Sink",
-      position:    [1.75, 0.42, 0.3],
+      position:    [1.7, 0.425, 0.3],
       size:        [0.4, 0.85, 0.65],
       color:       0xEEF2F4,
       interaction: { kind: "dialog-template", template: "{playerName} checks the mirror above the sink. Looking good! 🪥" },
