@@ -67,6 +67,7 @@ export class TutorialScene extends BaseScene {
       onJournal:   this.journalFn,
       onPickup:    this.pickupFn,
       playerName:  this.playerName,
+      collectedIds: this.loadCollectedIds(),
     });
     this.interactables = loaded.interactables;
     this.pickupItems   = loaded.pickupItems;
@@ -161,6 +162,15 @@ export class TutorialScene extends BaseScene {
     this.pickupItems.forEach((i) => i.dispose());
     this.mrBunny?.dispose();
     this.lights.forEach((l) => l.dispose());
+  }
+
+  private loadCollectedIds(): Set<string> {
+    try {
+      const raw = localStorage.getItem(`tgb_room_${this.id}_collected`);
+      return new Set<string>(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      return new Set();
+    }
   }
 
   private setupLighting(scene: THREE.Scene): void {

@@ -71,4 +71,6 @@ export interface RoomCallbacks {
   onJournal:   () => void;
   onPickup:    (itemId: string) => void;
   playerName:  string;
+  /** Item IDs already collected — matching pickups are skipped at load time. */
+  collectedIds?: Set<string>;
 }

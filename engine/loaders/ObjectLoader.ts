@@ -143,6 +143,9 @@ export function loadRoomObjects(
       }
 
       case "pickup": {
+        // Skip items the player already collected in a previous session
+        if (callbacks.collectedIds?.has(def.itemId)) break;
+
         const builder = PICKUP_MESH_BUILDERS[def.modelType];
         if (!builder) {
           console.warn(`[ObjectLoader] Unknown pickup modelType: "${def.modelType}"`);
