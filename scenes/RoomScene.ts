@@ -7,6 +7,7 @@ import { createFloor } from "@/engine/builders/Floor";
 import { createWalls, type WallSet } from "@/engine/builders/Walls";
 import { createWindows } from "@/engine/builders/Windows";
 import { loadRoomObjects } from "@/engine/loaders/ObjectLoader";
+import { buildCollisionBoxes, resolveDestination, computeStandPos, type CollisionBox } from "@/engine/collision/CollisionBoxes";
 import type { RoomManifest, RoomCallbacks, InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
@@ -20,10 +21,11 @@ export class RoomScene extends BaseScene {
   private interactables: InteractableObject[] = [];
   private pickupItems:   PickupItem[]         = [];
   private decoratives:   THREE.Object3D[]     = [];
-  private floor!:        THREE.Mesh;
-  private wallSet!:      WallSet;
-  private windows:       THREE.Group[]        = [];
-  private lights:        THREE.Light[]        = [];
+  private floor!:         THREE.Mesh;
+  private wallSet!:       WallSet;
+  private windows:        THREE.Group[]        = [];
+  private lights:         THREE.Light[]        = [];
+  private collisionBoxes: CollisionBox[]       = [];
 
   // ── Callbacks (set before setup() is called) ─────────────────────────────
   private progressFn:    (p: number)           => void = () => {};
@@ -97,6 +99,8 @@ export class RoomScene extends BaseScene {
     this.interactables.forEach((obj) => obj.addToScene(scene));
     this.decoratives.forEach((obj)   => scene.add(obj));
 
+    this.collisionBoxes = buildCollisionBoxes(this.manifest);
+
     this.progressFn(78);
     this.pickupItems.forEach((item) => item.addToScene(scene));
 
@@ -150,17 +154,13 @@ export class RoomScene extends BaseScene {
       const { min, max, minX, maxX, minZ, maxZ } = this.manifest.bounds;
       target.x = THREE.MathUtils.clamp(target.x, minX ?? min, maxX ?? max);
       target.z = THREE.MathUtils.clamp(target.z, minZ ?? min, maxZ ?? max);
-      this.mrBunny.walkTo(target);
+      // Push the destination out of any furniture collision box
+      const resolved = resolveDestination(target, this.collisionBoxes);
+      this.mrBunny.walkTo(resolved);
 
     } else if (obj?.userData.interactable) {
-      const objPos   = obj.position.clone();
-      const toCenter = new THREE.Vector3().sub(objPos);
-      toCenter.y = 0;
-      if (toCenter.length() > 0) toCenter.normalize(); else toCenter.set(0, 0, 1);
-
-      const standPos = objPos.clone().addScaledVector(toCenter, 1.0);
-      standPos.y = this.mrBunny.mesh.position.y;
-
+      // Compute a stand position on the bunny's side of the object, just outside its surface
+      const standPos = computeStandPos(obj, this.mrBunny.mesh.position, this.collisionBoxes);
       this.mrBunny.walkTo(standPos, () => {
         obj!.userData.onInteract?.();
       });

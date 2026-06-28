@@ -63,7 +63,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
     {
       id:          "door",
       type:        "furniture",
-      label:       "Door",
+      label:       "Hallway",
       position:    [0,     1.1,  3.5],
       size:        [0.9,   2.2,  0.15],
       color:       0x5C3D1E,
