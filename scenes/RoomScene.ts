@@ -147,9 +147,9 @@ export class RoomScene extends BaseScene {
 
     if (obj?.userData.isFloor) {
       const target = hit.point.clone();
-      const { min, max } = this.manifest.bounds;
-      target.x = THREE.MathUtils.clamp(target.x, min, max);
-      target.z = THREE.MathUtils.clamp(target.z, min, max);
+      const { min, max, minX, maxX, minZ, maxZ } = this.manifest.bounds;
+      target.x = THREE.MathUtils.clamp(target.x, minX ?? min, maxX ?? max);
+      target.z = THREE.MathUtils.clamp(target.z, minZ ?? min, maxZ ?? max);
       this.mrBunny.walkTo(target);
 
     } else if (obj?.userData.interactable) {

@@ -11,14 +11,16 @@ import { InputManager } from "@/engine/input/InputManager";
 import { Raycaster } from "@/engine/interaction/Raycaster";
 import { RoomScene } from "@/scenes/RoomScene";
 import { TUTORIAL_ROOM } from "@/scenes/tutorial/data/room";
+import { HALLWAY_ROOM }  from "@/scenes/hallway/data/room";
 import type { InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
 // ── Room registry — add new rooms here as manifests are created ───────────────
 const router = new SceneRouter();
 router
-  .register("tutorial", TUTORIAL_ROOM);
-  // .register("hallway", HALLWAY_ROOM)  ← uncomment when Phase 3 is ready
+  .register("tutorial", TUTORIAL_ROOM)
+  .register("hallway",  HALLWAY_ROOM);
+  // .register("living-room", LIVING_ROOM)  ← Phase 5
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -40,6 +42,8 @@ export interface UseGameResult {
   currentRoomId:       string;
   /** Imperatively switch rooms without tearing down the engine */
   switchRoom:          (id: string) => void;
+  /** True during the black fade-out → scene load → fade-in transition */
+  isFading:            boolean;
 }
 
 export function useGame(
@@ -53,6 +57,7 @@ export function useGame(
   const [pickedUpItemId,   setPickedUpItemId]   = useState<string | null>(null);
   const [journalTriggered, setJournalTriggered] = useState(false);
   const [currentRoomId,    setCurrentRoomId]    = useState("tutorial");
+  const [isFading,         setIsFading]         = useState(false);
 
   const sceneRef        = useRef<RoomScene | null>(null);
   const sceneManagerRef = useRef<SceneManager | null>(null);
@@ -69,32 +74,41 @@ export function useGame(
 
   /** Load a room by id — safe to call at any time after engine init */
   const switchRoom = useCallback((id: string) => {
-    const sm     = sceneManagerRef.current;
-    const cam    = cameraRef.current;
+    const sm  = sceneManagerRef.current;
+    const cam = cameraRef.current;
     if (!sm || !cam) return;
 
-    const manifest = router.get(id);
-    const newScene = new RoomScene(manifest);
-    newScene.setPlayerName(playerName);
-    newScene.onDialog((msg) => setDialog(msg));
-    newScene.onInventory((src) => setInventorySource(src));
-    newScene.onPickup((itemId) => setPickedUpItemId(itemId));
-    newScene.onJournal(() => setJournalTriggered(true));
-    newScene.onSceneChange((targetId) => switchRoom(targetId));
+    // Phase 1: fade to black (CSS transition driven by isFading=true)
+    setIsFading(true);
 
-    sceneRef.current = newScene;
-    setCurrentRoomId(id);
-    setIsLoading(true);
-    setLoadProgress(0);
+    setTimeout(() => {
+      // Phase 2: swap scene while screen is black
+      const manifest = router.get(id);
+      const newScene = new RoomScene(manifest);
+      newScene.setPlayerName(playerName);
+      newScene.onDialog((msg) => setDialog(msg));
+      newScene.onInventory((src) => setInventorySource(src));
+      newScene.onPickup((itemId) => setPickedUpItemId(itemId));
+      newScene.onJournal(() => setJournalTriggered(true));
+      newScene.onSceneChange((targetId) => switchRoom(targetId));
+      newScene.onProgress((p) => setLoadProgress(p));
 
-    newScene.onProgress((p) => setLoadProgress(p));
+      sceneRef.current = newScene;
+      setCurrentRoomId(id);
+      setIsLoading(true);
+      setLoadProgress(0);
 
-    sm.load(newScene).then(() => {
-      newScene.setupCamera?.(cam.instance);
-      setIsLoading(false);
-    }).catch((err) => {
-      console.error(`[useGame] Failed to load room "${id}":`, err);
-    });
+      sm.load(newScene).then(() => {
+        newScene.setupCamera?.(cam.instance);
+        setIsLoading(false);
+
+        // Phase 3: fade back in
+        setIsFading(false);
+      }).catch((err) => {
+        console.error(`[useGame] Failed to load room "${id}":`, err);
+        setIsFading(false);
+      });
+    }, 300); // wait for CSS fade-out (300ms) before swapping
   }, [playerName]);
 
   useEffect(() => {
@@ -206,5 +220,6 @@ export function useGame(
     setEquipped,
     currentRoomId,
     switchRoom,
+    isFading,
   };
 }

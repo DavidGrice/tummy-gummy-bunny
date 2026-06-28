@@ -59,7 +59,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       interaction: { kind: "dialog", message: "A clean white desk. Great for homework… or doodles. 📝" },
     },
 
-    // Front wall — door
+    // Front wall — door leads to the hallway
     {
       id:          "door",
       type:        "furniture",
@@ -67,7 +67,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       position:    [0,     1.1,  3.5],
       size:        [0.9,   2.2,  0.15],
       color:       0x5C3D1E,
-      interaction: { kind: "dialog", message: "This door leads to the living room. Almost ready for the day!" },
+      interaction: { kind: "scene-change", targetRoomId: "hallway" },
     },
 
     // Right wall — bed

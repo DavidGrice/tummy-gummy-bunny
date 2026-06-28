@@ -33,6 +33,7 @@ export function GameCanvas() {
     journalTriggered, clearJournalTrigger,
     setEquipped: pushEquippedToGame,
     currentRoomId,
+    isFading,
   } = useGame(canvasRef, playerName);
 
   const { equipped, equip, unequip }      = useInventory();
@@ -209,6 +210,11 @@ export function GameCanvas() {
       {journalOpen && (
         <JournalPanel onClose={() => setJournalOpen(false)} />
       )}
+
+      {/* Room transition fade-to-black overlay */}
+      <div
+        className={`absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-300 ${isFading ? "opacity-100" : "opacity-0"}`}
+      />
     </div>
   );
 }

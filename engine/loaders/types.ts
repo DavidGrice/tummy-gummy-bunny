@@ -79,7 +79,12 @@ export interface RoomManifest {
   id:         string;
   background: number;
   dimensions: { width: number; depth: number; wallHeight: number; wallThick: number };
-  bounds:     { min: number; max: number };
+  /**
+   * Walkable clamp bounds. Square rooms: set min/max only.
+   * Rectangular corridors: also set minX/maxX and minZ/maxZ overrides.
+   * Override values take precedence over min/max for their axis.
+   */
+  bounds:     { min: number; max: number; minX?: number; maxX?: number; minZ?: number; maxZ?: number };
   /** Bunny spawn position [x, z] */
   bunnyStart: [number, number];
   wallColor:  number;
