@@ -4,18 +4,12 @@ import { MrBunny } from "@/characters/MrBunny";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { createFloor } from "./objects/Floor";
 import { createWalls } from "./objects/Walls";
-import { createWardrobe } from "./objects/Wardrobe";
-import { createDresser } from "./objects/Dresser";
-import { createRoomDoor } from "./objects/RoomDoor";
-import { createBed } from "./objects/Bed";
 import { createWindows } from "./objects/Windows";
-import { createInteractions } from "./data/interactions";
 import type { InventorySource, PickupFn, JournalFn } from "./data/interactions";
 import { PickupItem } from "@/engine/objects/PickupItem";
-import { createGoldenKey } from "./objects/GoldenKey";
-import { createJournal } from "./objects/Journal";
+import { loadRoomObjects } from "@/engine/loaders/ObjectLoader";
+import { TUTORIAL_ROOM } from "./data/room";
 import type { EquippedClothing } from "@/lib/inventory";
-import { BOUNDS } from "./data/layout";
 
 export class TutorialScene extends BaseScene {
   readonly id    = "tutorial";
@@ -67,20 +61,18 @@ export class TutorialScene extends BaseScene {
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
-    const interactions = createInteractions(this.dialogFn, this.inventoryFn, this.journalFn, this.playerName);
-    this.interactables = [
-      createWardrobe(interactions.wardrobe),
-      createDresser(interactions.dresser),
-      createRoomDoor(interactions.door),
-      createBed(interactions.bed),
-      createJournal(interactions.journal),
-    ];
-    this.interactables.forEach((obj) => obj.addToScene(scene));
+    const loaded = loadRoomObjects(TUTORIAL_ROOM, {
+      onDialog:    this.dialogFn,
+      onInventory: this.inventoryFn,
+      onJournal:   this.journalFn,
+      onPickup:    this.pickupFn,
+      playerName:  this.playerName,
+    });
+    this.interactables = loaded.interactables;
+    this.pickupItems   = loaded.pickupItems;
+    this.interactables.forEach((obj)  => obj.addToScene(scene));
 
     this.progressFn(78);
-    this.pickupItems = [
-      createGoldenKey(this.pickupFn),
-    ];
     this.pickupItems.forEach((item) => item.addToScene(scene));
 
     this.progressFn(85);
@@ -119,8 +111,9 @@ export class TutorialScene extends BaseScene {
 
     if (obj?.userData.isFloor) {
       const target = hit.point.clone();
-      target.x = THREE.MathUtils.clamp(target.x, BOUNDS.min, BOUNDS.max);
-      target.z = THREE.MathUtils.clamp(target.z, BOUNDS.min, BOUNDS.max);
+      const { min, max } = TUTORIAL_ROOM.bounds;
+      target.x = THREE.MathUtils.clamp(target.x, min, max);
+      target.z = THREE.MathUtils.clamp(target.z, min, max);
       this.mrBunny.walkTo(target);
 
     } else if (obj?.userData.interactable) {

@@ -315,6 +315,22 @@ function ItemGrid({
     return false;
   }
 
+  // Nothing at all in the current filter — skip the grid and center the hint
+  if (slots.every((s) => s.kind === "empty")) {
+    return (
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-2">
+        <span className="text-3xl opacity-20 select-none" aria-hidden>🎒</span>
+        <p className="text-white/25 text-xs leading-snug max-w-[160px] text-center">
+          {discoveredIds.size === 0 && collectables.length === 0
+            ? "Visit the wardrobe or dresser to discover clothing"
+            : mainTab === "clothing"
+              ? "Explore the room to discover clothing"
+              : "No items here yet — explore to find them!"}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3">
       <div className="grid grid-cols-5 gap-2">
@@ -360,11 +376,9 @@ function ItemGrid({
               {isEmpty && (
                 <span className="text-white/10 text-xs select-none" aria-hidden>·</span>
               )}
-              {/* Equipped dot badge */}
               {isEquippedClothing && !active && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-summer-coral" />
               )}
-              {/* Quantity badge */}
               {qty && (
                 <span className="absolute bottom-0.5 right-1 text-[9px] font-black text-summer-cream/60 leading-none">
                   ×{qty}
@@ -374,19 +388,6 @@ function ItemGrid({
           );
         })}
       </div>
-
-      {slots.every((s) => s.kind === "empty") && (
-        <div className="flex flex-col items-center gap-2 py-6 text-center">
-          <span className="text-3xl opacity-20 select-none" aria-hidden>🎒</span>
-          <p className="text-white/25 text-xs leading-snug max-w-[160px]">
-            {discoveredIds.size === 0 && collectables.length === 0
-              ? "Visit the wardrobe or dresser to discover clothing"
-              : mainTab === "clothing"
-                ? "Explore the room to discover clothing"
-                : "No items here yet — explore to find them!"}
-          </p>
-        </div>
-      )}
     </div>
   );
 }
