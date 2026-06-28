@@ -133,8 +133,17 @@ export class TutorialScene extends BaseScene {
   }
 
   setupCamera(camera: THREE.PerspectiveCamera): void {
-    camera.position.set(0, 8, 8);
-    camera.lookAt(0, 0, 0);
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    if (isMobile) {
+      // Wider FOV + pulled-back position so the full room fits on a narrow screen
+      camera.fov = 72;
+      camera.position.set(0, 9, 13);
+      camera.lookAt(0, 0, -1);
+      camera.updateProjectionMatrix();
+    } else {
+      camera.position.set(0, 8, 8);
+      camera.lookAt(0, 0, 0);
+    }
   }
 
   dispose(): void {
