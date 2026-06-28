@@ -80,7 +80,7 @@ export function InventoryPanel({ source, equipped, onEquip, onUnequip, onClose }
           <div className="rounded-2xl overflow-hidden border border-white/8 bg-gradient-to-b from-gray-800/60 to-gray-900/60">
             <canvas
               ref={previewRef}
-              className="w-full h-52 block"
+              className="w-full h-40 sm:h-52 block"
             />
           </div>
           <p className="text-white/25 text-[10px] text-center mt-1.5 italic tracking-wide">
@@ -107,29 +107,38 @@ export function InventoryPanel({ source, equipped, onEquip, onUnequip, onClose }
           </div>
         )}
 
-        {/* Item grid — scrollable */}
+        {/* Item grid — scrollable, single column so text always fits */}
         <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4">
-          {availTabs.length === 1 && <p className="text-white/40 text-xs uppercase tracking-widest mb-3">{TAB_LABELS[activeTab]}</p>}
-          <div className="grid grid-cols-2 gap-2">
+          {availTabs.length === 1 && (
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-3">
+              {TAB_LABELS[activeTab]}
+            </p>
+          )}
+          <div className="flex flex-col gap-2">
             {tabItems.map((item) => {
               const active = isEquip(item);
               return (
                 <button
                   key={item.id}
                   onClick={() => handleItem(item)}
-                  className={`flex items-center gap-3 p-3 rounded-2xl border transition-all min-h-[56px] text-left ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all min-h-[56px] text-left overflow-hidden ${
                     active
                       ? "bg-summer-coral/25 border-summer-coral/70 text-white"
                       : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/25"
                   }`}
                 >
-                  <span className="text-3xl leading-none shrink-0">{item.emoji}</span>
-                  <span className="flex flex-col min-w-0">
-                    <span className="text-xs font-bold leading-tight truncate">{item.name}</span>
+                  <span className="text-3xl leading-none shrink-0" aria-hidden>{item.emoji}</span>
+                  <span className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm font-bold leading-tight truncate">{item.name}</span>
                     {active && (
-                      <span className="text-[10px] text-summer-coral font-bold uppercase tracking-wider mt-0.5">Wearing</span>
+                      <span className="text-[10px] text-summer-coral font-black uppercase tracking-wider mt-0.5 whitespace-nowrap">
+                        ● Wearing
+                      </span>
                     )}
                   </span>
+                  {active && (
+                    <span className="shrink-0 w-2 h-2 rounded-full bg-summer-coral" aria-hidden />
+                  )}
                 </button>
               );
             })}
