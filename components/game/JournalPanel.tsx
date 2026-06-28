@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { QUESTS, type Quest } from "@/lib/journal";
+import { PANEL_H } from "@/components/game/InventoryHUD";
 
 // ─── Styled constants ─────────────────────────────────────────────────────────
 
@@ -198,11 +199,9 @@ export function JournalPanel({ onClose }: JournalPanelProps) {
     >
       {/* Journal book container */}
       <div
-        className="relative z-10 w-full max-w-2xl flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+        className={`relative z-10 w-full max-w-2xl flex flex-col overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] ${PANEL_H}`}
         style={{
-          maxHeight:    "80vh",
           borderRadius: "16px",
-          // Leather-look outer cover
           background:   "#8B6240",
           padding:      "6px",
         }}
