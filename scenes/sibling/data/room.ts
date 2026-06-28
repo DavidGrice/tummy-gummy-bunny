@@ -109,13 +109,14 @@ export const SIBLING_ROOM: RoomManifest = {
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
     },
 
-    // ── Light switch — right of the south door, on south wall ─────────────────
-    // South inner face at z = 7/2 - 0.1 = 3.4. Center at z = 3.4 - 0.09/2 = 3.355
+    // ── Light switch — west wall, near the south entrance ────────────────────
+    // West inner face at x = -(7/2 - 0.1) = -3.4. Front face flush: x = -3.4 + 0.06/2 = -3.37
+    // z=2.5 puts it at the south end of the west wall so the player reaches it on entry
     {
       id:          "light-switch",
       type:        "furniture",
       label:       "Light Switch",
-      position:    [0.75, 1.2, 3.35],
+      position:    [-3.37, 1.2, 2.5],
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
