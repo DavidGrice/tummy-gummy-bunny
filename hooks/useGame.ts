@@ -15,6 +15,10 @@ import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
 import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
 import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import { PARENTS_ROOM }   from "@/scenes/parents/data/room";
+import { DINING_ROOM }    from "@/scenes/dining/data/room";
+import { KITCHEN_ROOM }   from "@/scenes/kitchen/data/room";
+import { LIVING_ROOM }    from "@/scenes/living/data/room";
+import { OUTSIDE_ROOM }   from "@/scenes/outside/data/room";
 import type { InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
@@ -25,7 +29,11 @@ router
   .register("hallway",   HALLWAY_ROOM)
   .register("bathroom",  BATHROOM_ROOM)
   .register("sibling",   SIBLING_ROOM)
-  .register("parents",   PARENTS_ROOM);
+  .register("parents",   PARENTS_ROOM)
+  .register("dining",    DINING_ROOM)
+  .register("kitchen",   KITCHEN_ROOM)
+  .register("living",    LIVING_ROOM)
+  .register("outside",   OUTSIDE_ROOM);
 
 // ─────────────────────────────────────────────────────────────────────────────
 

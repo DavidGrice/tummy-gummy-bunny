@@ -15,9 +15,36 @@ const LAMP_RADIUS   = 0.28;
  * Derives 2D AABB collision boxes from a room manifest.
  * Excluded: doors (scene-change targets), pickup items, books on elevated surfaces,
  * and objects thinner than 15 cm in both axes (light switches, picture frames on walls).
+ *
+ * Each box is clipped to the manifest's walkable bounds so that resolveDestination
+ * can never push the bunny through a wall. Wall-hugging furniture (wardrobe, vanity,
+ * bed against the north wall) would otherwise produce boxes that extend outside the
+ * room — the "nearest face" push would then send the bunny through the wall instead
+ * of stopping her in front of it.
+ *
+ * Boxes that become degenerate after clipping (the object is entirely behind a wall
+ * and the player can never reach it) are silently dropped.
  */
 export function buildCollisionBoxes(manifest: RoomManifest): CollisionBox[] {
   const boxes: CollisionBox[] = [];
+
+  const { min, max, minX: bx0, maxX: bx1, minZ: bz0, maxZ: bz1 } = manifest.bounds;
+  const bMinX = bx0 ?? min;
+  const bMaxX = bx1 ?? max;
+  const bMinZ = bz0 ?? min;
+  const bMaxZ = bz1 ?? max;
+
+  function push(raw: CollisionBox): void {
+    const box: CollisionBox = {
+      minX: Math.max(raw.minX, bMinX),
+      maxX: Math.min(raw.maxX, bMaxX),
+      minZ: Math.max(raw.minZ, bMinZ),
+      maxZ: Math.min(raw.maxZ, bMaxZ),
+    };
+    // Drop degenerate boxes — object is entirely outside the walkable area
+    if (box.minX >= box.maxX || box.minZ >= box.maxZ) return;
+    boxes.push(box);
+  }
 
   for (const obj of manifest.objects) {
     if (obj.type === "furniture") {
@@ -27,7 +54,7 @@ export function buildCollisionBoxes(manifest: RoomManifest): CollisionBox[] {
       // Skip genuinely tiny objects — light switches, thin wall-mounted frames etc.
       if (w < 0.15 && d < 0.15) continue;
       const [x, , z] = obj.position;
-      boxes.push({
+      push({
         minX: x - w / 2 - BUNNY_PADDING,
         maxX: x + w / 2 + BUNNY_PADDING,
         minZ: z - d / 2 - BUNNY_PADDING,
@@ -36,7 +63,7 @@ export function buildCollisionBoxes(manifest: RoomManifest): CollisionBox[] {
     } else if (obj.type === "lamp") {
       const [x, , z] = obj.position;
       const r = LAMP_RADIUS + BUNNY_PADDING;
-      boxes.push({ minX: x - r, maxX: x + r, minZ: z - r, maxZ: z + r });
+      push({ minX: x - r, maxX: x + r, minZ: z - r, maxZ: z + r });
     }
     // pickup, book: no floor collision needed (books sit on elevated surfaces)
   }

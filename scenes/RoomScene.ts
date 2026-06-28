@@ -159,6 +159,10 @@ export class RoomScene extends BaseScene {
       target.z = THREE.MathUtils.clamp(target.z, minZ ?? min, maxZ ?? max);
       // 1) push destination out of any box it lands inside
       const dest = resolveDestination(target, this.collisionBoxes);
+      // Safety: re-clamp after resolution (clipped boxes prevent this in normal cases,
+      // but keeps the bunny inside the room if any edge case slips through)
+      dest.x = THREE.MathUtils.clamp(dest.x, minX ?? min, maxX ?? max);
+      dest.z = THREE.MathUtils.clamp(dest.z, minZ ?? min, maxZ ?? max);
       // 2) if the straight-line path still crosses a box, stop at the box edge
       const safe = resolveWalkPath(this.mrBunny.mesh.position, dest, this.collisionBoxes);
       this.mrBunny.walkTo(safe);

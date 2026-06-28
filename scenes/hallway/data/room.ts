@@ -92,17 +92,17 @@ export const HALLWAY_ROOM: RoomManifest = {
       interaction: { kind: "scene-change", targetRoomId: "parents" },
     },
 
-    // ── West wall — corridor to family area ───────────────────────────────────
+    // ── West wall — dining room ───────────────────────────────────────────────
 
     // Door width is along Z (0.9), thickness along X (0.15)
     {
       id:          "door-family",
       type:        "furniture",
-      label:       "Family Area",
+      label:       "Dining Room",
       position:    [-5.5, 1.1,  0],
       size:        [0.15, 2.2,  0.9],
       color:       0x5C3D1E,
-      interaction: { kind: "dialog", message: "A corridor leads to the kitchen and dining room. Coming soon! 🍽️" },
+      interaction: { kind: "scene-change", targetRoomId: "dining" },
     },
   ],
 };

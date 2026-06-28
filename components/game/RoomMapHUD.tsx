@@ -90,19 +90,20 @@ export function RoomMapHUD({ currentRoomId }: Props) {
             rx="0.25"
           />
 
-          {/* Furniture */}
+          {/* Furniture + door blobs (clipped to room boundary) */}
           <g clipPath={`url(#${cp})`}>
             {objects.map((o, i) => (
               <g key={i}>
                 <rect
                   x={o.x - o.w / 2} y={o.z - o.d / 2}
                   width={o.w}        height={o.d}
-                  fill="rgba(80,45,10,0.50)"
-                  stroke="rgba(60,30,5,0.30)"
-                  strokeWidth="0.06"
-                  rx="0.12"
+                  fill={o.isDoor ? "rgba(92,61,30,0.82)" : "rgba(80,45,10,0.50)"}
+                  stroke={o.isDoor ? "rgba(50,25,5,0.60)" : "rgba(60,30,5,0.30)"}
+                  strokeWidth={o.isDoor ? 0.09 : 0.06}
+                  rx="0.08"
                 />
-                {isLg && (
+                {/* Furniture label (expanded view only) */}
+                {isLg && !o.isDoor && (
                   <text
                     x={o.x}
                     y={o.z}
@@ -120,6 +121,62 @@ export function RoomMapHUD({ currentRoomId }: Props) {
               </g>
             ))}
           </g>
+
+          {/* Door labels — rendered outside the clip group so they sit just
+              inside the room rather than being cut off at the wall edge */}
+          {isLg && (() => {
+            const halfW = dims.w / 2;
+            const halfD = dims.d / 2;
+            return objects.filter((o) => o.isDoor).map((o, i) => {
+              const onNorth = o.z < -halfD * 0.4;
+              const onSouth = o.z >  halfD * 0.4;
+              const onEast  = !onNorth && !onSouth && o.x > halfW * 0.4;
+              // else: west
+
+              // Place the label just inside the room alongside the door rect.
+              // Offset is kept small so it reads as "the label belongs to this door"
+              // rather than floating loose in the middle of the room.
+              let lx = o.x, ly = o.z, anchor = "middle", arrow = "↑";
+              if (onNorth) {
+                // North-wall door: label sits just below the door rect in SVG (= inside room)
+                ly     = o.z + o.d / 2 + 0.28;
+                anchor = "middle";
+                arrow  = "↑";
+              } else if (onSouth) {
+                ly     = o.z - o.d / 2 - 0.28;
+                anchor = "middle";
+                arrow  = "↓";
+              } else if (onEast) {
+                // East-wall door: label sits just left of the door rect (= inside room)
+                lx     = o.x - o.w / 2 - 0.20;
+                ly     = o.z;
+                anchor = "end";
+                arrow  = "→";
+              } else {
+                // West-wall door: label sits just right of the door rect
+                lx     = o.x + o.w / 2 + 0.20;
+                ly     = o.z;
+                anchor = "start";
+                arrow  = "←";
+              }
+
+              return (
+                <text
+                  key={i}
+                  x={lx} y={ly}
+                  textAnchor={anchor as "middle" | "start" | "end"}
+                  dominantBaseline="middle"
+                  fontSize="0.30"
+                  fill="rgba(255,235,195,0.95)"
+                  fontFamily="system-ui, sans-serif"
+                  fontWeight="700"
+                  style={{ pointerEvents: "none" }}
+                >
+                  {o.label} {arrow}
+                </text>
+              );
+            });
+          })()}
         </g>
       </svg>
     );

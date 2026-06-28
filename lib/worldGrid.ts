@@ -20,19 +20,24 @@ import { HALLWAY_ROOM }   from "@/scenes/hallway/data/room";
 import { BATHROOM_ROOM }  from "@/scenes/bathroom/data/room";
 import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import { PARENTS_ROOM }   from "@/scenes/parents/data/room";
+import { DINING_ROOM }    from "@/scenes/dining/data/room";
+import { KITCHEN_ROOM }   from "@/scenes/kitchen/data/room";
+import { LIVING_ROOM }    from "@/scenes/living/data/room";
+import { OUTSIDE_ROOM }   from "@/scenes/outside/data/room";
 import type { RoomManifest, FurnitureObjectDef } from "@/engine/loaders/types";
 
 export const MINIMAP_SCALE = 5; // pixels per game unit
 
 // ── Shared types ──────────────────────────────────────────────────────────────
 
-/** A single piece of furniture drawn on the local room map. */
+/** A single object drawn on the local room map. */
 export interface MapObject {
-  x:     number; // room-local center X
-  z:     number; // room-local center Z
-  w:     number; // width  (X axis)
-  d:     number; // depth  (Z axis)
-  label: string; // furniture label shown in expanded view
+  x:      number;  // room-local center X
+  z:      number;  // room-local center Z
+  w:      number;  // width  (X axis)
+  d:      number;  // depth  (Z axis)
+  label:  string;  // label shown in expanded view
+  isDoor: boolean; // true → render as a door with directional label
 }
 
 export interface RoomNode {
@@ -56,27 +61,33 @@ export interface RoomLink {
 // ── Furniture extractor ───────────────────────────────────────────────────────
 
 /**
- * Pulls furniture worth showing on the minimap from a room manifest.
+ * Extracts furniture and doors from a room manifest for minimap rendering.
  *
- * Excluded:
- *   - scene-change doors (treated as room connectors, not furniture)
- *   - objects thinner than 0.25 units in either axis (doors, light switches)
+ * Doors: detected by one axis being very thin (< 0.20 units — all game doors use 0.15).
+ *   Their display size is boosted to 0.45 so they're visible as a blob on the map.
+ *
+ * Furniture: both axes must be > 0.25 to be meaningful at minimap scale.
+ *
+ * Excluded: light switches and other tiny wall-mounted items (both axes < 0.15).
  */
 function extractFurniture(manifest: RoomManifest): MapObject[] {
-  return manifest.objects
-    .filter((o): o is FurnitureObjectDef =>
-      o.type === "furniture" &&
-      o.interaction.kind !== "scene-change" &&
-      o.size[0] > 0.25 &&
-      o.size[2] > 0.25,
-    )
-    .map((o) => ({
-      x:     o.position[0],
-      z:     o.position[2],
-      w:     o.size[0],
-      d:     o.size[2],
-      label: o.label,
-    }));
+  const result: MapObject[] = [];
+  for (const o of manifest.objects) {
+    if (o.type !== "furniture") continue;
+    const [w, , d] = o.size;
+    if (w < 0.15 && d < 0.15) continue; // light switches, tiny frames
+    const isDoor = Math.min(w, d) < 0.20; // one thin axis → door shape
+    if (!isDoor && (w <= 0.25 || d <= 0.25)) continue; // thin non-door furniture
+    result.push({
+      x:      o.position[0],
+      z:      o.position[2],
+      w:      isDoor ? Math.max(w, 0.45) : w,
+      d:      isDoor ? Math.max(d, 0.45) : d,
+      label:  o.label,
+      isDoor,
+    });
+  }
+  return result;
 }
 
 // ── Room nodes ────────────────────────────────────────────────────────────────
@@ -132,6 +143,53 @@ export const WORLD_ROOMS: RoomNode[] = [
     worldZ:  -2,
     objects: extractFurniture(PARENTS_ROOM),
   },
+  {
+    id:      "dining",
+    label:   "Dining Room",
+    fill:    "#D8C8A0",
+    dims:    { w: 8, d: 7 },
+    // West of hallway: hallway left edge = -30px; sibling left edge = -72.5px.
+    // Place dining so right edge (-80px) clears sibling (-72.5px) by 7.5px.
+    // cx = -100px → worldX = -20. Connector line represents the corridor passage.
+    worldX:  -20,
+    worldZ:  -9,
+    objects: extractFurniture(DINING_ROOM),
+  },
+  {
+    id:      "kitchen",
+    label:   "Kitchen",
+    fill:    "#CDD5D8",
+    dims:    { w: 7, d: 6 },
+    // South of dining: dining bottom edge = (-9 + 3.5) = -5.5 schematic units.
+    // Gap 1 unit, kitchen half-depth 3. Kitchen centre Z = -5.5 + 1 + 3 = -1.5.
+    // Keep same X as dining so the link line runs straight down.
+    worldX:  -20,
+    worldZ:  -2,
+    objects: extractFurniture(KITCHEN_ROOM),
+  },
+  {
+    id:      "living",
+    label:   "Living Room",
+    fill:    "#E8DCC8",
+    dims:    { w: 9, d: 8 },
+    // East of kitchen on schematic: kitchen right edge = -20+3.5 = -16.5.
+    // Gap 1.5 units, living half-width 4.5. Living centre X = -16.5+1.5+4.5 = -10.5.
+    // Vertically aligned with kitchen so link line is horizontal.
+    worldX:  -10,
+    worldZ:  -2,
+    objects: extractFurniture(LIVING_ROOM),
+  },
+  {
+    id:      "outside",
+    label:   "Front Garden",
+    fill:    "#87CEEB",
+    dims:    { w: 12, d: 8 },
+    // South of living on schematic: living bottom edge = -2+4 = 2.
+    // Gap 1 unit, outside half-depth 4. Outside centre Z = 2+1+4 = 7.
+    worldX:  -10,
+    worldZ:   7,
+    objects: extractFurniture(OUTSIDE_ROOM),
+  },
 ];
 
 // ── Room links ────────────────────────────────────────────────────────────────
@@ -141,4 +199,8 @@ export const ROOM_LINKS: RoomLink[] = [
   { from: "hallway",  to: "bathroom" },
   { from: "hallway",  to: "sibling"  },
   { from: "hallway",  to: "parents"  },
+  { from: "hallway",  to: "dining"   },
+  { from: "dining",   to: "kitchen"  },
+  { from: "kitchen",  to: "living"   },
+  { from: "living",   to: "outside"  },
 ];

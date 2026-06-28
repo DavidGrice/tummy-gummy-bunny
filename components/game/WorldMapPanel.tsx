@@ -24,7 +24,7 @@ interface RoomRect {
   isCurrent: boolean;
 }
 
-interface LinkLine { x1: number; y1: number; x2: number; y2: number }
+interface LinkLine { x1: number; y1: number; x2: number; y2: number; label: string }
 
 export function WorldMapPanel({ currentRoomId, discoveredIds }: Props) {
   const { viewBox, vBoxW, vBoxH, roomRects, linkLines } = useMemo(() => {
@@ -59,14 +59,16 @@ export function WorldMapPanel({ currentRoomId, discoveredIds }: Props) {
       if (!from || !to) return [];
       const dy = to.cy - from.cy;
       const dx = to.cx - from.cx;
+      // Label shows both room names so the door's purpose is unambiguous
+      const label = `${from.label} ↔ ${to.label}`;
       if (Math.abs(dy) >= Math.abs(dx)) {
         const n = dy < 0;
         return [{ x1: from.cx, y1: n ? from.cy - from.hd : from.cy + from.hd,
-                  x2: to.cx,   y2: n ? to.cy   + to.hd   : to.cy   - to.hd }];
+                  x2: to.cx,   y2: n ? to.cy   + to.hd   : to.cy   - to.hd, label }];
       }
       const e = dx > 0;
       return [{ x1: e ? from.cx + from.hw : from.cx - from.hw, y1: from.cy,
-                x2: e ? to.cx   - to.hw   : to.cx   + to.hw,   y2: to.cy }];
+                x2: e ? to.cx   - to.hw   : to.cx   + to.hw,   y2: to.cy,   label }];
     });
 
     return { viewBox: `${vx} ${vy} ${vw} ${vh}`, vBoxW: vw, vBoxH: vh, roomRects, linkLines };
@@ -140,16 +142,34 @@ export function WorldMapPanel({ currentRoomId, discoveredIds }: Props) {
               </defs>
 
               <g filter="url(#wm-crayon)">
-                {/* Connection corridors */}
-                {linkLines.map((l, i) => (
-                  <line
-                    key={i}
-                    x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-                    stroke="rgba(140,100,50,0.45)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                ))}
+                {/* Connection corridors with door labels at midpoint */}
+                {linkLines.map((l, i) => {
+                  const mx = (l.x1 + l.x2) / 2;
+                  const my = (l.y1 + l.y2) / 2;
+                  const isVertical = Math.abs(l.y2 - l.y1) >= Math.abs(l.x2 - l.x1);
+                  return (
+                    <g key={i}>
+                      <line
+                        x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+                        stroke="rgba(140,100,50,0.45)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                      />
+                      {/* Small diamond door marker on the corridor */}
+                      <rect
+                        x={mx - 1.5} y={my - 1.5}
+                        width="3" height="3"
+                        fill="rgba(92,61,30,0.70)"
+                        stroke="rgba(140,100,50,0.55)"
+                        strokeWidth="0.8"
+                        rx="0.5"
+                        transform={`rotate(45 ${mx} ${my})`}
+                      >
+                        <title>{l.label}</title>
+                      </rect>
+                    </g>
+                  );
+                })}
 
                 {/* Rooms — no furniture, label near top of rect */}
                 {roomRects.map((r) => (
