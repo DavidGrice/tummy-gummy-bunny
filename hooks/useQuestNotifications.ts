@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { QUESTS } from "@/data/quests";
-import { isObjectiveComplete } from "@/lib/journal";
+import { isObjectiveComplete, isQuestUnlocked } from "@/lib/journal";
 
 const SEEN_KEY = "tgb_seen_objectives";
 
@@ -20,10 +20,11 @@ function saveSeen(seen: Set<string>): void {
   localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
 }
 
-/** Returns the "questId:objectiveId" keys for every objective currently complete. */
+/** Returns the "questId:objectiveId" keys for every objective that is complete AND in an unlocked quest. */
 function getCompletedKeys(collectedItemIds: Set<string>): string[] {
   const result: string[] = [];
   for (const quest of QUESTS) {
+    if (!isQuestUnlocked(quest, QUESTS, collectedItemIds)) continue;
     for (const obj of quest.objectives) {
       if (isObjectiveComplete(obj, collectedItemIds)) {
         result.push(`${quest.id}:${obj.id}`);

@@ -79,6 +79,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [1.0,   0.5,   2.2],
       color:       0x8B4513,
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
+      flagKey:     "tgb_bed_rested",
     },
 
     // Right wall near the door — light switch for the floor lamp

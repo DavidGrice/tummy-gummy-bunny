@@ -223,36 +223,45 @@ export function loadRoomObjects(
   // Populated as "lamp" objects are built; read lazily when lamp-toggle fires.
   const lampRegistry = new Map<string, LampParts>();
 
-  function resolveInteraction(def: InteractionDef): () => void {
-    switch (def.kind) {
-      case "inventory":
-        return () => callbacks.onInventory(def.source);
-      case "journal":
-        return () => callbacks.onJournal();
-      case "map":
-        return () =>
-          callbacks.onMap
-            ? callbacks.onMap()
-            : callbacks.onDialog("✨ A map of the house! It looks like there are more rooms to explore.");
-      case "scene-change":
-        return () => callbacks.onSceneChange?.(def.targetRoomId);
-      case "dialog":
-        return () => callbacks.onDialog(def.message);
-      case "dialog-template":
-        return () => callbacks.onDialog(def.template.replace("{playerName}", callbacks.playerName));
-      case "lamp-toggle": {
-        const { lampId } = def;
-        return () => {
-          const lamp = lampRegistry.get(lampId);
-          if (!lamp) return;
-          lamp.isOn = !lamp.isOn;
-          lamp.light.intensity = lamp.isOn ? 1.5 : 0;
-          lamp.shadeMat.emissive.setHex(lamp.isOn ? 0xFFD080 : 0x000000);
-          lamp.shadeMat.emissiveIntensity = lamp.isOn ? 0.55 : 0;
-          lamp.shadeMat.color.setHex(lamp.isOn ? 0xC8A868 : 0x8C8880);
-        };
+  function resolveInteraction(def: InteractionDef, flagKey?: string): () => void {
+    const action = ((): () => void => {
+      switch (def.kind) {
+        case "inventory":
+          return () => callbacks.onInventory(def.source);
+        case "journal":
+          return () => callbacks.onJournal();
+        case "map":
+          return () =>
+            callbacks.onMap
+              ? callbacks.onMap()
+              : callbacks.onDialog("✨ A map of the house! It looks like there are more rooms to explore.");
+        case "scene-change":
+          return () => callbacks.onSceneChange?.(def.targetRoomId);
+        case "dialog":
+          return () => callbacks.onDialog(def.message);
+        case "dialog-template":
+          return () => callbacks.onDialog(def.template.replace("{playerName}", callbacks.playerName));
+        case "lamp-toggle": {
+          const { lampId } = def;
+          return () => {
+            const lamp = lampRegistry.get(lampId);
+            if (!lamp) return;
+            lamp.isOn = !lamp.isOn;
+            lamp.light.intensity = lamp.isOn ? 1.5 : 0;
+            lamp.shadeMat.emissive.setHex(lamp.isOn ? 0xFFD080 : 0x000000);
+            lamp.shadeMat.emissiveIntensity = lamp.isOn ? 0.55 : 0;
+            lamp.shadeMat.color.setHex(lamp.isOn ? 0xC8A868 : 0x8C8880);
+          };
+        }
       }
-    }
+    })();
+
+    if (!flagKey) return action;
+    return () => {
+      action();
+      try { localStorage.setItem(flagKey, "true"); } catch { /* SSR / storage unavailable */ }
+      callbacks.onFlag?.(flagKey);
+    };
   }
 
   for (const def of manifest.objects) {
@@ -265,7 +274,7 @@ export function loadRoomObjects(
           name:         def.label,
           mesh,
           labelYOffset: def.size[1] / 2 + 0.35,
-          onInteract:   resolveInteraction(def.interaction),
+          onInteract:   resolveInteraction(def.interaction, def.flagKey),
         }));
         break;
       }
@@ -277,7 +286,7 @@ export function loadRoomObjects(
           name:         def.label,
           mesh,
           labelYOffset: def.size[1] / 2 + 0.35,
-          onInteract:   resolveInteraction(def.interaction),
+          onInteract:   resolveInteraction(def.interaction, def.flagKey),
         }));
         break;
       }

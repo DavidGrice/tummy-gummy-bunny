@@ -24,6 +24,8 @@ export interface FurnitureObjectDef {
   size:        [number, number, number];
   color:       number;
   interaction: InteractionDef;
+  /** If set, writes this localStorage key as "true" whenever the object is interacted with. */
+  flagKey?:    string;
 }
 
 export interface BookObjectDef {
@@ -34,6 +36,8 @@ export interface BookObjectDef {
   size:        [number, number, number];
   color:       number;
   interaction: InteractionDef;
+  /** If set, writes this localStorage key as "true" whenever the object is interacted with. */
+  flagKey?:    string;
 }
 
 /** World-space collectable — clicked to add to inventory */
@@ -122,6 +126,8 @@ export interface RoomCallbacks {
   onPickup:       (itemId: string)        => void;
   onSceneChange?: (targetRoomId: string)  => void;
   onMap?:         ()                      => void;
+  /** Called whenever a flagKey is written to localStorage via object interaction. */
+  onFlag?:        (key: string)           => void;
   playerName:     string;
   /** Item IDs already collected — matching pickups are skipped at load time. */
   collectedIds?:  Set<string>;

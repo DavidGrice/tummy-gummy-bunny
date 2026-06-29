@@ -93,6 +93,7 @@ export const BATHROOM_ROOM: RoomManifest = {
       size:        [0.4, 0.85, 0.65],
       color:       0xEEF2F4,
       interaction: { kind: "dialog-template", template: "{playerName} checks the mirror above the sink. Looking good! 🪥" },
+      flagKey:     "tgb_sink_used",
     },
   ],
 };

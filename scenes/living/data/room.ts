@@ -83,6 +83,7 @@ export const LIVING_ROOM: RoomManifest = {
       size:        [2.2, 0.6, 0.4],
       color:       0x252525,
       interaction: { kind: "dialog", message: "The family TV. It's showing cartoons — obviously. 📺" },
+      flagKey:     "tgb_tv_watched",
     },
 
     // ── West wall — tall bookshelf (north half) ───────────────────────────────

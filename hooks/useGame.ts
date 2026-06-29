@@ -61,6 +61,10 @@ export interface UseGameResult {
   switchRoom:          (id: string) => void;
   /** True during the black fade-out → scene load → fade-in transition */
   isFading:            boolean;
+  /** Increments whenever a quest-relevant flag is written to localStorage. */
+  flagTick:            number;
+  /** Call this to manually signal that a quest flag was written externally. */
+  bumpFlagTick:        () => void;
 }
 
 export function useGame(
@@ -76,6 +80,7 @@ export function useGame(
   const [mapTriggered,     setMapTriggered]     = useState(false);
   const [currentRoomId,    setCurrentRoomId]    = useState("tutorial");
   const [isFading,         setIsFading]         = useState(false);
+  const [flagTick,         setFlagTick]         = useState(0);
 
   const sceneRef        = useRef<RoomScene | null>(null);
   const sceneManagerRef = useRef<SceneManager | null>(null);
@@ -87,6 +92,7 @@ export function useGame(
   const clearPickedUp        = useCallback(() => setPickedUpItemId(null),    []);
   const clearJournalTrigger  = useCallback(() => setJournalTriggered(false), []);
   const clearMapTrigger      = useCallback(() => setMapTriggered(false),     []);
+  const bumpFlagTick         = useCallback(() => setFlagTick((t) => t + 1), []);
 
   const setEquipped = useCallback((equipped: EquippedClothing) => {
     sceneRef.current?.setCharacterEquipped(equipped);
@@ -113,10 +119,13 @@ export function useGame(
       newScene.onMap(() => setMapTriggered(true));
       newScene.onSceneChange((targetId) => switchRoom(targetId, id));
       newScene.onProgress((p) => setLoadProgress(p));
+      newScene.onFlag(() => setFlagTick((t) => t + 1));
 
       sceneRef.current = newScene;
       currentRoomIdRef.current = id;
       setCurrentRoomId(id);
+      try { localStorage.setItem(`tgb_visited_${id}`, "true"); } catch { /* SSR */ }
+      setFlagTick((t) => t + 1);
       setIsLoading(true);
       setLoadProgress(0);
 
@@ -245,5 +254,7 @@ export function useGame(
     currentRoomId,
     switchRoom,
     isFading,
+    flagTick,
+    bumpFlagTick,
   };
 }

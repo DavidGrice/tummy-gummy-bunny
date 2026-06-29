@@ -115,6 +115,7 @@ export const OUTSIDE_ROOM: RoomManifest = {
       size:        [0.28, 1.1, 0.32],
       color:       0x4A5A6A,
       interaction: { kind: "dialog", message: "The family mailbox. There's a letter sticking out… 📬" },
+      flagKey:     "tgb_mailbox_checked",
     },
   ],
 };

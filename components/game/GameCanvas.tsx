@@ -37,6 +37,8 @@ export function GameCanvas() {
     setEquipped: pushEquippedToGame,
     currentRoomId,
     isFading,
+    flagTick,
+    bumpFlagTick,
   } = useGame(canvasRef, playerName);
 
   const { discoveredIds: roomDiscoveredIds, discover } = useWorldDiscovery();
@@ -51,10 +53,6 @@ export function GameCanvas() {
     () => new Set(items.map((c) => c.item.id)),
     [items],
   );
-
-  // Incremented whenever a localStorage flag is written so the notification
-  // hook re-checks flag-based objectives (e.g. wardrobe/dresser visited).
-  const [flagTick, setFlagTick] = useState(0);
 
   const { hasUnseen, markAllSeen } = useQuestNotifications(collectedItemIds, flagTick);
 
@@ -122,7 +120,7 @@ export function GameCanvas() {
     discoverSource(inventorySource);
     // Per-source flags checked by flag-based quest objectives
     localStorage.setItem(`tgb_${inventorySource}_visited`, "true");
-    setFlagTick((t) => t + 1); // re-check flag-based objectives
+    bumpFlagTick(); // re-check flag-based objectives
     // Unlock inventory FAB for Explorer mode (either source counts)
     if (!wardrobeFound) {
       setWardrobeFound(true);
@@ -139,6 +137,11 @@ export function GameCanvas() {
   const [journalOpen, setJournalOpen] = useState(false);
 
   function handleJournalOpen() {
+    // Ensure tgb_journal_found is set on first open (covers Story mode via FAB)
+    if (!journalFound) {
+      setJournalFound(true);
+      localStorage.setItem("tgb_journal_found", "true");
+    }
     setJournalOpen(true);
     markAllSeen(); // clears the notification dot
   }

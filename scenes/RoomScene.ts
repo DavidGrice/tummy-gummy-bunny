@@ -35,6 +35,7 @@ export class RoomScene extends BaseScene {
   private journalFn:     ()                    => void = () => {};
   private sceneChangeFn: (id: string)          => void = () => {};
   private mapFn:         ()                    => void = () => {};
+  private flagFn:        (key: string)         => void = () => {};
   private playerName = "Bunny";
 
   // ── Follow-cam state (mobile only) ───────────────────────────────────────
@@ -62,6 +63,7 @@ export class RoomScene extends BaseScene {
   onJournal(fn:   ()                    => void): void { this.journalFn     = fn; }
   onSceneChange(fn: (id: string)        => void): void { this.sceneChangeFn = fn; }
   onMap(fn:         ()                   => void): void { this.mapFn         = fn; }
+  onFlag(fn:        (key: string)        => void): void { this.flagFn        = fn; }
   setPlayerName(name: string):                    void { this.playerName    = name; }
 
   setCharacterEquipped(equipped: EquippedClothing): void {
@@ -98,6 +100,7 @@ export class RoomScene extends BaseScene {
       onPickup:      this.pickupFn,
       onSceneChange: this.sceneChangeFn,
       onMap:         this.mapFn,
+      onFlag:        this.flagFn,
       playerName:    this.playerName,
       collectedIds:  this.loadCollectedIds(),
     };

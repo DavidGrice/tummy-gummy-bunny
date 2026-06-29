@@ -5,6 +5,7 @@ import { QUESTS } from "@/data/quests";
 import {
   isObjectiveComplete,
   isQuestDone,
+  isQuestUnlocked,
   type Quest,
   type QuestObjective,
 } from "@/lib/journal";
@@ -189,14 +190,13 @@ function DesktopQuestList({
 }) {
   const [questTab, setQuestTab] = useState<QuestTab>("active");
 
-  const activeQuests    = quests.filter((q) => !isQuestDone(q, collectedItemIds));
+  const activeQuests    = quests.filter((q) => !isQuestDone(q, collectedItemIds) && isQuestUnlocked(q, quests, collectedItemIds));
+  const lockedQuests    = quests.filter((q) => !isQuestUnlocked(q, quests, collectedItemIds));
   const completedQuests = quests.filter((q) =>  isQuestDone(q, collectedItemIds));
-  const visible         = questTab === "active" ? activeQuests : completedQuests;
 
   function switchTab(tab: QuestTab) {
     setQuestTab(tab);
     const list = tab === "active" ? activeQuests : completedQuests;
-    // Auto-select first quest in the new tab; clear if tab is empty
     onSelect(list[0]?.id ?? null);
   }
 
@@ -244,62 +244,103 @@ function DesktopQuestList({
         })}
       </div>
 
-      {/* Quest list — filtered by tab */}
+      {/* Quest list */}
       <div className="flex-1 overflow-y-auto py-2">
-        {visible.length === 0 ? (
+        {questTab === "active" && activeQuests.length === 0 && lockedQuests.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2 px-5">
-            <span className="text-3xl opacity-25 select-none" aria-hidden>
-              {questTab === "active" ? "🎉" : "📓"}
-            </span>
+            <span className="text-3xl opacity-25 select-none" aria-hidden>🎉</span>
             <p className="text-[11px] text-amber-700/40 italic text-center leading-snug" style={CAVEAT}>
-              {questTab === "active"
-                ? "All quests complete!"
-                : "Nothing finished yet…"}
+              All quests complete!
+            </p>
+          </div>
+        ) : questTab === "completed" && completedQuests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-2 px-5">
+            <span className="text-3xl opacity-25 select-none" aria-hidden>📓</span>
+            <p className="text-[11px] text-amber-700/40 italic text-center leading-snug" style={CAVEAT}>
+              Nothing finished yet…
             </p>
           </div>
         ) : (
-          visible.map((q) => {
-            const isSelected = q.id === selectedId;
-            const done       = isQuestDone(q, collectedItemIds);
-            return (
-              <button
+          <>
+            {/* Active quests */}
+            {questTab === "active" && activeQuests.map((q) => {
+              const isSelected = q.id === selectedId;
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => onSelect(q.id)}
+                  className={`w-full text-left px-5 py-3 transition-all duration-150 border-l-4 ${
+                    isSelected
+                      ? "border-amber-700 bg-amber-100/60"
+                      : "border-transparent hover:bg-amber-100/30 hover:border-amber-400/40"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 border-amber-500/50" />
+                    <div className="min-w-0">
+                      <p className={`text-sm leading-snug font-bold ${isSelected ? "text-amber-900" : "text-amber-800/80"}`} style={CAVEAT}>
+                        {q.title}
+                      </p>
+                      <p className="text-[10px] text-amber-700/50 mt-0.5">{q.date}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+
+            {/* Locked quests — shown greyed out in active tab only */}
+            {questTab === "active" && lockedQuests.map((q) => (
+              <div
                 key={q.id}
-                onClick={() => onSelect(q.id)}
-                className={`w-full text-left px-5 py-3 transition-all duration-150 border-l-4 ${
-                  isSelected
-                    ? "border-amber-700 bg-amber-100/60"
-                    : "border-transparent hover:bg-amber-100/30 hover:border-amber-400/40"
-                }`}
+                className="w-full text-left px-5 py-3 border-l-4 border-transparent opacity-40 cursor-default"
               >
                 <div className="flex items-start gap-2">
-                  <span
-                    className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center text-[9px] font-black ${
-                      done ? "border-green-600 bg-green-500 text-white" : "border-amber-500/50"
-                    }`}
-                  >
-                    {done ? "✓" : ""}
+                  <span className="mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 border-amber-400/40 flex items-center justify-center text-[8px] text-amber-600/50">
+                    🔒
                   </span>
                   <div className="min-w-0">
-                    <p
-                      className={`text-sm leading-snug font-bold ${
-                        done ? "text-green-700" : isSelected ? "text-amber-900" : "text-amber-800/80"
-                      }`}
-                      style={CAVEAT}
-                    >
-                      {done && <span className="mr-1">✓</span>}
+                    <p className="text-sm leading-snug font-bold text-amber-800/60" style={CAVEAT}>
                       {q.title}
                     </p>
-                    <p className="text-[10px] text-amber-700/50 mt-0.5">{q.date}</p>
+                    <p className="text-[10px] text-amber-600/40 mt-0.5">Locked</p>
                   </div>
                 </div>
-              </button>
-            );
-          })
+              </div>
+            ))}
+
+            {/* Completed quests */}
+            {questTab === "completed" && completedQuests.map((q) => {
+              const isSelected = q.id === selectedId;
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => onSelect(q.id)}
+                  className={`w-full text-left px-5 py-3 transition-all duration-150 border-l-4 ${
+                    isSelected
+                      ? "border-amber-700 bg-amber-100/60"
+                      : "border-transparent hover:bg-amber-100/30 hover:border-amber-400/40"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center text-[9px] font-black border-green-600 bg-green-500 text-white">
+                      ✓
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm leading-snug font-bold text-green-700" style={CAVEAT}>
+                        ✓ {q.title}
+                      </p>
+                      <p className="text-[10px] text-amber-700/50 mt-0.5">{q.date}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </>
         )}
       </div>
 
       <div className="px-5 py-3 border-t shrink-0" style={{ borderColor: "#D4C4A0" }}>
-        <p className="text-[9px] text-amber-700/40 italic" style={CAVEAT}>More quests coming soon…</p>
+        <p className="text-[9px] text-amber-700/40 italic" style={CAVEAT}>Day 1 of many adventures…</p>
       </div>
     </div>
   );
@@ -479,7 +520,8 @@ function MobileJournalSheet({
   const [questTab,   setQuestTab]   = useState<QuestTab>("active");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const activeQuests    = QUESTS.filter((q) => !isQuestDone(q, collectedItemIds));
+  const activeQuests    = QUESTS.filter((q) => !isQuestDone(q, collectedItemIds) && isQuestUnlocked(q, QUESTS, collectedItemIds));
+  const lockedQuests    = QUESTS.filter((q) => !isQuestUnlocked(q, QUESTS, collectedItemIds));
   const completedQuests = QUESTS.filter((q) =>  isQuestDone(q, collectedItemIds));
   const visibleQuests   = questTab === "active" ? activeQuests : completedQuests;
   const selectedQuest   = QUESTS.find((q) => q.id === selectedId) ?? null;
@@ -610,7 +652,7 @@ function MobileJournalSheet({
                 >
                   {/* Panel 1 — quest list */}
                   <div className="h-full overflow-y-auto" style={{ width: "50%" }}>
-                    {visibleQuests.length === 0 ? (
+                    {visibleQuests.length === 0 && (questTab !== "active" || lockedQuests.length === 0) ? (
                       <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
                         <span className="text-4xl opacity-30 select-none" aria-hidden>
                           {questTab === "active" ? "🎉" : "📓"}
@@ -622,14 +664,33 @@ function MobileJournalSheet({
                         </p>
                       </div>
                     ) : (
-                      visibleQuests.map((q) => (
-                        <MobileQuestRow
-                          key={q.id}
-                          quest={q}
-                          collectedItemIds={collectedItemIds}
-                          onTap={() => openQuest(q.id)}
-                        />
-                      ))
+                      <>
+                        {visibleQuests.map((q) => (
+                          <MobileQuestRow
+                            key={q.id}
+                            quest={q}
+                            collectedItemIds={collectedItemIds}
+                            onTap={() => openQuest(q.id)}
+                          />
+                        ))}
+                        {questTab === "active" && lockedQuests.map((q) => (
+                          <div
+                            key={q.id}
+                            className="w-full flex items-center gap-3 px-5 py-4 border-b opacity-35"
+                            style={{ borderColor: "#D4C4A0" }}
+                          >
+                            <span className="w-5 h-5 rounded-full border-2 shrink-0 border-amber-400/40 flex items-center justify-center text-[10px]">
+                              🔒
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-lg font-bold leading-snug truncate text-amber-900/60" style={CAVEAT}>
+                                {q.title}
+                              </p>
+                              <p className="text-xs text-amber-600/40 mt-0.5">Locked</p>
+                            </div>
+                          </div>
+                        ))}
+                      </>
                     )}
                   </div>
 

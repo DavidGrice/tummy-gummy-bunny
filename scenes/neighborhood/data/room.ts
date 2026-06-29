@@ -79,6 +79,7 @@ export const NEIGHBORHOOD_ROOM: RoomManifest = {
       size:        [1.4, 0.8, 0.5],
       color:       0x7A5C3A,
       interaction: { kind: "dialog", message: "A neighbourhood bench. Great for people-watching. 🪑" },
+      flagKey:     "tgb_bench_used",
     },
     {
       id:          "fire-hydrant",
