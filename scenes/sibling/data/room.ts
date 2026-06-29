@@ -133,11 +133,11 @@ export const SIBLING_ROOM: RoomManifest = {
       interaction: { kind: "dialog", message: "A crate stuffed with art supplies and building blocks. Everything has glitter on it. ✨" },
     },
 
-    // ── Floor lamp — north-west corner ────────────────────────────────────────
+    // ── Floor lamp — east wall, centre ───────────────────────────────────────
     {
       id:       "floor-lamp",
       type:     "lamp",
-      position: [-2.6, 0, -2.6],
+      position: [2.5, 0, 0],
     },
   ],
 };

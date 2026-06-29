@@ -112,7 +112,7 @@ export const LIVING_ROOM: RoomManifest = {
       id:          "coffee-table",
       type:        "furniture",
       label:       "Coffee Table",
-      position:    [-0.5, 0.25, 2.5],
+      position:    [-0.5, 0.25, 2.7],
       size:        [1.2, 0.5, 0.6],
       color:       0x5C3D1E,
       interaction: { kind: "dialog", message: "A low coffee table. There's a half-full mug and today's newspaper on it. ☕" },
@@ -144,7 +144,7 @@ export const LIVING_ROOM: RoomManifest = {
     {
       id:       "floor-lamp",
       type:     "lamp",
-      position: [3.5, 0, -1.5],
+      position: [3.5, 0, -2.0],
     },
   ],
 };

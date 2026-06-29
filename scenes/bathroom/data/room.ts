@@ -77,7 +77,7 @@ export const BATHROOM_ROOM: RoomManifest = {
       id:          "bathtub",
       type:        "furniture",
       label:       "Bathtub",
-      position:    [0.8, 0.35, -1.59],
+      position:    [1.3, 0.35, -1.59],
       size:        [1.4, 0.7, 0.62],
       color:       0xE8F0F6,
       interaction: { kind: "dialog", message: "A deep bubble bath with lavender salts. Maybe after the adventure! 🛁" },
