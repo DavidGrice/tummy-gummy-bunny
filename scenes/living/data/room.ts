@@ -85,12 +85,12 @@ export const LIVING_ROOM: RoomManifest = {
       interaction: { kind: "dialog", message: "The family TV. It's showing cartoons — obviously. 📺" },
     },
 
-    // ── North wall — tall bookshelf (west corner) ────────────────────────────
+    // ── West wall — tall bookshelf (north half) ───────────────────────────────
     {
       id:          "bookshelf",
       type:        "furniture",
       label:       "Bookshelf",
-      position:    [-3.5, 1.1, -3.6],
+      position:    [-3.9, 1.1, -2.0],
       size:        [0.4, 2.2, 1.6],
       color:       0x8B6040,
       interaction: { kind: "dialog", message: "Shelves of family books, photo albums, and a few odd trophies. 📚" },
@@ -101,18 +101,18 @@ export const LIVING_ROOM: RoomManifest = {
       id:          "sofa",
       type:        "furniture",
       label:       "Sofa",
-      position:    [-0.5, 0.45, 1.0],
+      position:    [-0.5, 0.45, 0.0],
       size:        [2.4, 0.9, 0.9],
       color:       0x8B6B4C,
       interaction: { kind: "dialog", message: "A big comfy family sofa. There's definitely a TV remote lost in the cushions. 🛋️" },
     },
 
-    // ── Coffee table — between sofa and front door ────────────────────────────
+    // ── Coffee table — directly in front of sofa ─────────────────────────────
     {
       id:          "coffee-table",
       type:        "furniture",
       label:       "Coffee Table",
-      position:    [-0.5, 0.25, 2.7],
+      position:    [-0.5, 0.25, 1.9],
       size:        [1.2, 0.5, 0.6],
       color:       0x5C3D1E,
       interaction: { kind: "dialog", message: "A low coffee table. There's a half-full mug and today's newspaper on it. ☕" },
