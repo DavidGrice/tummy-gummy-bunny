@@ -15,8 +15,8 @@ import type { RoomManifest } from "@/engine/loaders/types";
  *
  *   ┌─[Bookshelf]─────[TV Console]──────────────┐
  *   [Kitchen]                        [Lamp]      │
- *   │            [Sofa]    [Armchair]            │
- *   │         [Coffee Table]         [Switch]   │
+ *   │         [Coffee Table]                     │
+ *   │            [Sofa]    [Armchair] [Switch]   │
  *   └──────────────[Front Door]─────────────────┘
  */
 export const LIVING_ROOM: RoomManifest = {
@@ -101,18 +101,18 @@ export const LIVING_ROOM: RoomManifest = {
       id:          "sofa",
       type:        "furniture",
       label:       "Sofa",
-      position:    [-0.5, 0.45, 0.0],
+      position:    [-0.5, 0.45, 1.5],
       size:        [2.4, 0.9, 0.9],
       color:       0x8B6B4C,
       interaction: { kind: "dialog", message: "A big comfy family sofa. There's definitely a TV remote lost in the cushions. 🛋️" },
     },
 
-    // ── Coffee table — directly in front of sofa ─────────────────────────────
+    // ── Coffee table — north of sofa, between sofa and TV ────────────────────
     {
       id:          "coffee-table",
       type:        "furniture",
       label:       "Coffee Table",
-      position:    [-0.5, 0.25, 1.9],
+      position:    [-0.5, 0.25, -0.5],
       size:        [1.2, 0.5, 0.6],
       color:       0x5C3D1E,
       interaction: { kind: "dialog", message: "A low coffee table. There's a half-full mug and today's newspaper on it. ☕" },
