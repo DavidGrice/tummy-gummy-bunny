@@ -192,7 +192,9 @@ export function useGame(
           if (hit) {
             let obj: THREE.Object3D | null = hit.object;
             while (obj && !obj.userData.interactable) obj = obj.parent;
-            renderer.setHoveredObjects(obj ? [obj] : []);
+            // GLB objects store their visual group on the hit box's userData
+            const outlineTarget = obj?.userData.visualModel ?? obj;
+            renderer.setHoveredObjects(outlineTarget ? [outlineTarget] : []);
             sceneRef.current?.onHoverChange?.(obj);
             canvas.style.cursor = obj ? "pointer" : "default";
           } else {

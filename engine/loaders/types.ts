@@ -34,6 +34,8 @@ export interface FurnitureObjectDef {
   modelPath?:     string;
   /** Optional Euler rotation [x, y, z] in radians applied to the loaded model. */
   modelRotation?: [number, number, number];
+  /** Uniform scale or per-axis [x, y, z] scale applied to the loaded model. */
+  modelScale?:    number | [number, number, number];
 }
 
 export interface BookObjectDef {

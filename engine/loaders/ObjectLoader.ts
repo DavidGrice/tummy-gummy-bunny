@@ -274,9 +274,29 @@ export async function loadRoomObjects(
       case "furniture": {
         if (def.modelPath) {
           // ── GLB model visual + invisible hit box ──────────────────────────
+          let loadedModel: THREE.Object3D | null = null;
           try {
             const gltf  = await modelLoader.load(def.modelPath);
             const model = gltf.scene.clone(true);
+
+            // Scale: explicit override, or auto-fit to the manifest's XZ footprint
+            if (def.modelScale !== undefined) {
+              if (Array.isArray(def.modelScale)) model.scale.set(...def.modelScale);
+              else model.scale.setScalar(def.modelScale);
+            } else {
+              const naturalBox = new THREE.Box3().setFromObject(model);
+              const ns         = new THREE.Vector3();
+              naturalBox.getSize(ns);
+              if (ns.x > 0 && ns.z > 0) {
+                const scale = Math.min(def.size[0] / ns.x, def.size[2] / ns.z);
+                model.scale.setScalar(scale);
+                console.log(
+                  `[ObjectLoader] "${def.id}" natural size ${ns.x.toFixed(3)}×${ns.y.toFixed(3)}×${ns.z.toFixed(3)}, ` +
+                  `auto-scale → ${scale.toFixed(4)} (set modelScale in manifest to override)`,
+                );
+              }
+            }
+
             model.position.set(...def.position);
             if (def.modelRotation) model.rotation.set(...def.modelRotation);
             model.traverse((child) => {
@@ -285,17 +305,20 @@ export async function loadRoomObjects(
                 child.receiveShadow = true;
               }
             });
+            loadedModel = model;
             decoratives.push(model);
           } catch (err) {
             console.warn(`[ObjectLoader] Failed to load model "${def.modelPath}":`, err);
           }
 
-          // Transparent box — invisible but still raycasted for interaction + label
+          // Transparent box — still raycasted for interaction + label
           const hitBox = new THREE.Mesh(
             new THREE.BoxGeometry(...def.size),
             new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
           );
           hitBox.position.set(...def.position);
+          // Hover outline targets the GLB geometry, not the invisible hit box
+          if (loadedModel) hitBox.userData.visualModel = loadedModel;
           interactables.push(new InteractableObject({
             name:         def.label,
             mesh:         hitBox,
