@@ -104,7 +104,7 @@ export class RoomScene extends BaseScene {
       playerName:    this.playerName,
       collectedIds:  this.loadCollectedIds(),
     };
-    const loaded = loadRoomObjects(this.manifest, callbacks);
+    const loaded = await loadRoomObjects(this.manifest, callbacks);
     this.interactables = loaded.interactables;
     this.pickupItems   = loaded.pickupItems;
     this.decoratives   = loaded.decoratives;

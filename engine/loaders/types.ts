@@ -26,6 +26,14 @@ export interface FurnitureObjectDef {
   interaction: InteractionDef;
   /** If set, writes this localStorage key as "true" whenever the object is interacted with. */
   flagKey?:    string;
+  /**
+   * Path to a GLB model in /public (e.g. "/models/bunny_bed.glb").
+   * When set the GLB is rendered instead of the procedural colored box.
+   * Collision and interaction still use `size` and `position` as normal.
+   */
+  modelPath?:     string;
+  /** Optional Euler rotation [x, y, z] in radians applied to the loaded model. */
+  modelRotation?: [number, number, number];
 }
 
 export interface BookObjectDef {

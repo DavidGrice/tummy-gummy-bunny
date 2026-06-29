@@ -1,7 +1,11 @@
 import * as THREE from "three";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { PickupItem } from "@/engine/objects/PickupItem";
+import { ModelLoader } from "@/models/loaders/ModelLoader";
 import type { RoomManifest, RoomCallbacks, InteractionDef } from "./types";
+
+// Shared loader so GLB cache is reused across rooms
+const modelLoader = new ModelLoader();
 
 // ─── Mesh builders ────────────────────────────────────────────────────────────
 // Each builder returns a raw, unpositioned mesh/group.
@@ -212,10 +216,10 @@ export interface LoadedObjects {
  * To add a new pickup shape: add an entry to PICKUP_MESH_BUILDERS above.
  * No factory files, no per-object imports in scene code.
  */
-export function loadRoomObjects(
+export async function loadRoomObjects(
   manifest:  RoomManifest,
   callbacks: RoomCallbacks,
-): LoadedObjects {
+): Promise<LoadedObjects> {
   const interactables: InteractableObject[] = [];
   const pickupItems:   PickupItem[]         = [];
   const decoratives:   THREE.Object3D[]     = [];
@@ -268,14 +272,47 @@ export function loadRoomObjects(
     switch (def.type) {
 
       case "furniture": {
-        const mesh = buildFurnitureMesh(def.size, def.color);
-        mesh.position.set(...def.position);
-        interactables.push(new InteractableObject({
-          name:         def.label,
-          mesh,
-          labelYOffset: def.size[1] / 2 + 0.35,
-          onInteract:   resolveInteraction(def.interaction, def.flagKey),
-        }));
+        if (def.modelPath) {
+          // ── GLB model visual + invisible hit box ──────────────────────────
+          try {
+            const gltf  = await modelLoader.load(def.modelPath);
+            const model = gltf.scene.clone(true);
+            model.position.set(...def.position);
+            if (def.modelRotation) model.rotation.set(...def.modelRotation);
+            model.traverse((child) => {
+              if (child instanceof THREE.Mesh) {
+                child.castShadow    = true;
+                child.receiveShadow = true;
+              }
+            });
+            decoratives.push(model);
+          } catch (err) {
+            console.warn(`[ObjectLoader] Failed to load model "${def.modelPath}":`, err);
+          }
+
+          // Transparent box — invisible but still raycasted for interaction + label
+          const hitBox = new THREE.Mesh(
+            new THREE.BoxGeometry(...def.size),
+            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
+          );
+          hitBox.position.set(...def.position);
+          interactables.push(new InteractableObject({
+            name:         def.label,
+            mesh:         hitBox,
+            labelYOffset: def.size[1] / 2 + 0.35,
+            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+          }));
+        } else {
+          // ── Procedural colored box (default) ─────────────────────────────
+          const mesh = buildFurnitureMesh(def.size, def.color);
+          mesh.position.set(...def.position);
+          interactables.push(new InteractableObject({
+            name:         def.label,
+            mesh,
+            labelYOffset: def.size[1] / 2 + 0.35,
+            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+          }));
+        }
         break;
       }
 

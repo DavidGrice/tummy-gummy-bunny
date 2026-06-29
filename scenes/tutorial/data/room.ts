@@ -70,7 +70,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
     },
 
-    // Right wall — bed
+    // Right wall — bed (GLB model)
     {
       id:          "bed",
       type:        "furniture",
@@ -80,6 +80,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x8B4513,
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
       flagKey:     "tgb_bed_rested",
+      modelPath:   "/models/bunny_bed.glb",
     },
 
     // Right wall near the door — light switch for the floor lamp
