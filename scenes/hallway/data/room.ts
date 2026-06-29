@@ -92,6 +92,27 @@ export const HALLWAY_ROOM: RoomManifest = {
       interaction: { kind: "scene-change", targetRoomId: "parents" },
     },
 
+    // ── North wall — wall sconces between the two children's doors ───────────
+    // Positioned symmetrically around x=−0.5 (midpoint of sibling x=−3.5 and bedroom x=2.5)
+    {
+      id:          "sconce-left",
+      type:        "furniture",
+      label:       "Wall Lamp",
+      position:    [-2.0, 2.05, -2.35],
+      size:        [0.28, 0.32, 0.18],
+      color:       0xC8A850,
+      interaction: { kind: "dialog", message: "A warm golden wall sconce. It lights the hallway with a soft glow. 🕯️" },
+    },
+    {
+      id:          "sconce-right",
+      type:        "furniture",
+      label:       "Wall Lamp",
+      position:    [1.0, 2.05, -2.35],
+      size:        [0.28, 0.32, 0.18],
+      color:       0xC8A850,
+      interaction: { kind: "dialog", message: "Another golden wall sconce. The pair make the landing feel like home. 🕯️" },
+    },
+
     // ── West wall — dining room ───────────────────────────────────────────────
 
     // Door width is along Z (0.9), thickness along X (0.15)

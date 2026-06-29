@@ -41,11 +41,17 @@ export class RoomScene extends BaseScene {
   private followCam:          THREE.PerspectiveCamera | null = null;
   private readonly _camTarget = new THREE.Vector3();
 
-  constructor(manifest: RoomManifest) {
+  /** Room the player just came from — used to spawn near the entry door. */
+  private readonly fromRoomId?: string;
+  /** Resolved spawn position — set in setup(), used in setupCamera(). */
+  private spawnPosition: [number, number] = [0, 0];
+
+  constructor(manifest: RoomManifest, fromRoomId?: string) {
     super();
-    this.manifest = manifest;
-    this.id       = manifest.id;
-    this.label    = manifest.id; // rooms can add a label field to manifest later
+    this.manifest   = manifest;
+    this.fromRoomId = fromRoomId;
+    this.id         = manifest.id;
+    this.label      = manifest.id;
   }
 
   // ── Callback setters ──────────────────────────────────────────────────────
@@ -108,7 +114,8 @@ export class RoomScene extends BaseScene {
     this.pickupItems.forEach((item) => item.addToScene(scene));
 
     this.progressFn(85);
-    this.mrBunny = new MrBunny(this.manifest.bunnyStart);
+    this.spawnPosition = this.computeSpawnPosition();
+    this.mrBunny = new MrBunny(this.spawnPosition);
     this.mrBunny.addToScene(scene);
 
     this.progressFn(100);
@@ -170,7 +177,9 @@ export class RoomScene extends BaseScene {
     } else if (obj?.userData.interactable) {
       // Compute a stand position on the bunny's side of the object, just outside its surface
       const standPos = computeStandPos(obj, this.mrBunny.mesh.position, this.collisionBoxes);
-      this.mrBunny.walkTo(standPos, () => {
+      // Resolve path to avoid clipping through other furniture on the way to the standPos
+      const safeStand = resolveWalkPath(this.mrBunny.mesh.position, standPos, this.collisionBoxes);
+      this.mrBunny.walkTo(safeStand, () => {
         obj!.userData.onInteract?.();
       });
     }
@@ -184,7 +193,7 @@ export class RoomScene extends BaseScene {
       camera.fov = 60;
       camera.updateProjectionMatrix();
 
-      const [sx, sz] = this.manifest.bunnyStart;
+      const [sx, sz] = this.spawnPosition;
       camera.position.set(sx, 3.5, sz + 5);
       camera.lookAt(sx, 0.5, sz);
 
@@ -233,6 +242,35 @@ export class RoomScene extends BaseScene {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  /**
+   * If we know which room the player came from, find the door in this room that
+   * leads back there and spawn the bunny just inside it. Falls back to bunnyStart.
+   */
+  private computeSpawnPosition(): [number, number] {
+    if (!this.fromRoomId) return this.manifest.bunnyStart;
+
+    const entryDoor = this.manifest.objects.find(
+      (o) =>
+        o.type === "furniture" &&
+        o.interaction.kind === "scene-change" &&
+        o.interaction.targetRoomId === this.fromRoomId,
+    );
+    if (!entryDoor || entryDoor.type !== "furniture") return this.manifest.bunnyStart;
+
+    const [px, , pz] = entryDoor.position;
+    const [wx, , wz] = entryDoor.size;
+    const OFFSET = 0.8;
+
+    if (wx < wz) {
+      // Thin in X → east or west wall door; step inward along X
+      return [px + (px > 0 ? -OFFSET : OFFSET), pz];
+    } else {
+      // Thin in Z → north or south wall door; step inward along Z
+      return [px, pz + (pz > 0 ? -OFFSET : OFFSET)];
+    }
+  }
+
   private loadCollectedIds(): Set<string> {
     try {
       const raw = localStorage.getItem(`tgb_room_${this.manifest.id}_collected`);

@@ -17,8 +17,9 @@ import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import { PARENTS_ROOM }   from "@/scenes/parents/data/room";
 import { DINING_ROOM }    from "@/scenes/dining/data/room";
 import { KITCHEN_ROOM }   from "@/scenes/kitchen/data/room";
-import { LIVING_ROOM }    from "@/scenes/living/data/room";
-import { OUTSIDE_ROOM }   from "@/scenes/outside/data/room";
+import { LIVING_ROOM }        from "@/scenes/living/data/room";
+import { OUTSIDE_ROOM }       from "@/scenes/outside/data/room";
+import { NEIGHBORHOOD_ROOM }  from "@/scenes/neighborhood/data/room";
 import type { InventorySource } from "@/engine/loaders/types";
 import type { EquippedClothing } from "@/lib/inventory";
 
@@ -32,8 +33,9 @@ router
   .register("parents",   PARENTS_ROOM)
   .register("dining",    DINING_ROOM)
   .register("kitchen",   KITCHEN_ROOM)
-  .register("living",    LIVING_ROOM)
-  .register("outside",   OUTSIDE_ROOM);
+  .register("living",        LIVING_ROOM)
+  .register("outside",       OUTSIDE_ROOM)
+  .register("neighborhood",  NEIGHBORHOOD_ROOM);
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -78,6 +80,7 @@ export function useGame(
   const sceneRef        = useRef<RoomScene | null>(null);
   const sceneManagerRef = useRef<SceneManager | null>(null);
   const cameraRef       = useRef<Camera | null>(null);
+  const currentRoomIdRef = useRef("tutorial");
 
   const dismissDialog        = useCallback(() => setDialog(null),            []);
   const dismissInventory     = useCallback(() => setInventorySource(null),   []);
@@ -90,7 +93,7 @@ export function useGame(
   }, []);
 
   /** Load a room by id — safe to call at any time after engine init */
-  const switchRoom = useCallback((id: string) => {
+  const switchRoom = useCallback((id: string, fromRoomId?: string) => {
     const sm  = sceneManagerRef.current;
     const cam = cameraRef.current;
     if (!sm || !cam) return;
@@ -101,17 +104,18 @@ export function useGame(
     setTimeout(() => {
       // Phase 2: swap scene while screen is black
       const manifest = router.get(id);
-      const newScene = new RoomScene(manifest);
+      const newScene = new RoomScene(manifest, fromRoomId);
       newScene.setPlayerName(playerName);
       newScene.onDialog((msg) => setDialog(msg));
       newScene.onInventory((src) => setInventorySource(src));
       newScene.onPickup((itemId) => setPickedUpItemId(itemId));
       newScene.onJournal(() => setJournalTriggered(true));
       newScene.onMap(() => setMapTriggered(true));
-      newScene.onSceneChange((targetId) => switchRoom(targetId));
+      newScene.onSceneChange((targetId) => switchRoom(targetId, id));
       newScene.onProgress((p) => setLoadProgress(p));
 
       sceneRef.current = newScene;
+      currentRoomIdRef.current = id;
       setCurrentRoomId(id);
       setIsLoading(true);
       setLoadProgress(0);
@@ -160,7 +164,7 @@ export function useGame(
     scene.onPickup((id)     => { if (mounted) setPickedUpItemId(id); });
     scene.onJournal(()      => { if (mounted) setJournalTriggered(true); });
     scene.onMap(()          => { if (mounted) setMapTriggered(true); });
-    scene.onSceneChange((id) => { if (mounted) switchRoom(id); });
+    scene.onSceneChange((id) => { if (mounted) switchRoom(id, currentRoomIdRef.current); });
 
     (async () => {
       try {

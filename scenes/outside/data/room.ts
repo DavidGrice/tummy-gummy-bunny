@@ -76,6 +76,36 @@ export const OUTSIDE_ROOM: RoomManifest = {
       interaction: { kind: "dialog", message: "Another flower bed. Mum would know what these are called. 🌷" },
     },
 
+    // ── South boundary — white picket fence + gate to neighbourhood ──────────
+    // Gate width 1.6 → padded gap between fence sections = 0.84 ≥ 0.76 min ✓
+    {
+      id:          "gate-neighbourhood",
+      type:        "furniture",
+      label:       "Neighbourhood",
+      position:    [0, 0.55, 3.5],
+      size:        [1.6, 1.1, 0.1],
+      color:       0xF5F2EB,
+      interaction: { kind: "scene-change", targetRoomId: "neighborhood" },
+    },
+    {
+      id:          "fence-south-left",
+      type:        "furniture",
+      label:       "Fence",
+      position:    [-3.35, 0.5, 3.5],
+      size:        [5.1, 1.0, 0.1],
+      color:       0xF0EDE8,
+      interaction: { kind: "dialog", message: "A neat white picket fence bordering the garden. 🌿" },
+    },
+    {
+      id:          "fence-south-right",
+      type:        "furniture",
+      label:       "Fence",
+      position:    [3.35, 0.5, 3.5],
+      size:        [5.1, 1.0, 0.1],
+      color:       0xF0EDE8,
+      interaction: { kind: "dialog", message: "A neat white picket fence bordering the garden. 🌿" },
+    },
+
     // ── East side — mailbox ───────────────────────────────────────────────────
     {
       id:          "mailbox",

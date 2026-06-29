@@ -22,8 +22,9 @@ import { SIBLING_ROOM }   from "@/scenes/sibling/data/room";
 import { PARENTS_ROOM }   from "@/scenes/parents/data/room";
 import { DINING_ROOM }    from "@/scenes/dining/data/room";
 import { KITCHEN_ROOM }   from "@/scenes/kitchen/data/room";
-import { LIVING_ROOM }    from "@/scenes/living/data/room";
-import { OUTSIDE_ROOM }   from "@/scenes/outside/data/room";
+import { LIVING_ROOM }        from "@/scenes/living/data/room";
+import { OUTSIDE_ROOM }       from "@/scenes/outside/data/room";
+import { NEIGHBORHOOD_ROOM }  from "@/scenes/neighborhood/data/room";
 import type { RoomManifest, FurnitureObjectDef } from "@/engine/loaders/types";
 
 export const MINIMAP_SCALE = 5; // pixels per game unit
@@ -190,6 +191,16 @@ export const WORLD_ROOMS: RoomNode[] = [
     worldZ:   7,
     objects: extractFurniture(OUTSIDE_ROOM),
   },
+  {
+    id:      "neighborhood",
+    label:   "Neighbourhood",
+    fill:    "#88C0E8",
+    dims:    { w: 24, d: 12 },
+    // South of outside: outside bottom edge = 7+4 = 11. Gap 1, half-depth 6. Centre Z = 18.
+    worldX:  -10,
+    worldZ:   18,
+    objects: extractFurniture(NEIGHBORHOOD_ROOM),
+  },
 ];
 
 // ── Room links ────────────────────────────────────────────────────────────────
@@ -202,5 +213,6 @@ export const ROOM_LINKS: RoomLink[] = [
   { from: "hallway",  to: "dining"   },
   { from: "dining",   to: "kitchen"  },
   { from: "kitchen",  to: "living"   },
-  { from: "living",   to: "outside"  },
+  { from: "living",        to: "outside"       },
+  { from: "outside",       to: "neighborhood"  },
 ];
