@@ -42,3 +42,7 @@ Thumbs.db
 
 # Testing
 coverage/
+
+# 3D models — large binary assets, managed outside version control
+*.glb
+*.gltf
