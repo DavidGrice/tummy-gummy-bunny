@@ -39,6 +39,7 @@ export const PARENTS_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   doorId:      "door",
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

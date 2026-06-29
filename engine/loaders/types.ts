@@ -118,6 +118,12 @@ export interface RoomManifest {
   wallColor:  number;
   floorColor: number;
   windows:    { x: number; y: number }[];
+  /** GLB model to use for all windows in this room instead of the procedural frame. */
+  windowModelPath?:     string;
+  /** Euler rotation [x, y, z] in radians applied to each window model. */
+  windowModelRotation?: [number, number, number];
+  /** Uniform or per-axis scale applied to each window model. */
+  windowModelScale?:    number | [number, number, number];
   objects:    ObjectDef[];
   /** id of the object in `objects` that represents the south door (for wall frame cutout) */
   doorId?:     string;

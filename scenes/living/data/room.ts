@@ -36,6 +36,7 @@ export const LIVING_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   // South wall has the front door — doorId creates the wall cutout.
   doorId:      "door-outside",

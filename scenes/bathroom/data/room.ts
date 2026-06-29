@@ -33,6 +33,7 @@ export const BATHROOM_ROOM: RoomManifest = {
 
   // Small frosted window above the bathtub on the north wall
   windows: [{ x: 0.8, y: 1.75 }],
+  windowModelPath: "/models/bunny_window.glb",
 
   // South wall is always hidden — camera peeks in from the south
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

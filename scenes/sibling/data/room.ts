@@ -37,6 +37,7 @@ export const SIBLING_ROOM: RoomManifest = {
     { x: -2.2, y: 1.75 },
     { x:  1.8, y: 1.75 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   // South door faces camera
   doorId:      "door",

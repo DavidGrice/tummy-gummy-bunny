@@ -89,7 +89,7 @@ export class RoomScene extends BaseScene {
     this.wallSet.all.forEach((w) => scene.add(w));
 
     this.progressFn(55);
-    this.windows = createWindows(this.manifest);
+    this.windows = await createWindows(this.manifest);
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);

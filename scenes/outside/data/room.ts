@@ -33,6 +33,7 @@ export const OUTSIDE_ROOM: RoomManifest = {
     { x: -2.0, y: 1.35 },
     { x:  2.0, y: 1.35 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   hiddenWalls: ["southLeft", "southRight", "southLintel"],
 

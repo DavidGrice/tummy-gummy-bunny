@@ -29,3 +29,6 @@ export class ModelLoader {
     this.cache.clear();
   }
 }
+
+/** Shared singleton — both ObjectLoader and Windows.ts use this so GLBs are cached once. */
+export const sharedModelLoader = new ModelLoader();

@@ -42,6 +42,7 @@ export const KITCHEN_ROOM: RoomManifest = {
     { x: -1.8, y: 1.75 },
     { x: -0.3, y: 1.75 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   // No doorId — entrance is the north wall, not the south wall.
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

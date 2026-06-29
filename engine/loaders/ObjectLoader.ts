@@ -1,11 +1,8 @@
 import * as THREE from "three";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { PickupItem } from "@/engine/objects/PickupItem";
-import { ModelLoader } from "@/models/loaders/ModelLoader";
+import { sharedModelLoader as modelLoader } from "@/models/loaders/ModelLoader";
 import type { RoomManifest, RoomCallbacks, InteractionDef } from "./types";
-
-// Shared loader so GLB cache is reused across rooms
-const modelLoader = new ModelLoader();
 
 // ─── Mesh builders ────────────────────────────────────────────────────────────
 // Each builder returns a raw, unpositioned mesh/group.

@@ -38,6 +38,7 @@ export const DINING_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
+  windowModelPath: "/models/bunny_window.glb",
 
   // South wall has the kitchen door — doorId creates the wall cutout.
   // The flanking panels are still hidden so the camera can see in from the south.
