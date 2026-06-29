@@ -738,10 +738,18 @@ interface JournalPanelProps {
   currentRoomId: string;
 }
 
+const LAST_QUEST_KEY = "tgb_last_quest_id";
+
 export function JournalPanel({
   onClose, mapUnlocked, discoveredIds, currentRoomId,
 }: JournalPanelProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(QUESTS[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return QUESTS[0]?.id ?? null;
+    const saved = localStorage.getItem(LAST_QUEST_KEY);
+    if (saved && QUESTS.some((q) => q.id === saved)) return saved;
+    return QUESTS[0]?.id ?? null;
+  });
+
   const { isMobile } = useViewport();
 
   const { items } = useItems();
@@ -749,6 +757,11 @@ export function JournalPanel({
     () => new Set(items.map((c) => c.item.id)),
     [items],
   );
+
+  function handleSelect(id: string | null) {
+    setSelectedId(id);
+    if (id) try { localStorage.setItem(LAST_QUEST_KEY, id); } catch { /* ignore */ }
+  }
 
   if (isMobile) {
     return (
@@ -766,7 +779,7 @@ export function JournalPanel({
     <DesktopJournalPanel
       selectedId={selectedId}
       collectedItemIds={collectedItemIds}
-      onSelect={setSelectedId}
+      onSelect={handleSelect}
       onClose={onClose}
       mapUnlocked={mapUnlocked}
       discoveredIds={discoveredIds}
