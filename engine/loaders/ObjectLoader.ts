@@ -119,6 +119,74 @@ function buildFloorLampMesh(): LampParts {
   return { group, light, shadeMat, isOn: false };
 }
 
+function buildWallLampMesh(facing: "north" | "south" | "east" | "west" = "south"): LampParts {
+  const dir = {
+    north: new THREE.Vector3( 0, 0,-1),
+    south: new THREE.Vector3( 0, 0, 1),
+    east:  new THREE.Vector3( 1, 0, 0),
+    west:  new THREE.Vector3(-1, 0, 0),
+  }[facing];
+
+  const ARM_LEN = 0.28;
+  const group   = new THREE.Group();
+
+  // Brown rectangular mount plate flush to the wall (behind group origin)
+  const plate = new THREE.Mesh(
+    new THREE.BoxGeometry(0.12, 0.20, 0.04),
+    new THREE.MeshLambertMaterial({ color: 0x3A2010 }),
+  );
+  plate.position.copy(dir.clone().multiplyScalar(-0.02));
+  plate.castShadow = true;
+  group.add(plate);
+
+  // Brown horizontal arm extending into the room
+  const arm = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.018, 0.018, ARM_LEN, 8),
+    new THREE.MeshLambertMaterial({ color: 0x5C3520 }),
+  );
+  // Rotate cylinder's Y-axis to align with facing direction
+  arm.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone());
+  arm.position.copy(dir.clone().multiplyScalar(ARM_LEN / 2));
+  arm.castShadow = true;
+  group.add(arm);
+
+  // Gold lampshade sitting on top of the arm tip
+  const shadeMat = new THREE.MeshLambertMaterial({
+    color:             new THREE.Color(0xC8A868),
+    emissive:          new THREE.Color(0xFFD080),
+    emissiveIntensity: 0.5,
+    side:              THREE.DoubleSide,
+  });
+  const shade = new THREE.Mesh(
+    // Narrow at top, wide at bottom (traditional shade shape)
+    new THREE.CylinderGeometry(0.055, 0.14, 0.18, 12, 1, true),
+    shadeMat,
+  );
+  const tipPos = dir.clone().multiplyScalar(ARM_LEN);
+  shade.position.set(tipPos.x, 0.11, tipPos.z); // 0.11 = shade half-height + small gap
+  shade.castShadow = true;
+  group.add(shade);
+
+  // Small emissive bulb visible through the shade opening
+  const bulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.038, 8, 6),
+    new THREE.MeshStandardMaterial({
+      color:             0xFFEE88,
+      emissive:          new THREE.Color(0xFFEE88),
+      emissiveIntensity: 1.0,
+    }),
+  );
+  bulb.position.set(tipPos.x, 0.02, tipPos.z);
+  group.add(bulb);
+
+  // Warm point light — wall sconces start ON
+  const light = new THREE.PointLight(0xFFE090, 1.4, 4.5, 1.5);
+  light.position.set(tipPos.x, 0.06, tipPos.z);
+  group.add(light);
+
+  return { group, light, shadeMat, isOn: true };
+}
+
 /**
  * Registry of pickup model builders.
  * Add entries here as new collectable shapes are needed —
@@ -216,6 +284,14 @@ export function loadRoomObjects(
 
       case "lamp": {
         const parts = buildFloorLampMesh();
+        parts.group.position.set(...def.position);
+        lampRegistry.set(def.id, parts);
+        decoratives.push(parts.group);
+        break;
+      }
+
+      case "wallLamp": {
+        const parts = buildWallLampMesh(def.facing ?? "south");
         parts.group.position.set(...def.position);
         lampRegistry.set(def.id, parts);
         decoratives.push(parts.group);

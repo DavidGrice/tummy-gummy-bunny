@@ -93,24 +93,19 @@ export const HALLWAY_ROOM: RoomManifest = {
     },
 
     // ── North wall — wall sconces between the two children's doors ───────────
-    // Positioned symmetrically around x=−0.5 (midpoint of sibling x=−3.5 and bedroom x=2.5)
+    // Symmetrically around x=−0.5 (midpoint of sibling x=−3.5 and bedroom x=2.5)
+    // facing "south" → brown arm extends into room; shade + point-light start ON
     {
-      id:          "sconce-left",
-      type:        "furniture",
-      label:       "Wall Lamp",
-      position:    [-2.0, 2.05, -2.35],
-      size:        [0.28, 0.32, 0.18],
-      color:       0xC8A850,
-      interaction: { kind: "dialog", message: "A warm golden wall sconce. It lights the hallway with a soft glow. 🕯️" },
+      id:       "sconce-left",
+      type:     "wallLamp",
+      position: [-2.0, 2.05, -2.35],
+      facing:   "south",
     },
     {
-      id:          "sconce-right",
-      type:        "furniture",
-      label:       "Wall Lamp",
-      position:    [1.0, 2.05, -2.35],
-      size:        [0.28, 0.32, 0.18],
-      color:       0xC8A850,
-      interaction: { kind: "dialog", message: "Another golden wall sconce. The pair make the landing feel like home. 🕯️" },
+      id:       "sconce-right",
+      type:     "wallLamp",
+      position: [1.0, 2.05, -2.35],
+      facing:   "south",
     },
 
     // ── West wall — dining room ───────────────────────────────────────────────

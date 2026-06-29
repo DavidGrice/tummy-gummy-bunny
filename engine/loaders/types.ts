@@ -55,11 +55,25 @@ export interface LampObjectDef {
   position: [number, number, number];
 }
 
+/**
+ * Wall-mounted sconce lamp — brown bracket arm + shade + point light.
+ * Starts ON by default. Toggled via a lamp-toggle interaction elsewhere.
+ * `facing` controls which direction the arm extends from the wall.
+ */
+export interface WallLampObjectDef {
+  id:       string;
+  type:     "wallLamp";
+  position: [number, number, number];
+  /** Direction the arm protrudes into the room (default "south"). */
+  facing?:  "north" | "south" | "east" | "west";
+}
+
 export type ObjectDef =
   | FurnitureObjectDef
   | BookObjectDef
   | PickupObjectDef
-  | LampObjectDef;
+  | LampObjectDef
+  | WallLampObjectDef;
 
 // ─── Room manifest ────────────────────────────────────────────────────────────
 
