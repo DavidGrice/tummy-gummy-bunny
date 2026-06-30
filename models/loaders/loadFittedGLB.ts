@@ -80,9 +80,16 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
       }
     }
 
+    // Correct for GLBs whose pivot is at the model base rather than its centre.
+    // Manifest position[1] is always the *centre* Y (designed for BoxGeometry).
+    // Read the post-rotation/scale bbox, find its centre, and shift so that
+    // bbox centre == position[1] — works whether the GLB origin is at base or centre.
+    const sizedBox = new THREE.Box3().setFromObject(model);
+    const bboxCenterY = (sizedBox.min.y + sizedBox.max.y) / 2;
+
     if (tintColor !== undefined) tintBlankMaterials(model, tintColor);
 
-    model.position.set(...position);
+    model.position.set(position[0], position[1] - bboxCenterY, position[2]);
     model.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         child.castShadow    = true;

@@ -107,12 +107,13 @@ export const TUTORIAL_ROOM: RoomManifest = {
 
     // ── Books / special meshes ────────────────────────────────────────────────
 
-    // Journal — moved with the dresser, sits on top of it
+    // Journal — sits on top of the dresser; z=-3.38 puts it on the front half
+    // of the dresser top surface so it's clearly visible from the camera.
     {
       id:          "journal",
       type:        "book",
       label:       "Journal",
-      position:    [-2.0,  1.02, -3.47],
+      position:    [-2.0,  1.05, -3.38],
       size:        [0.22,  0.04,  0.28],
       color:       0x5C2E0A,
       interaction: { kind: "journal" },
