@@ -72,7 +72,7 @@ export const SIBLING_ROOM: RoomManifest = {
       label:       "Bed",
       position:    [-2.9, 0.25, -0.5],
       size:        [1.0, 0.5, 2.2],
-      color:       0x7B5EA7,  // purple bedding
+      color:       0x4A7BA8,  // ocean blue — gender-neutral; customisation planned
       interaction: { kind: "dialog", message: "This bed looks like a very comfortable nest. Very on-brand. 🛏️" },
       modelPath:   MODELS.bed,
     },

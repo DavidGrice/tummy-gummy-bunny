@@ -275,6 +275,11 @@ South wall: 3 BoxGeometry panels (left, right, lintel) at z=3.3, opacity 0.7. No
 - [ ] All room interactions have placeholder dialog (door, bed)
 - [ ] Extras page is a placeholder gallery
 
+### Player Customisation (planned — do not implement yet)
+- [ ] **Room personalisation** — bed colour, wall colour, floor colour per room should eventually be driven by player preferences rather than hardcoded manifest values. Bed colours are currently placeholder neutrals (tutorial: sage green `0x5C8A50`, sibling: ocean blue `0x4A7BA8`).
+- [ ] **Character appearance** — bunny fur colour, eye colour, and default outfit selection to be added as a character-creation / options step.
+- [ ] Hook into the existing `tgb_username` cookie flow: store preferences in `localStorage` keyed by username (`tgb_prefs_{username}`), load on `/play` boot, apply to manifest overrides before scene setup.
+
 ---
 
 ## Key Patterns to Preserve

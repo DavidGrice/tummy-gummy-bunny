@@ -85,7 +85,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       label:       "Bed",
       position:    [3.4,   0.25, -0.5],
       size:        [1.0,   0.5,   2.2],
-      color:       0x8B4513,
+      color:       0x5C8A50,  // sage green — gender-neutral; customisation planned
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
       flagKey:     "tgb_bed_rested",
       modelPath:   MODELS.bed,
