@@ -15,7 +15,21 @@ export type InteractionDef =
 
 // ─── Object definitions ───────────────────────────────────────────────────────
 
-export interface FurnitureObjectDef {
+/**
+ * Shared by any ObjectDef that can swap its procedural mesh for a GLB model.
+ * When `modelPath` is set, the GLB is rendered instead of the procedural mesh;
+ * collision and interaction still use that def's `size`/`position` as normal.
+ */
+export interface GLBModelFields {
+  /** Path to a GLB model in /public (e.g. MODELS.bed from models/registry.ts). */
+  modelPath?:     string;
+  /** Optional Euler rotation [x, y, z] in radians applied to the loaded model. */
+  modelRotation?: [number, number, number];
+  /** Uniform scale or per-axis [x, y, z] scale applied to the loaded model. */
+  modelScale?:    number | [number, number, number];
+}
+
+export interface FurnitureObjectDef extends GLBModelFields {
   id:          string;
   type:        "furniture";
   label:       string;
@@ -26,19 +40,9 @@ export interface FurnitureObjectDef {
   interaction: InteractionDef;
   /** If set, writes this localStorage key as "true" whenever the object is interacted with. */
   flagKey?:    string;
-  /**
-   * Path to a GLB model in /public (e.g. "/models/bunny_bed.glb").
-   * When set the GLB is rendered instead of the procedural colored box.
-   * Collision and interaction still use `size` and `position` as normal.
-   */
-  modelPath?:     string;
-  /** Optional Euler rotation [x, y, z] in radians applied to the loaded model. */
-  modelRotation?: [number, number, number];
-  /** Uniform scale or per-axis [x, y, z] scale applied to the loaded model. */
-  modelScale?:    number | [number, number, number];
 }
 
-export interface BookObjectDef {
+export interface BookObjectDef extends GLBModelFields {
   id:          string;
   type:        "book";
   label:       string;

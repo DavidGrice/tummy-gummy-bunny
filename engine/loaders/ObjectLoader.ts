@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { PickupItem } from "@/engine/objects/PickupItem";
-import { sharedModelLoader as modelLoader } from "@/models/loaders/ModelLoader";
+import { loadFittedGLB } from "@/models/loaders/loadFittedGLB";
 import type { RoomManifest, RoomCallbacks, InteractionDef } from "./types";
 
 // ─── Mesh builders ────────────────────────────────────────────────────────────
@@ -197,6 +197,21 @@ const PICKUP_MESH_BUILDERS: Record<string, () => THREE.Object3D> = {
   key: buildKeyMesh,
 };
 
+/** Invisible but raycastable box used as the interaction/hover target for a GLB visual. */
+function buildGLBHitBox(
+  size:        [number, number, number],
+  position:    [number, number, number],
+  visualModel: THREE.Object3D | null,
+): THREE.Mesh {
+  const hitBox = new THREE.Mesh(
+    new THREE.BoxGeometry(...size),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
+  );
+  hitBox.position.set(...position);
+  if (visualModel) hitBox.userData.visualModel = visualModel;
+  return hitBox;
+}
+
 // ─── Loader output ────────────────────────────────────────────────────────────
 
 export interface LoadedObjects {
@@ -270,52 +285,18 @@ export async function loadRoomObjects(
 
       case "furniture": {
         if (def.modelPath) {
-          // ── GLB model visual + invisible hit box ──────────────────────────
-          let loadedModel: THREE.Object3D | null = null;
-          try {
-            const gltf  = await modelLoader.load(def.modelPath);
-            const model = gltf.scene.clone(true);
-
-            // Scale: explicit override, or auto-fit to the manifest's XZ footprint
-            if (def.modelScale !== undefined) {
-              if (Array.isArray(def.modelScale)) model.scale.set(...def.modelScale);
-              else model.scale.setScalar(def.modelScale);
-            } else {
-              const naturalBox = new THREE.Box3().setFromObject(model);
-              const ns         = new THREE.Vector3();
-              naturalBox.getSize(ns);
-              if (ns.x > 0 && ns.z > 0) {
-                const scale = Math.min(def.size[0] / ns.x, def.size[2] / ns.z);
-                model.scale.setScalar(scale);
-                console.log(
-                  `[ObjectLoader] "${def.id}" natural size ${ns.x.toFixed(3)}×${ns.y.toFixed(3)}×${ns.z.toFixed(3)}, ` +
-                  `auto-scale → ${scale.toFixed(4)} (set modelScale in manifest to override)`,
-                );
-              }
-            }
-
-            model.position.set(...def.position);
-            if (def.modelRotation) model.rotation.set(...def.modelRotation);
-            model.traverse((child) => {
-              if (child instanceof THREE.Mesh) {
-                child.castShadow    = true;
-                child.receiveShadow = true;
-              }
-            });
-            loadedModel = model;
-            decoratives.push(model);
-          } catch (err) {
-            console.warn(`[ObjectLoader] Failed to load model "${def.modelPath}":`, err);
-          }
-
-          // Transparent box — still raycasted for interaction + label
-          const hitBox = new THREE.Mesh(
-            new THREE.BoxGeometry(...def.size),
-            new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 }),
-          );
-          hitBox.position.set(...def.position);
-          // Hover outline targets the GLB geometry, not the invisible hit box
-          if (loadedModel) hitBox.userData.visualModel = loadedModel;
+          const model = await loadFittedGLB({
+            id:        def.id,
+            modelPath: def.modelPath,
+            position:  def.position,
+            fitSize:   def.size,
+            fitPlane:  "xz",
+            rotation:  def.modelRotation,
+            scale:     def.modelScale,
+            tintColor: def.color,
+          });
+          if (model) decoratives.push(model);
+          const hitBox = buildGLBHitBox(def.size, def.position, model);
           interactables.push(new InteractableObject({
             name:         def.label,
             mesh:         hitBox,
@@ -323,7 +304,6 @@ export async function loadRoomObjects(
             onInteract:   resolveInteraction(def.interaction, def.flagKey),
           }));
         } else {
-          // ── Procedural colored box (default) ─────────────────────────────
           const mesh = buildFurnitureMesh(def.size, def.color);
           mesh.position.set(...def.position);
           interactables.push(new InteractableObject({
@@ -337,14 +317,35 @@ export async function loadRoomObjects(
       }
 
       case "book": {
-        const mesh = buildBookMesh(def.size, def.color);
-        mesh.position.set(...def.position);
-        interactables.push(new InteractableObject({
-          name:         def.label,
-          mesh,
-          labelYOffset: def.size[1] / 2 + 0.35,
-          onInteract:   resolveInteraction(def.interaction, def.flagKey),
-        }));
+        if (def.modelPath) {
+          const model = await loadFittedGLB({
+            id:        def.id,
+            modelPath: def.modelPath,
+            position:  def.position,
+            fitSize:   def.size,
+            fitPlane:  "xz",
+            rotation:  def.modelRotation,
+            scale:     def.modelScale,
+            tintColor: def.color,
+          });
+          if (model) decoratives.push(model);
+          const hitBox = buildGLBHitBox(def.size, def.position, model);
+          interactables.push(new InteractableObject({
+            name:         def.label,
+            mesh:         hitBox,
+            labelYOffset: def.size[1] / 2 + 0.35,
+            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+          }));
+        } else {
+          const mesh = buildBookMesh(def.size, def.color);
+          mesh.position.set(...def.position);
+          interactables.push(new InteractableObject({
+            name:         def.label,
+            mesh,
+            labelYOffset: def.size[1] / 2 + 0.35,
+            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+          }));
+        }
         break;
       }
 

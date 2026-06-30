@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * The landing / upstairs hallway — 12×5 units (≈ 6m × 2.5m real-world).
@@ -53,6 +54,7 @@ export const HALLWAY_ROOM: RoomManifest = {
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "tutorial" },
+      modelPath:   MODELS.door,
     },
 
     // Sibling's room — further left on the north wall
@@ -64,6 +66,7 @@ export const HALLWAY_ROOM: RoomManifest = {
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "sibling" },
+      modelPath:   MODELS.door,
     },
 
     // ── East wall — bathroom ──────────────────────────────────────────────────
@@ -77,6 +80,8 @@ export const HALLWAY_ROOM: RoomManifest = {
       size:        [0.15, 2.2,  0.9],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "bathroom" },
+      modelPath:     MODELS.door,
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── South wall — parents' bedroom ─────────────────────────────────────────
@@ -90,6 +95,7 @@ export const HALLWAY_ROOM: RoomManifest = {
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "parents" },
+      modelPath:   MODELS.door,
     },
 
     // ── North wall — wall sconces between the two children's doors ───────────
@@ -119,6 +125,8 @@ export const HALLWAY_ROOM: RoomManifest = {
       size:        [0.15, 2.2,  0.9],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "dining" },
+      modelPath:     MODELS.door,
+      modelRotation: [0, Math.PI / 2, 0],
     },
   ],
 };

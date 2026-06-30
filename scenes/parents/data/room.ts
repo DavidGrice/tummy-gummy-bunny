@@ -62,6 +62,7 @@ export const PARENTS_ROOM: RoomManifest = {
       size:        [0.9, 2.2, 0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:   MODELS.door,
     },
 
     // ── North wall — king bed (centred, back flush with north inner face) ──────

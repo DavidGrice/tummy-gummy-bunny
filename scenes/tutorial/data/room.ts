@@ -30,13 +30,16 @@ export const TUTORIAL_ROOM: RoomManifest = {
 
     // Left wall — wardrobe stays centre of west wall
     {
-      id:          "wardrobe",
-      type:        "furniture",
-      label:       "Wardrobe",
-      position:    [-3.55, 1.1,  0],
-      size:        [0.5,   2.2,  1.2],
-      color:       0x8B5A3C,
-      interaction: { kind: "inventory", source: "wardrobe" },
+      id:            "wardrobe",
+      type:          "furniture",
+      label:         "Wardrobe",
+      position:      [-3.55, 1.1,  0],
+      size:          [0.5,   2.2,  1.2],
+      color:         0x8B5A3C,
+      interaction:   { kind: "inventory", source: "wardrobe" },
+      modelPath:     MODELS.wardrobe,
+      // Model is authored facing south (+Z); rotate to face east (+X) into the room from the west wall.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // Back-left area — dresser moved near the left (west) window
@@ -48,6 +51,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [1.6,   1.0,   0.5],
       color:       0x6B4423,
       interaction: { kind: "inventory", source: "dresser" },
+      modelPath:   MODELS.dresser,
     },
 
     // Back-right area — white desk under the right (east) window
@@ -59,6 +63,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [1.4,   0.9,   0.6],
       color:       0xF0EDE8,
       interaction: { kind: "dialog", message: "A clean white desk. Great for homework… or doodles. 📝" },
+      modelPath:   MODELS.desk,
     },
 
     // Front wall — door leads to the hallway
@@ -70,6 +75,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [0.9,   2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:   MODELS.door,
     },
 
     // Right wall — bed (GLB model)
@@ -94,6 +100,9 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [0.06,  0.12,  0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+      modelPath:     MODELS.lightSwitch,
+      // Model faces south (+Z); rotate to face west (−X) into the room from the east wall.
+      modelRotation: [0, -Math.PI / 2, 0],
     },
 
     // ── Books / special meshes ────────────────────────────────────────────────
@@ -107,6 +116,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [0.22,  0.04,  0.28],
       color:       0x5C2E0A,
       interaction: { kind: "journal" },
+      modelPath:   MODELS.journal,
     },
 
     // Map — rests on the desk, light tan/brown, unlocks minimap when picked up
@@ -118,6 +128,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [0.35,  0.015, 0.28],
       color:       0xD4A574,
       interaction: { kind: "map" },
+      modelPath:   MODELS.map,
     },
 
     // ── Decorative lamp (toggled via outlet above) ────────────────────────────

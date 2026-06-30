@@ -24,6 +24,8 @@ export const MODELS = {
   journal:     "/models/props/bunny_journal.glb",
   lamp:        "/models/props/bunny_lamp.glb",
   lightSwitch: "/models/props/bunny_lightswitch.glb",
+  map:         "/models/props/bunny_map.glb",
+  wallLamp:    "/models/props/bunny_wall_lamp.glb",
 } as const;
 
 export type ModelKey = keyof typeof MODELS;

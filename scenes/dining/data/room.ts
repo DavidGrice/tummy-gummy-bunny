@@ -64,6 +64,8 @@ export const DINING_ROOM: RoomManifest = {
       size:        [0.15, 2.2, 0.9],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:     MODELS.door,
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── Dining table — slightly south of centre ───────────────────────────────
@@ -101,6 +103,7 @@ export const DINING_ROOM: RoomManifest = {
       size:        [0.9, 2.2, 0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "kitchen" },
+      modelPath:   MODELS.door,
     },
 
     // ── West wall — china cabinet ─────────────────────────────────────────────

@@ -61,6 +61,7 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [0.9, 2.2, 0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:   MODELS.door,
     },
 
     // ── West wall — bed ───────────────────────────────────────────────────────
@@ -85,6 +86,7 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [1.4, 2.2, 0.5],
       color:       0x6B4A2A,
       interaction: { kind: "dialog", message: "Comics, sketchbooks, and a wobbly tower of puzzle boxes. 📚" },
+      modelPath:   MODELS.bookshelf,
     },
 
     // ── North wall, east side — desk ──────────────────────────────────────────

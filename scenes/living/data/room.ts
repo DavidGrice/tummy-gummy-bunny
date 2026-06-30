@@ -61,6 +61,8 @@ export const LIVING_ROOM: RoomManifest = {
       size:        [0.15, 2.2, 0.9],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "kitchen" },
+      modelPath:     MODELS.door,
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── South wall — front door to garden ────────────────────────────────────
@@ -97,6 +99,9 @@ export const LIVING_ROOM: RoomManifest = {
       size:        [0.4, 2.2, 1.6],
       color:       0x8B6040,
       interaction: { kind: "dialog", message: "Shelves of family books, photo albums, and a few odd trophies. 📚" },
+      modelPath:     MODELS.bookshelf,
+      // Model faces south (+Z); rotate to face east (+X) into the room from the west wall.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── Centre — sofa facing south (toward camera / front door) ─────────────
