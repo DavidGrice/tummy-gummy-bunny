@@ -74,6 +74,7 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [1.0, 0.5, 2.2],
       color:       0x7B5EA7,  // purple bedding
       interaction: { kind: "dialog", message: "This bed looks like a very comfortable nest. Very on-brand. 🛏️" },
+      modelPath:   MODELS.bed,
     },
 
     // ── North wall, west side — tall bookshelf ────────────────────────────────
@@ -99,6 +100,7 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [1.4, 0.9, 0.6],
       color:       0x4A6B8A,  // blue-grey desk — different from Bunny's white
       interaction: { kind: "dialog", message: "A desk buried under pencil shavings and half-finished drawings. ✏️" },
+      modelPath:   MODELS.desk,
     },
 
     // ── Sketchbook on the desk ────────────────────────────────────────────────
@@ -111,6 +113,7 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [0.3, 0.04, 0.24],
       color:       0x3A5A7A,
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
+      modelPath:   MODELS.journal,
     },
 
     // ── Light switch — west wall, near the south entrance ────────────────────
@@ -124,6 +127,9 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+      modelPath:     MODELS.lightSwitch,
+      // West wall — model faces south by default; rotate to face east (+X) into the room.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── Supply crate — south-east corner ──────────────────────────────────────

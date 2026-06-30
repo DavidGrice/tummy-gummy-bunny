@@ -90,6 +90,7 @@ export const DINING_ROOM: RoomManifest = {
       size:        [1.8, 0.9, 0.5],
       color:       0x7A5230,
       interaction: { kind: "dialog", message: "A sideboard with a vase of fresh flowers and a bowl of fruit on top. 🌷🍎" },
+      modelPath:   MODELS.dresser,
     },
 
     // ── South wall — door to kitchen ─────────────────────────────────────────
@@ -116,6 +117,9 @@ export const DINING_ROOM: RoomManifest = {
       size:        [0.5, 2.2, 1.6],
       color:       0x8B6040,
       interaction: { kind: "dialog", message: "A glass-fronted china cabinet. Nana's fine china lives here — no touching! 🫖" },
+      modelPath:     MODELS.bookshelf,
+      // West wall — rotate to face east (+X) into the room.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── East wall — light switch south of the door ───────────────────────────
@@ -128,6 +132,9 @@ export const DINING_ROOM: RoomManifest = {
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+      modelPath:     MODELS.lightSwitch,
+      // East wall — rotate to face west (−X) into the room.
+      modelRotation: [0, -Math.PI / 2, 0],
     },
 
     // ── Floor lamp — north-west corner ───────────────────────────────────────

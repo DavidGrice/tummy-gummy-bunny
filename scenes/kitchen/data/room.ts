@@ -142,6 +142,9 @@ export const KITCHEN_ROOM: RoomManifest = {
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+      modelPath:     MODELS.lightSwitch,
+      // East wall — rotate to face west (−X) into the room.
+      modelRotation: [0, -Math.PI / 2, 0],
     },
 
     // ── Floor lamp — south-east area ─────────────────────────────────────────

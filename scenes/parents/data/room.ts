@@ -75,6 +75,9 @@ export const PARENTS_ROOM: RoomManifest = {
       size:        [2.8, 0.7, 2.0],
       color:       0x7A5038,
       interaction: { kind: "dialog", message: "Mum and Dad's bed. Off limits, obviously. 🛏️" },
+      modelPath:     MODELS.bed,
+      // Rotate so the model's long Z axis becomes world X, filling the 2.8-unit width along the north wall.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── Nightstands flanking the bed ──────────────────────────────────────────
@@ -109,6 +112,9 @@ export const PARENTS_ROOM: RoomManifest = {
       size:        [0.5, 2.2, 1.8],
       color:       0x7A5840,
       interaction: { kind: "dialog", message: "A grand wardrobe. You can hear coat hangers clinking inside. 👔" },
+      modelPath:     MODELS.wardrobe,
+      // West wall — rotate to face east (+X) into the room.
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── East wall — vanity / dresser ──────────────────────────────────────────
@@ -144,6 +150,9 @@ export const PARENTS_ROOM: RoomManifest = {
       size:        [0.06, 0.12, 0.09],
       color:       0xECECE8,
       interaction: { kind: "lamp-toggle", lampId: "floor-lamp" },
+      modelPath:     MODELS.lightSwitch,
+      // East wall — rotate to face west (−X) into the room.
+      modelRotation: [0, -Math.PI / 2, 0],
     },
 
     // ── Floor lamp — east side, near bed ─────────────────────────────────────
