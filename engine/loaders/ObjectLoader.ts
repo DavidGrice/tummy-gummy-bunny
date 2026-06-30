@@ -286,14 +286,15 @@ export async function loadRoomObjects(
       case "furniture": {
         if (def.modelPath) {
           const model = await loadFittedGLB({
-            id:        def.id,
-            modelPath: def.modelPath,
-            position:  def.position,
-            fitSize:   def.size,
-            fitPlane:  "xz",
-            rotation:  def.modelRotation,
-            scale:     def.modelScale,
-            tintColor: def.color,
+            id:                def.id,
+            modelPath:         def.modelPath,
+            position:          def.position,
+            fitSize:           def.size,
+            fitPlane:          "xz",
+            rotation:          def.modelRotation,
+            scale:             def.modelScale,
+            tintColor:         def.color,
+            materialOverrides: def.materialOverrides,
           });
           if (model) decoratives.push(model);
           const hitBox = buildGLBHitBox(def.size, def.position, model);
@@ -319,14 +320,15 @@ export async function loadRoomObjects(
       case "book": {
         if (def.modelPath) {
           const model = await loadFittedGLB({
-            id:        def.id,
-            modelPath: def.modelPath,
-            position:  def.position,
-            fitSize:   def.size,
-            fitPlane:  "xz",
-            rotation:  def.modelRotation,
-            scale:     def.modelScale,
-            tintColor: def.color,
+            id:                def.id,
+            modelPath:         def.modelPath,
+            position:          def.position,
+            fitSize:           def.size,
+            fitPlane:          "xz",
+            rotation:          def.modelRotation,
+            scale:             def.modelScale,
+            tintColor:         def.color,
+            materialOverrides: def.materialOverrides,
           });
           if (model) decoratives.push(model);
           const hitBox = buildGLBHitBox(def.size, def.position, model);

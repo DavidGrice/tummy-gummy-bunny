@@ -74,7 +74,8 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [1.0, 0.5, 2.2],
       color:       0x4A7BA8,  // ocean blue — gender-neutral; customisation planned
       interaction: { kind: "dialog", message: "This bed looks like a very comfortable nest. Very on-brand. 🛏️" },
-      modelPath:   MODELS.bed,
+      modelPath:         MODELS.bed,
+      materialOverrides: { Blanket: 0x4A7BA8, Pillow: 0x6A9DC8 },
     },
 
     // ── North wall, west side — tall bookshelf ────────────────────────────────

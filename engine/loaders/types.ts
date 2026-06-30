@@ -27,6 +27,14 @@ export interface GLBModelFields {
   modelRotation?: [number, number, number];
   /** Uniform scale or per-axis [x, y, z] scale applied to the loaded model. */
   modelScale?:    number | [number, number, number];
+  /**
+   * Override specific named materials by hex colour.
+   * Key is matched against each material's name (exact or startsWith).
+   * Use this to recolour authored materials that already carry a non-white
+   * baseColor (e.g. Blanket, Pillow on bunny_bed.glb) without affecting
+   * materials that are intentionally a different colour (Wood, BunnyFur…).
+   */
+  materialOverrides?: Record<string, number>;
 }
 
 export interface FurnitureObjectDef extends GLBModelFields {

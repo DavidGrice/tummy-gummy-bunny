@@ -88,7 +88,8 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x5C8A50,  // sage green — gender-neutral; customisation planned
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
       flagKey:     "tgb_bed_rested",
-      modelPath:   MODELS.bed,
+      modelPath:         MODELS.bed,
+      materialOverrides: { Blanket: 0x5C8A50, Pillow: 0x7AAF6E },
     },
 
     // Right wall near the door — light switch for the floor lamp

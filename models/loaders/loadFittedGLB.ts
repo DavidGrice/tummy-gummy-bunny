@@ -25,6 +25,13 @@ export interface FitGLBOptions {
    * (trim, metal, fabric accents, etc).
    */
   tintColor?: number;
+  /**
+   * Override specific named materials by hex colour, keyed by material name
+   * (exact match or startsWith). Takes effect after tintColor, so it can
+   * recolour authored materials that are already non-white (e.g. Blanket/Pillow
+   * on bunny_bed.glb which export as pink from Blender).
+   */
+  materialOverrides?: Record<string, number>;
 }
 
 const _loggedAutoScale = new Set<string>();
@@ -45,6 +52,7 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
     rotation,
     scale,
     tintColor,
+    materialOverrides,
   } = opts;
 
   try {
@@ -88,6 +96,7 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
     const bboxCenterY = (sizedBox.min.y + sizedBox.max.y) / 2;
 
     if (tintColor !== undefined) tintBlankMaterials(model, tintColor);
+    if (materialOverrides)       applyMaterialOverrides(model, materialOverrides);
 
     model.position.set(position[0], position[1] - bboxCenterY, position[2]);
     model.traverse((child) => {
@@ -102,6 +111,34 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
     console.warn(`[loadFittedGLB] Failed to load "${modelPath}":`, err);
     return null;
   }
+}
+
+/**
+ * Recolour specific named materials. Key is matched against mat.name using
+ * exact match first, then startsWith — handles Blender's ".001" suffixes.
+ * Each matched material is cloned before mutation to avoid cross-instance
+ * colour pollution between rooms that share the same cached GLB.
+ */
+function applyMaterialOverrides(
+  model:     THREE.Object3D,
+  overrides: Record<string, number>,
+): void {
+  model.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const apply = (mat: THREE.Material): THREE.Material => {
+      if (!(mat instanceof THREE.MeshStandardMaterial)) return mat;
+      const key =
+        Object.keys(overrides).find(k => mat.name === k) ??
+        Object.keys(overrides).find(k => mat.name.startsWith(k));
+      if (key === undefined) return mat;
+      const cloned = mat.clone();
+      cloned.color.setHex(overrides[key]);
+      return cloned;
+    };
+    child.material = Array.isArray(child.material)
+      ? child.material.map(apply)
+      : apply(child.material);
+  });
 }
 
 /**
