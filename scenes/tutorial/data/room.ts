@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Single source of truth for Mr. Bunny's room.
@@ -21,7 +22,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
     { x: -1.0, y: 1.75 },
     { x:  1.0, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
   doorId:      "door",
   hiddenWalls: ["southLeft", "southRight", "southLintel"],
   objects: [
@@ -81,7 +82,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x8B4513,
       interaction: { kind: "dialog-template", template: "{playerName} yawns… maybe just five more minutes? 😴" },
       flagKey:     "tgb_bed_rested",
-      modelPath:   "/models/bunny_bed.glb",
+      modelPath:   MODELS.bed,
     },
 
     // Right wall near the door — light switch for the floor lamp

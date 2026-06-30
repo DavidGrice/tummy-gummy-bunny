@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Sibling's bedroom — 7×7 units (slightly smaller than Bunny's 8×8).
@@ -37,7 +38,7 @@ export const SIBLING_ROOM: RoomManifest = {
     { x: -2.2, y: 1.75 },
     { x:  1.8, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   // South door faces camera
   doorId:      "door",

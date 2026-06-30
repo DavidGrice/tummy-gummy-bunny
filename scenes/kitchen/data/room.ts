@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Kitchen — 7×6 units (≈ 3.5m × 3m).
@@ -42,7 +43,7 @@ export const KITCHEN_ROOM: RoomManifest = {
     { x: -1.8, y: 1.75 },
     { x: -0.3, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   // No doorId — entrance is the north wall, not the south wall.
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

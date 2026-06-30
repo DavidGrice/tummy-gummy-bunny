@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Living Room — 9×8 units (≈ 4.5m × 4m).
@@ -36,7 +37,7 @@ export const LIVING_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   // South wall has the front door — doorId creates the wall cutout.
   doorId:      "door-outside",

@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Parents' bedroom — 9×8 units (≈ 4.5m × 4m). The largest bedroom on the floor.
@@ -39,7 +40,7 @@ export const PARENTS_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   doorId:      "door",
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Upstairs bathroom — 4×4 units (≈ 2m × 2m).
@@ -33,7 +34,7 @@ export const BATHROOM_ROOM: RoomManifest = {
 
   // Small frosted window above the bathtub on the north wall
   windows: [{ x: 0.8, y: 1.75 }],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   // South wall is always hidden — camera peeks in from the south
   hiddenWalls: ["southLeft", "southRight", "southLintel"],

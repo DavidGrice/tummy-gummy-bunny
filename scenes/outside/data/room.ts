@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Front Garden — 12×8 units.
@@ -33,7 +34,7 @@ export const OUTSIDE_ROOM: RoomManifest = {
     { x: -2.0, y: 1.35 },
     { x:  2.0, y: 1.35 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   hiddenWalls: ["southLeft", "southRight", "southLintel"],
 

@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { MODELS } from "@/models/registry";
 
 /**
  * Dining Room — 8×7 units (≈ 4m × 3.5m).
@@ -38,7 +39,7 @@ export const DINING_ROOM: RoomManifest = {
     { x: -1.5, y: 1.75 },
     { x:  1.5, y: 1.75 },
   ],
-  windowModelPath: "/models/bunny_window.glb",
+  windowModelPath: MODELS.window,
 
   // South wall has the kitchen door — doorId creates the wall cutout.
   // The flanking panels are still hidden so the camera can see in from the south.
