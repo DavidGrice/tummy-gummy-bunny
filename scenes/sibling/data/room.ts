@@ -115,7 +115,7 @@ export const SIBLING_ROOM: RoomManifest = {
       color:       0x3A5A7A,
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
       modelPath:     MODELS.journal,
-      modelRotation: [-Math.PI / 2, 0, 0],
+      modelRotation: [Math.PI / 2, 0, 0],
     },
 
     // ── Light switch — west wall, near the south entrance ────────────────────

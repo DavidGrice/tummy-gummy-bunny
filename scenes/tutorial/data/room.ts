@@ -119,7 +119,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:       0x5C2E0A,
       interaction: { kind: "journal" },
       modelPath:     MODELS.journal,
-      modelRotation: [-Math.PI / 2, 0, 0],
+      modelRotation: [Math.PI / 2, 0, 0],
     },
 
     // Map — rests on the desk, light tan/brown, unlocks minimap when picked up
