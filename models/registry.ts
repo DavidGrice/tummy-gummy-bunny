@@ -14,6 +14,7 @@ export const MODELS = {
   bathroomToilet: "/models/furniture/bunny_bathroomtoilet.glb",
   bathroomTub:    "/models/furniture/bunny_bathroomtub.glb",
   bed:            "/models/furniture/bunny_bed.glb",
+  parentsBed:     "/models/furniture/bunny_parents_bed.glb",
   bookshelf:      "/models/furniture/bunny_bookshelf.glb",
   desk:           "/models/furniture/bunny_desk.glb",
   dresser:        "/models/furniture/bunny_dresser.glb",

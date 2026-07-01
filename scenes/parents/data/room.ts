@@ -66,17 +66,18 @@ export const PARENTS_ROOM: RoomManifest = {
     },
 
     // ── North wall — king bed (centred, back flush with north inner face) ──────
-    // Back face: z = -3.9 + 2.0/2 = -2.9 → center z = -2.9
+    // GLB natural: 2.14W × 1.05H × 2.26D. After [0,π/2,0]: world X=2.26, Z=2.14.
+    // Auto-scale 0.929 → actual footprint 2.10×0.976×1.99. Center at y=0.49.
+    // Back face: z = -2.9 − 1.0 = -3.9 (flush with north inner face).
     {
       id:          "bed",
       type:        "furniture",
       label:       "Bed",
-      position:    [0, 0.35, -2.9],
-      size:        [2.8, 0.7, 2.0],
+      position:    [0, 0.49, -2.9],
+      size:        [2.1, 0.98, 2.0],
       color:       0x7A5038,
       interaction: { kind: "dialog", message: "Mum and Dad's bed. Off limits, obviously. 🛏️" },
-      modelPath:     MODELS.bed,
-      // Rotate so the model's long Z axis becomes world X, filling the 2.8-unit width along the north wall.
+      modelPath:     MODELS.parentsBed,
       modelRotation: [0, Math.PI / 2, 0],
     },
 
@@ -103,17 +104,20 @@ export const PARENTS_ROOM: RoomManifest = {
     },
 
     // ── West wall — wardrobe ──────────────────────────────────────────────────
-    // Against west inner face (-4.4): center x = -4.4 + 0.5/2 = -4.15
+    // GLB natural: 2.52W × 4.615H × 0.776D. fitPlane "xz" would pick scale=0.644 →
+    // height 2.97, base below floor. modelScale: 0.477 (= 2.2/4.615) caps height at
+    // 2.2 and gives world X=0.370 (depth), world Z=1.202 (width) after [0,π/2,0].
+    // West inner face: x=-4.4. Flush center: x = -4.4 + 0.370/2 = -4.215 ≈ -4.22.
     {
       id:          "wardrobe",
       type:        "furniture",
       label:       "Wardrobe",
-      position:    [-4.15, 1.1, 0],
-      size:        [0.5, 2.2, 1.8],
+      position:    [-4.22, 1.1, 0],
+      size:        [0.37, 2.2, 1.2],
       color:       0x7A5840,
       interaction: { kind: "dialog", message: "A grand wardrobe. You can hear coat hangers clinking inside. 👔" },
       modelPath:     MODELS.wardrobe,
-      // West wall — rotate to face east (+X) into the room.
+      modelScale:    0.477,
       modelRotation: [0, Math.PI / 2, 0],
     },
 
@@ -155,11 +159,34 @@ export const PARENTS_ROOM: RoomManifest = {
       modelRotation: [0, -Math.PI / 2, 0],
     },
 
+    // ── West wall — second light switch (mirrors east switch) ────────────────
+    // West inner face x=-4.4. center x = -4.4 + 0.06/2 = -4.37
+    {
+      id:          "light-switch-2",
+      type:        "furniture",
+      label:       "Light Switch",
+      position:    [-4.37, 1.2, 2.2],
+      size:        [0.06, 0.12, 0.09],
+      color:       0xECECE8,
+      interaction: { kind: "lamp-toggle", lampId: "floor-lamp-2" },
+      modelPath:     MODELS.lightSwitch,
+      // West wall — rotate to face east (+X) into the room.
+      modelRotation: [0, Math.PI / 2, 0],
+    },
+
     // ── Floor lamp — east side, near bed ─────────────────────────────────────
     {
       id:        "floor-lamp",
       type:      "lamp",
       position:  [3.8, 0, -2.5],
+      modelPath: MODELS.lamp,
+    },
+
+    // ── Floor lamp — west side, mirroring east lamp ───────────────────────────
+    {
+      id:        "floor-lamp-2",
+      type:      "lamp",
+      position:  [-3.8, 0, -2.5],
       modelPath: MODELS.lamp,
     },
   ],
