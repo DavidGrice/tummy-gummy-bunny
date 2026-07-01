@@ -149,9 +149,10 @@ export const KITCHEN_ROOM: RoomManifest = {
 
     // ── Floor lamp — south-east area ─────────────────────────────────────────
     {
-      id:       "floor-lamp",
-      type:     "lamp",
-      position: [2.0, 0, 2.0],
+      id:        "floor-lamp",
+      type:      "lamp",
+      position:  [2.0, 0, 2.0],
+      modelPath: MODELS.lamp,
     },
   ],
 };

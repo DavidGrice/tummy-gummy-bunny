@@ -72,9 +72,9 @@ function buildKeyMesh(): THREE.Group {
 }
 
 interface LampParts {
-  group:    THREE.Group;
+  group:    THREE.Object3D;
   light:    THREE.PointLight;
-  shadeMat: THREE.MeshLambertMaterial;
+  shadeMat: THREE.MeshLambertMaterial | THREE.MeshStandardMaterial;
   isOn:     boolean;
 }
 
@@ -352,18 +352,110 @@ export async function loadRoomObjects(
       }
 
       case "lamp": {
-        const parts = buildFloorLampMesh();
-        parts.group.position.set(...def.position);
-        lampRegistry.set(def.id, parts);
-        decoratives.push(parts.group);
+        if (def.modelPath) {
+          const LAMP_HEIGHT = 2.0;
+          const model = await loadFittedGLB({
+            id:        def.id,
+            modelPath: def.modelPath,
+            position:  [def.position[0], LAMP_HEIGHT / 2, def.position[2]],
+            fitSize:   [0.4, LAMP_HEIGHT, 0.4],
+            fitPlane:  "xz",
+            rotation:  def.modelRotation,
+          });
+          let shadeMat: THREE.MeshLambertMaterial | THREE.MeshStandardMaterial =
+            new THREE.MeshLambertMaterial({ color: 0x8C8880, emissive: new THREE.Color(0) });
+          if (model) {
+            model.traverse((child) => {
+              if (!(child instanceof THREE.Mesh)) return;
+              const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+              if (mat instanceof THREE.MeshStandardMaterial && mat.name.includes("ShadeFabric")) {
+                const cloned = mat.clone();
+                child.material = Array.isArray(child.material)
+                  ? child.material.map(m => (m === mat ? cloned : m))
+                  : cloned;
+                shadeMat = cloned;
+              }
+            });
+          }
+          const light = new THREE.PointLight(0xFFE8A0, 0, 5.0, 1.8);
+          light.position.set(def.position[0], LAMP_HEIGHT * 0.85, def.position[2]);
+          if (model) {
+            lampRegistry.set(def.id, { group: model, light, shadeMat, isOn: false });
+            decoratives.push(model, light);
+          } else {
+            const parts = buildFloorLampMesh();
+            parts.group.position.set(...def.position);
+            lampRegistry.set(def.id, parts);
+            decoratives.push(parts.group);
+          }
+        } else {
+          const parts = buildFloorLampMesh();
+          parts.group.position.set(...def.position);
+          lampRegistry.set(def.id, parts);
+          decoratives.push(parts.group);
+        }
         break;
       }
 
       case "wallLamp": {
-        const parts = buildWallLampMesh(def.facing ?? "south");
-        parts.group.position.set(...def.position);
-        lampRegistry.set(def.id, parts);
-        decoratives.push(parts.group);
+        if (def.modelPath) {
+          const facing = def.facing ?? "south";
+          const modelRotation: [number, number, number] | undefined =
+            facing === "north" ? [0,  Math.PI,     0] :
+            facing === "east"  ? [0,  Math.PI / 2, 0] :
+            facing === "west"  ? [0, -Math.PI / 2, 0] :
+            undefined; // south = default orientation
+          const model = await loadFittedGLB({
+            id:        def.id,
+            modelPath: def.modelPath,
+            position:  def.position as [number, number, number],
+            fitSize:   [0.15, 0.45, 0.35],
+            fitPlane:  "xz",
+            rotation:  modelRotation,
+          });
+          let shadeMat: THREE.MeshLambertMaterial | THREE.MeshStandardMaterial =
+            new THREE.MeshLambertMaterial({
+              color:             new THREE.Color(0xC8A868),
+              emissive:          new THREE.Color(0xFFD080),
+              emissiveIntensity: 0.5,
+              side:              THREE.DoubleSide,
+            });
+          if (model) {
+            model.traverse((child) => {
+              if (!(child instanceof THREE.Mesh)) return;
+              const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+              if (mat instanceof THREE.MeshStandardMaterial && mat.name.includes("ShadeFabric")) {
+                const cloned = mat.clone();
+                child.material = Array.isArray(child.material)
+                  ? child.material.map(m => (m === mat ? cloned : m))
+                  : cloned;
+                shadeMat = cloned;
+              }
+            });
+          }
+          const facingDX = facing === "east" ? 0.25 : facing === "west" ? -0.25 : 0;
+          const facingDZ = facing === "south" ? 0.25 : facing === "north" ? -0.25 : 0;
+          const light = new THREE.PointLight(0xFFE090, 1.4, 4.5, 1.5);
+          light.position.set(
+            def.position[0] + facingDX,
+            def.position[1],
+            def.position[2] + facingDZ,
+          );
+          if (model) {
+            lampRegistry.set(def.id, { group: model, light, shadeMat, isOn: true });
+            decoratives.push(model, light);
+          } else {
+            const parts = buildWallLampMesh(facing);
+            parts.group.position.set(...def.position);
+            lampRegistry.set(def.id, parts);
+            decoratives.push(parts.group);
+          }
+        } else {
+          const parts = buildWallLampMesh(def.facing ?? "south");
+          parts.group.position.set(...def.position);
+          lampRegistry.set(def.id, parts);
+          decoratives.push(parts.group);
+        }
         break;
       }
 

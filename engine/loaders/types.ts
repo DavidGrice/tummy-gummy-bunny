@@ -76,9 +76,13 @@ export interface PickupObjectDef {
 
 /** Decorative floor lamp — toggled via a separate outlet/switch object */
 export interface LampObjectDef {
-  id:       string;
-  type:     "lamp";
-  position: [number, number, number];
+  id:            string;
+  type:          "lamp";
+  position:      [number, number, number];
+  /** Path to a GLB model in /public. When set, replaces the procedural mesh. */
+  modelPath?:    string;
+  /** Euler rotation [x, y, z] in radians applied to the loaded model. */
+  modelRotation?: [number, number, number];
 }
 
 /**
@@ -87,11 +91,15 @@ export interface LampObjectDef {
  * `facing` controls which direction the arm extends from the wall.
  */
 export interface WallLampObjectDef {
-  id:       string;
-  type:     "wallLamp";
-  position: [number, number, number];
+  id:            string;
+  type:          "wallLamp";
+  position:      [number, number, number];
   /** Direction the arm protrudes into the room (default "south"). */
-  facing?:  "north" | "south" | "east" | "west";
+  facing?:       "north" | "south" | "east" | "west";
+  /** Path to a GLB model in /public. When set, replaces the procedural mesh. */
+  modelPath?:    string;
+  /** Euler rotation [x, y, z] in radians applied to the loaded model. */
+  modelRotation?: [number, number, number];
 }
 
 export type ObjectDef =

@@ -118,7 +118,8 @@ export const TUTORIAL_ROOM: RoomManifest = {
       size:        [0.22,  0.04,  0.28],
       color:       0x5C2E0A,
       interaction: { kind: "journal" },
-      modelPath:   MODELS.journal,
+      modelPath:     MODELS.journal,
+      modelRotation: [-Math.PI / 2, 0, 0],
     },
 
     // Map — rests on the desk, light tan/brown, unlocks minimap when picked up
@@ -135,9 +136,10 @@ export const TUTORIAL_ROOM: RoomManifest = {
 
     // ── Decorative lamp (toggled via outlet above) ────────────────────────────
     {
-      id:       "floor-lamp",
-      type:     "lamp",
-      position: [2.8, 0, -2.8],
+      id:        "floor-lamp",
+      type:      "lamp",
+      position:  [2.8, 0, -2.8],
+      modelPath: MODELS.lamp,
     },
 
     // ── Pickup items ──────────────────────────────────────────────────────────

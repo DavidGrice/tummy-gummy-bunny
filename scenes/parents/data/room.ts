@@ -157,9 +157,10 @@ export const PARENTS_ROOM: RoomManifest = {
 
     // ── Floor lamp — east side, near bed ─────────────────────────────────────
     {
-      id:       "floor-lamp",
-      type:     "lamp",
-      position: [3.8, 0, -2.5],
+      id:        "floor-lamp",
+      type:      "lamp",
+      position:  [3.8, 0, -2.5],
+      modelPath: MODELS.lamp,
     },
   ],
 };

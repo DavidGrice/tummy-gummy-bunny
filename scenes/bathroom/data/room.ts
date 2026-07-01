@@ -73,6 +73,7 @@ export const BATHROOM_ROOM: RoomManifest = {
       size:        [0.65, 0.85, 0.7],
       color:       0xF0F2F0,
       interaction: { kind: "dialog", message: "Just a toilet. Nothing to see here. 🚽" },
+      modelPath:   MODELS.bathroomToilet,
     },
 
     // ── Bathtub — north wall, east side ──────────────────────────────────────
@@ -85,6 +86,7 @@ export const BATHROOM_ROOM: RoomManifest = {
       size:        [1.4, 0.7, 0.62],
       color:       0xE8F0F6,
       interaction: { kind: "dialog", message: "A deep bubble bath with lavender salts. Maybe after the adventure! 🛁" },
+      modelPath:   MODELS.bathroomTub,
     },
 
     // ── Sink / vanity — east wall ─────────────────────────────────────────────
@@ -98,6 +100,8 @@ export const BATHROOM_ROOM: RoomManifest = {
       color:       0xEEF2F4,
       interaction: { kind: "dialog-template", template: "{playerName} checks the mirror above the sink. Looking good! 🪥" },
       flagKey:     "tgb_sink_used",
+      modelPath:     MODELS.bathroomSink,
+      modelRotation: [0, -Math.PI / 2, 0],
     },
   ],
 };

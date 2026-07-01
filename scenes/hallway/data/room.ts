@@ -102,16 +102,18 @@ export const HALLWAY_ROOM: RoomManifest = {
     // Symmetrically around x=−0.5 (midpoint of sibling x=−3.5 and bedroom x=2.5)
     // facing "south" → brown arm extends into room; shade + point-light start ON
     {
-      id:       "sconce-left",
-      type:     "wallLamp",
-      position: [-2.0, 2.05, -2.35],
-      facing:   "south",
+      id:        "sconce-left",
+      type:      "wallLamp",
+      position:  [-2.0, 2.05, -2.35],
+      facing:    "south",
+      modelPath: MODELS.wallLamp,
     },
     {
-      id:       "sconce-right",
-      type:     "wallLamp",
-      position: [1.0, 2.05, -2.35],
-      facing:   "south",
+      id:        "sconce-right",
+      type:      "wallLamp",
+      position:  [1.0, 2.05, -2.35],
+      facing:    "south",
+      modelPath: MODELS.wallLamp,
     },
 
     // ── West wall — dining room ───────────────────────────────────────────────

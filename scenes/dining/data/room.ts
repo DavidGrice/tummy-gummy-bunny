@@ -139,9 +139,10 @@ export const DINING_ROOM: RoomManifest = {
 
     // ── Floor lamp — north-west corner ───────────────────────────────────────
     {
-      id:       "floor-lamp",
-      type:     "lamp",
-      position: [-2.5, 0, -2.5],
+      id:        "floor-lamp",
+      type:      "lamp",
+      position:  [-2.5, 0, -2.5],
+      modelPath: MODELS.lamp,
     },
   ],
 };

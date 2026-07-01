@@ -114,7 +114,8 @@ export const SIBLING_ROOM: RoomManifest = {
       size:        [0.3, 0.04, 0.24],
       color:       0x3A5A7A,
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
-      modelPath:   MODELS.journal,
+      modelPath:     MODELS.journal,
+      modelRotation: [-Math.PI / 2, 0, 0],
     },
 
     // ── Light switch — west wall, near the south entrance ────────────────────
@@ -146,9 +147,10 @@ export const SIBLING_ROOM: RoomManifest = {
 
     // ── Floor lamp — east wall, centre ───────────────────────────────────────
     {
-      id:       "floor-lamp",
-      type:     "lamp",
-      position: [2.5, 0, 0],
+      id:        "floor-lamp",
+      type:      "lamp",
+      position:  [2.5, 0, 0],
+      modelPath: MODELS.lamp,
     },
   ],
 };

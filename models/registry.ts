@@ -10,11 +10,14 @@
  */
 export const MODELS = {
   // ── Furniture ────────────────────────────────────────────────────────────
-  bed:        "/models/furniture/bunny_bed.glb",
-  bookshelf:  "/models/furniture/bunny_bookshelf.glb",
-  desk:       "/models/furniture/bunny_desk.glb",
-  dresser:    "/models/furniture/bunny_dresser.glb",
-  wardrobe:   "/models/furniture/bunny_wardrobe.glb",
+  bathroomSink:   "/models/furniture/bunny_bathroomsink.glb",
+  bathroomToilet: "/models/furniture/bunny_bathroomtoilet.glb",
+  bathroomTub:    "/models/furniture/bunny_bathroomtub.glb",
+  bed:            "/models/furniture/bunny_bed.glb",
+  bookshelf:      "/models/furniture/bunny_bookshelf.glb",
+  desk:           "/models/furniture/bunny_desk.glb",
+  dresser:        "/models/furniture/bunny_dresser.glb",
+  wardrobe:       "/models/furniture/bunny_wardrobe.glb",
 
   // ── Architecture ─────────────────────────────────────────────────────────
   window: "/models/architecture/bunny_window.glb",
