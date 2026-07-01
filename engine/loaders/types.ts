@@ -37,7 +37,20 @@ export interface GLBModelFields {
   materialOverrides?: Record<string, number>;
 }
 
-export interface FurnitureObjectDef extends GLBModelFields {
+/**
+ * Shared gate fields — when `requiredItem` is set the interaction is blocked
+ * until that item ID is present in `collectedIds`. Scales to richer puzzles:
+ * extend to `requiredItems: string[]` or add `requiredFlag` later without
+ * touching scene code.
+ */
+export interface InteractionGate {
+  /** Collect this item ID before the interaction fires. */
+  requiredItem?:        string;
+  /** Dialog shown when the gate is closed. Defaults to a generic hint. */
+  requiredItemMessage?: string;
+}
+
+export interface FurnitureObjectDef extends GLBModelFields, InteractionGate {
   id:          string;
   type:        "furniture";
   label:       string;
@@ -50,7 +63,7 @@ export interface FurnitureObjectDef extends GLBModelFields {
   flagKey?:    string;
 }
 
-export interface BookObjectDef extends GLBModelFields {
+export interface BookObjectDef extends GLBModelFields, InteractionGate {
   id:          string;
   type:        "book";
   label:       string;

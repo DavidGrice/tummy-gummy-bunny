@@ -66,7 +66,13 @@ export function GameCanvas() {
     if (!pickedUpItemId) return;
     markCollected(pickedUpItemId);
     const item = GAME_ITEMS.find((i) => i.id === pickedUpItemId);
-    if (item) addItem(item);
+    if (item) {
+      addItem(item);
+      if (item.unlock === "minimap") {
+        setMinimapUnlocked(true);
+        localStorage.setItem("tgb_minimap_unlocked", "true");
+      }
+    }
     clearPickedUp();
   }, [pickedUpItemId, markCollected, addItem, clearPickedUp]);
 

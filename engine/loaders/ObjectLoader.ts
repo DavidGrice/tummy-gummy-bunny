@@ -188,6 +188,24 @@ function buildWallLampMesh(facing: "north" | "south" | "east" | "west" = "south"
   return { group, light, shadeMat, isOn: true };
 }
 
+function buildMapMesh(): THREE.Group {
+  const group = new THREE.Group();
+  const paper = new THREE.Mesh(
+    new THREE.BoxGeometry(0.22, 0.006, 0.18),
+    new THREE.MeshLambertMaterial({ color: 0xD4A574 }),
+  );
+  paper.castShadow = true;
+  group.add(paper);
+  // Slightly darker border lines along each edge to suggest a drawn map
+  const border = new THREE.Mesh(
+    new THREE.BoxGeometry(0.215, 0.007, 0.175),
+    new THREE.MeshLambertMaterial({ color: 0xA07040 }),
+  );
+  border.position.y = -0.001;
+  group.add(border);
+  return group;
+}
+
 /**
  * Registry of pickup model builders.
  * Add entries here as new collectable shapes are needed —
@@ -195,6 +213,7 @@ function buildWallLampMesh(facing: "north" | "south" | "east" | "west" = "south"
  */
 const PICKUP_MESH_BUILDERS: Record<string, () => THREE.Object3D> = {
   key: buildKeyMesh,
+  map: buildMapMesh,
 };
 
 /** Invisible but raycastable box used as the interaction/hover target for a GLB visual. */
@@ -239,7 +258,12 @@ export async function loadRoomObjects(
   // Populated as "lamp" objects are built; read lazily when lamp-toggle fires.
   const lampRegistry = new Map<string, LampParts>();
 
-  function resolveInteraction(def: InteractionDef, flagKey?: string): () => void {
+  function resolveInteraction(
+    def:                  InteractionDef,
+    flagKey?:             string,
+    requiredItem?:        string,
+    requiredItemMessage?: string,
+  ): () => void {
     const action = ((): () => void => {
       switch (def.kind) {
         case "inventory":
@@ -272,9 +296,18 @@ export async function loadRoomObjects(
       }
     })();
 
-    if (!flagKey) return action;
-    return () => {
+    const gated = !requiredItem ? action : () => {
+      if (!callbacks.collectedIds?.has(requiredItem)) {
+        callbacks.onDialog(requiredItemMessage ?? "You'll need something for that first. 🔒");
+        return;
+      }
       action();
+    };
+
+    if (!flagKey) return gated;
+    return () => {
+      gated();
+      if (requiredItem && !callbacks.collectedIds?.has(requiredItem)) return;
       try { localStorage.setItem(flagKey, "true"); } catch { /* SSR / storage unavailable */ }
       callbacks.onFlag?.(flagKey);
     };
@@ -302,7 +335,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh:         hitBox,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
           }));
         } else {
           const mesh = buildFurnitureMesh(def.size, def.color);
@@ -311,7 +344,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
           }));
         }
         break;
@@ -336,7 +369,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh:         hitBox,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
           }));
         } else {
           const mesh = buildBookMesh(def.size, def.color);
@@ -345,7 +378,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
           }));
         }
         break;

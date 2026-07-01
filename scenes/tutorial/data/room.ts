@@ -66,16 +66,18 @@ export const TUTORIAL_ROOM: RoomManifest = {
       modelPath:   MODELS.desk,
     },
 
-    // Front wall — door leads to the hallway
+    // Front wall — door leads to the hallway (locked until golden key collected)
     {
-      id:          "door",
-      type:        "furniture",
-      label:       "Hallway",
-      position:    [0,     1.1,  3.5],
-      size:        [0.9,   2.2,  0.15],
-      color:       0x5C3D1E,
-      interaction: { kind: "scene-change", targetRoomId: "hallway" },
-      modelPath:   MODELS.door,
+      id:                  "door",
+      type:                "furniture",
+      label:               "Hallway",
+      position:            [0,     1.1,  3.5],
+      size:                [0.9,   2.2,  0.15],
+      color:               0x5C3D1E,
+      interaction:         { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:           MODELS.door,
+      requiredItem:        "golden-key",
+      requiredItemMessage: "The door is locked. Maybe that golden key would help? 🔑",
     },
 
     // Right wall — bed (GLB model)
@@ -122,16 +124,13 @@ export const TUTORIAL_ROOM: RoomManifest = {
       modelRotation: [Math.PI / 2, 0, 0],
     },
 
-    // Map — rests on the desk, light tan/brown, unlocks minimap when picked up
+    // Map — pick it up to unlock the minimap HUD
     {
-      id:          "room-map",
-      type:        "book",
-      label:       "Map",
-      position:    [0.85,  0.908, -3.28],
-      size:        [0.35,  0.015, 0.28],
-      color:       0xD4A574,
-      interaction: { kind: "map" },
-      modelPath:   MODELS.map,
+      id:        "room-map",
+      type:      "pickup",
+      modelType: "map",
+      itemId:    "house-map",
+      position:  [0.85, 0.906, -3.28],
     },
 
     // ── Decorative lamp (toggled via outlet above) ────────────────────────────
