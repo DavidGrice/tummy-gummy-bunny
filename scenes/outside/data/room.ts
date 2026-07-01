@@ -56,6 +56,7 @@ export const OUTSIDE_ROOM: RoomManifest = {
       size:        [0.9, 2.2, 0.15],
       color:       0x4A3020,
       interaction: { kind: "scene-change", targetRoomId: "living" },
+      modelPath:   MODELS.door,
     },
 
     // ── North wall — flower beds flanking the front door ─────────────────────

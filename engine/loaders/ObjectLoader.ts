@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { InteractableObject } from "@/engine/objects/InteractableObject";
 import { PickupItem } from "@/engine/objects/PickupItem";
 import { loadFittedGLB } from "@/models/loaders/loadFittedGLB";
+import { GAME_ITEMS } from "@/lib/items";
 import type { RoomManifest, RoomCallbacks, InteractionDef } from "./types";
 
 // ─── Mesh builders ────────────────────────────────────────────────────────────
@@ -181,7 +182,7 @@ function buildWallLampMesh(facing: "north" | "south" | "east" | "west" = "south"
   group.add(bulb);
 
   // Warm point light — wall sconces start ON
-  const light = new THREE.PointLight(0xFFE090, 1.4, 4.5, 1.5);
+  const light = new THREE.PointLight(0xFFE090, 0.8, 3.5, 1.5);
   light.position.set(tipPos.x, 0.06, tipPos.z);
   group.add(light);
 
@@ -263,6 +264,7 @@ export async function loadRoomObjects(
     flagKey?:             string,
     requiredItem?:        string,
     requiredItemMessage?: string,
+    requiredItems?:       string[],
   ): () => void {
     const action = ((): () => void => {
       switch (def.kind) {
@@ -296,8 +298,15 @@ export async function loadRoomObjects(
       }
     })();
 
-    const gated = !requiredItem ? action : () => {
-      if (!callbacks.collectedIds?.has(requiredItem)) {
+    // Build combined required-item list (merge requiredItem + requiredItems)
+    const allRequired = [
+      ...(requiredItem  ? [requiredItem]  : []),
+      ...(requiredItems ?? []),
+    ];
+
+    const gated = allRequired.length === 0 ? action : () => {
+      const missing = allRequired.find((id) => !callbacks.collectedIds?.has(id));
+      if (missing) {
         callbacks.onDialog(requiredItemMessage ?? "You'll need something for that first. 🔒");
         return;
       }
@@ -307,7 +316,8 @@ export async function loadRoomObjects(
     if (!flagKey) return gated;
     return () => {
       gated();
-      if (requiredItem && !callbacks.collectedIds?.has(requiredItem)) return;
+      const allHeld = allRequired.every((id) => callbacks.collectedIds?.has(id));
+      if (allRequired.length > 0 && !allHeld) return;
       try { localStorage.setItem(flagKey, "true"); } catch { /* SSR / storage unavailable */ }
       callbacks.onFlag?.(flagKey);
     };
@@ -328,6 +338,7 @@ export async function loadRoomObjects(
             scale:             def.modelScale,
             tintColor:         def.color,
             materialOverrides: def.materialOverrides,
+            paletteColors:     def.paletteColors,
           });
           if (model) decoratives.push(model);
           const hitBox = buildGLBHitBox(def.size, def.position, model);
@@ -335,7 +346,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh:         hitBox,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage, def.requiredItems),
           }));
         } else {
           const mesh = buildFurnitureMesh(def.size, def.color);
@@ -344,7 +355,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage, def.requiredItems),
           }));
         }
         break;
@@ -369,7 +380,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh:         hitBox,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage, def.requiredItems),
           }));
         } else {
           const mesh = buildBookMesh(def.size, def.color);
@@ -378,7 +389,7 @@ export async function loadRoomObjects(
             name:         def.label,
             mesh,
             labelYOffset: def.size[1] / 2 + 0.35,
-            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage),
+            onInteract:   resolveInteraction(def.interaction, def.flagKey, def.requiredItem, def.requiredItemMessage, def.requiredItems),
           }));
         }
         break;
@@ -397,6 +408,7 @@ export async function loadRoomObjects(
           });
           let shadeMat: THREE.MeshLambertMaterial | THREE.MeshStandardMaterial =
             new THREE.MeshLambertMaterial({ color: 0x8C8880, emissive: new THREE.Color(0) });
+          const light = new THREE.PointLight(0xFFE8A0, 0, 5.0, 1.8);
           if (model) {
             model.traverse((child) => {
               if (!(child instanceof THREE.Mesh)) return;
@@ -409,13 +421,16 @@ export async function loadRoomObjects(
                 shadeMat = cloned;
               }
             });
-          }
-          const light = new THREE.PointLight(0xFFE8A0, 0, 5.0, 1.8);
-          light.position.set(def.position[0], LAMP_HEIGHT * 0.85, def.position[2]);
-          if (model) {
+            // XZ auto-scale can give a height ≠ LAMP_HEIGHT; snap base to floor
+            // and place the point light at 85% of the lamp's actual scaled height.
+            const bboxBeforeSnap = new THREE.Box3().setFromObject(model);
+            model.position.y -= bboxBeforeSnap.min.y;
+            const actualHeight = bboxBeforeSnap.max.y - bboxBeforeSnap.min.y;
+            light.position.set(def.position[0], actualHeight * 0.85, def.position[2]);
             lampRegistry.set(def.id, { group: model, light, shadeMat, isOn: false });
             decoratives.push(model, light);
           } else {
+            light.position.set(def.position[0], LAMP_HEIGHT * 0.85, def.position[2]);
             const parts = buildFloorLampMesh();
             parts.group.position.set(...def.position);
             lampRegistry.set(def.id, parts);
@@ -433,11 +448,12 @@ export async function loadRoomObjects(
       case "wallLamp": {
         if (def.modelPath) {
           const facing = def.facing ?? "south";
+          // GLB default arm faces -Z (north); rotate to match the requested facing.
           const modelRotation: [number, number, number] | undefined =
-            facing === "north" ? [0,  Math.PI,     0] :
-            facing === "east"  ? [0,  Math.PI / 2, 0] :
-            facing === "west"  ? [0, -Math.PI / 2, 0] :
-            undefined; // south = default orientation
+            facing === "south" ? [0,  Math.PI,     0] :
+            facing === "east"  ? [0, -Math.PI / 2, 0] :
+            facing === "west"  ? [0,  Math.PI / 2, 0] :
+            undefined; // north = default orientation
           const model = await loadFittedGLB({
             id:        def.id,
             modelPath: def.modelPath,
@@ -468,7 +484,7 @@ export async function loadRoomObjects(
           }
           const facingDX = facing === "east" ? 0.25 : facing === "west" ? -0.25 : 0;
           const facingDZ = facing === "south" ? 0.25 : facing === "north" ? -0.25 : 0;
-          const light = new THREE.PointLight(0xFFE090, 1.4, 4.5, 1.5);
+          const light = new THREE.PointLight(0xFFE090, 0.8, 3.5, 1.5);
           light.position.set(
             def.position[0] + facingDX,
             def.position[1],
@@ -500,10 +516,11 @@ export async function loadRoomObjects(
           console.warn(`[ObjectLoader] Unknown pickup modelType: "${def.modelType}"`);
           break;
         }
-        const obj = builder();
+        const obj       = builder();
         obj.position.set(...def.position);
         if (def.rotation) obj.rotation.set(...def.rotation);
-        pickupItems.push(new PickupItem(def.itemId, obj, callbacks.onPickup));
+        const itemLabel = GAME_ITEMS.find((i) => i.id === def.itemId)?.name;
+        pickupItems.push(new PickupItem(def.itemId, obj, callbacks.onPickup, itemLabel));
         break;
       }
     }

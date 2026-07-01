@@ -3,7 +3,7 @@ import { MODELS } from "@/models/registry";
 
 /**
  * Living Room — 9×8 units (≈ 4.5m × 4m).
- * Accessed from the east wall of the Kitchen.
+ * Accessed from the east wall of the Kitchen and from the hallway (north wall).
  * The front door on the south wall leads out to the Front Garden.
  *
  * Inner wall faces (W=9, D=8, T=0.2):
@@ -14,11 +14,11 @@ import { MODELS } from "@/models/registry";
  *
  * Top-down layout:
  *
- *   ┌─[Bookshelf]─────[TV Console]──────────────┐
- *   [Kitchen]                        [Lamp]      │
+ *   ┌──────────────[TV Console]─────[Hallway]────┐
+ *   [Kitchen] [Lamp]                             │
  *   │         [Coffee Table]                     │
  *   │            [Sofa]    [Armchair] [Switch]   │
- *   └──────────────[Front Door]─────────────────┘
+ *   [Bookshelf] ────────[Front Door]────────────┘
  */
 export const LIVING_ROOM: RoomManifest = {
   id:         "living",
@@ -32,12 +32,7 @@ export const LIVING_ROOM: RoomManifest = {
   wallColor:  0xF0E4D0,
   floorColor: 0x7A5230,
 
-  // Two windows above the TV on the north wall
-  windows: [
-    { x: -1.5, y: 1.75 },
-    { x:  1.5, y: 1.75 },
-  ],
-  windowModelPath: MODELS.window,
+  windows: [],
 
   // South wall has the front door — doorId creates the wall cutout.
   doorId:      "door-outside",
@@ -90,18 +85,27 @@ export const LIVING_ROOM: RoomManifest = {
       flagKey:     "tgb_tv_watched",
     },
 
-    // ── West wall — tall bookshelf (north half) ───────────────────────────────
+    // ── West wall — tall bookshelf (south of kitchen door) ───────────────────
+    // Natural: 2.690W × 4.545H × 0.340D, center-at-origin. Rotated [0,π/2,0]:
+    // post-rotation X=0.340, Z=2.690. Auto-scale 0.595 → 0.203×2.704×1.600.
+    // bboxCenterY≈0 (center-at-origin), position Y=1.35 puts base at y≈0.
+    // West inner face x=−4.4; flush center x = −4.4 + 0.203/2 = −4.30.
+    // South of kitchen door (z=0): placed at z=2.0.
     {
       id:          "bookshelf",
       type:        "furniture",
       label:       "Bookshelf",
-      position:    [-3.9, 1.1, -2.0],
-      size:        [0.4, 2.2, 1.6],
+      position:    [-4.30, 1.35, 2.0],
+      size:        [0.22, 2.7, 1.6],
       color:       0x8B6040,
       interaction: { kind: "dialog", message: "Shelves of family books, photo albums, and a few odd trophies. 📚" },
       modelPath:     MODELS.bookshelf,
-      // Model faces south (+Z); rotate to face east (+X) into the room from the west wall.
       modelRotation: [0, Math.PI / 2, 0],
+      paletteColors: {
+        prefix: "Book_",
+        colors: [0xC41E3A, 0x1E3AC4, 0x1A8A4A, 0xD68910, 0x7D3C98,
+                 0xE67E22, 0x1A9C8C, 0x8B2020, 0x2060A0, 0xB07828],
+      },
     },
 
     // ── Centre — sofa facing south (toward camera / front door) ─────────────
@@ -151,12 +155,25 @@ export const LIVING_ROOM: RoomManifest = {
       modelRotation: [0, -Math.PI / 2, 0],
     },
 
-    // ── Floor lamp — east of TV, north-east area ──────────────────────────────
+    // ── Floor lamp — west side, north of kitchen door ─────────────────────────
     {
       id:        "floor-lamp",
       type:      "lamp",
-      position:  [3.5, 0, -2.0],
+      position:  [-3.5, 0, -2.0],
       modelPath: MODELS.lamp,
+    },
+
+    // ── North wall — door to hallway (right side, clear of TV) ───────────────
+    // North inner face z=−3.9; door center z=−3.9+0.4=−3.5; x=2.5 (right side)
+    {
+      id:          "door-hallway",
+      type:        "furniture",
+      label:       "Hallway",
+      position:    [2.5, 1.1, -3.5],
+      size:        [0.9, 2.2, 0.15],
+      color:       0x5C3D1E,
+      interaction: { kind: "scene-change", targetRoomId: "hallway" },
+      modelPath:   MODELS.door,
     },
   ],
 };

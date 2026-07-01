@@ -66,7 +66,7 @@ export const TUTORIAL_ROOM: RoomManifest = {
       modelPath:   MODELS.desk,
     },
 
-    // Front wall — door leads to the hallway (locked until golden key collected)
+    // Front wall — door leads to the hallway (locked until both items collected)
     {
       id:                  "door",
       type:                "furniture",
@@ -76,8 +76,8 @@ export const TUTORIAL_ROOM: RoomManifest = {
       color:               0x5C3D1E,
       interaction:         { kind: "scene-change", targetRoomId: "hallway" },
       modelPath:           MODELS.door,
-      requiredItem:        "golden-key",
-      requiredItemMessage: "The door is locked. Maybe that golden key would help? 🔑",
+      requiredItems:       ["house-map", "golden-key"],
+      requiredItemMessage: "You'll need the house map and the golden key before heading out. 🗺️🔑",
     },
 
     // Right wall — bed (GLB model)

@@ -66,41 +66,43 @@ export const PARENTS_ROOM: RoomManifest = {
     },
 
     // ── North wall — king bed (centred, back flush with north inner face) ──────
-    // GLB natural: 2.14W × 1.05H × 2.26D. After [0,π/2,0]: world X=2.26, Z=2.14.
-    // Auto-scale 0.929 → actual footprint 2.10×0.976×1.99. Center at y=0.49.
-    // Back face: z = -2.9 − 1.0 = -3.9 (flush with north inner face).
+    // Natural: 2.141W × 1.050H × 2.258D, base-at-origin. No rotation — headboard
+    // is at -Z (north face) in the GLB. Auto-scale 0.886 → 1.90W × 0.93H × 2.00D.
+    // bboxCenterY = 0.465. position Y = 0.465. Back z = −2.9 − 1.00 = −3.90 (flush).
     {
       id:          "bed",
       type:        "furniture",
       label:       "Bed",
-      position:    [0, 0.49, -2.9],
-      size:        [2.1, 0.98, 2.0],
+      position:    [0, 0.47, -2.9],
+      size:        [1.9, 0.93, 2.0],
       color:       0x7A5038,
       interaction: { kind: "dialog", message: "Mum and Dad's bed. Off limits, obviously. 🛏️" },
-      modelPath:     MODELS.parentsBed,
-      modelRotation: [0, Math.PI / 2, 0],
+      modelPath:   MODELS.parentsBed,
     },
 
     // ── Nightstands flanking the bed ──────────────────────────────────────────
-    // Left: bed left edge = -1.4, nightstand center = -1.4 - 0.3 = -1.7
+    // Natural: 0.308W × 0.500H × 0.308D, base-at-origin, cY=0.250.
+    // fitSize [0.5, 0.7, 0.5]: autoScale 1.400 → 0.431W × 0.700H × 0.431D.
+    // position Y = 0.250 × 1.4 = 0.350.
     {
       id:          "nightstand-left",
       type:        "furniture",
       label:       "Nightstand",
-      position:    [-1.7, 0.3, -2.9],
-      size:        [0.6, 0.6, 0.6],
+      position:    [-1.7, 0.35, -2.9],
+      size:        [0.5, 0.7, 0.5],
       color:       0x6B4423,
       interaction: { kind: "dialog", message: "A nightstand with a reading lamp and a dog-eared novel. 📖" },
+      modelPath:   MODELS.parentsNightstand,
     },
-    // Right: bed right edge = 1.4, nightstand center = 1.4 + 0.3 = 1.7
     {
       id:          "nightstand-right",
       type:        "furniture",
       label:       "Nightstand",
-      position:    [1.7, 0.3, -2.9],
-      size:        [0.6, 0.6, 0.6],
+      position:    [1.7, 0.35, -2.9],
+      size:        [0.5, 0.7, 0.5],
       color:       0x6B4423,
       interaction: { kind: "dialog", message: "A nightstand with a glass of water and some reading glasses. 👓" },
+      modelPath:   MODELS.parentsNightstand,
     },
 
     // ── West wall — wardrobe ──────────────────────────────────────────────────
@@ -121,27 +123,36 @@ export const PARENTS_ROOM: RoomManifest = {
       modelRotation: [0, Math.PI / 2, 0],
     },
 
-    // ── East wall — vanity / dresser ──────────────────────────────────────────
-    // Against east inner face (4.4): center x = 4.4 - 0.5/2 = 4.15
+    // ── East wall — vanity ────────────────────────────────────────────────────
+    // Natural: 1.500W × 0.886H × 0.513D, base-at-origin, cY=0.443.
+    // Rotated [0,π/2,0]: post-rotation X=0.513 (depth), Z=1.500 (along wall).
+    // autoScale 1.0 → exact natural size. cY×scale=0.443.
+    // East inner face x=4.4; center x = 4.4 − 0.513/2 = 4.14.
     {
       id:          "vanity",
       type:        "furniture",
       label:       "Vanity",
-      position:    [4.15, 0.5, -1.2],
-      size:        [0.5, 1.0, 1.6],
+      position:    [4.14, 0.44, -1.2],
+      size:        [0.55, 0.9, 1.5],
       color:       0x8B6240,
       interaction: { kind: "dialog", message: "A vanity covered in trinkets, photo frames, and a small mirror. 🪞" },
+      modelPath:     MODELS.parentsVanity,
+      modelRotation: [0, Math.PI / 2, 0],
     },
 
     // ── Armchair — south-west corner ─────────────────────────────────────────
+    // Natural: 1.190W × 0.885H × 1.007D, base-at-origin, cY=0.443.
+    // fitSize [1.5, 1.1, 1.3]: autoScale 1.243 → 1.479W × 1.100H × 1.252D.
+    // position Y = 0.443 × 1.243 = 0.551.
     {
       id:          "armchair",
       type:        "furniture",
       label:       "Armchair",
-      position:    [-2.8, 0.35, 2.0],
-      size:        [0.85, 0.7, 0.85],
+      position:    [-2.8, 0.55, 2.0],
+      size:        [1.5, 1.1, 1.3],
       color:       0x9B6B4A,
       interaction: { kind: "dialog-template", template: "A cosy armchair. {playerName} could curl up here for hours. ☕" },
+      modelPath:   MODELS.parentsArmchair,
     },
 
     // ── East wall — light switch (near south end) ─────────────────────────────

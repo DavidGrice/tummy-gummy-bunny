@@ -35,6 +35,12 @@ export interface GLBModelFields {
    * materials that are intentionally a different colour (Wood, BunnyFur…).
    */
   materialOverrides?: Record<string, number>;
+  /**
+   * Assign a repeating palette to materials whose names start with `prefix`.
+   * Each unique material name gets one colour, cycling through `colors`.
+   * Use for bookshelves where every book spine is its own material (Book_0, …).
+   */
+  paletteColors?: { prefix: string; colors: number[] };
 }
 
 /**
@@ -46,6 +52,8 @@ export interface GLBModelFields {
 export interface InteractionGate {
   /** Collect this item ID before the interaction fires. */
   requiredItem?:        string;
+  /** All item IDs in this list must be collected before the interaction fires. */
+  requiredItems?:       string[];
   /** Dialog shown when the gate is closed. Defaults to a generic hint. */
   requiredItemMessage?: string;
 }
@@ -150,7 +158,7 @@ export interface RoomManifest {
   bunnyStart: [number, number];
   wallColor:  number;
   floorColor: number;
-  windows:    { x: number; y: number }[];
+  windows:    { x: number; y: number; wall?: "north" | "west" | "east" }[];
   /** GLB model to use for all windows in this room instead of the procedural frame. */
   windowModelPath?:     string;
   /** Euler rotation [x, y, z] in radians applied to each window model. */

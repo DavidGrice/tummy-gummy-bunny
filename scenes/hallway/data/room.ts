@@ -84,17 +84,27 @@ export const HALLWAY_ROOM: RoomManifest = {
       modelRotation: [0, Math.PI / 2, 0],
     },
 
-    // ── South wall — parents' bedroom ─────────────────────────────────────────
-    // Midpoint of the two kids' door x-coordinates: (2.5 + -3.5) / 2 = -0.5
-
+    // ── South wall — parents' bedroom (shifted right) ─────────────────────────
     {
       id:          "door-parents",
       type:        "furniture",
       label:       "Parents' Room",
-      position:    [-0.5, 1.1,  2.0],
+      position:    [1.5,  1.1,  2.0],
       size:        [0.9,  2.2,  0.15],
       color:       0x5C3D1E,
       interaction: { kind: "scene-change", targetRoomId: "parents" },
+      modelPath:   MODELS.door,
+    },
+
+    // ── South wall — living room (left of parents' door) ──────────────────────
+    {
+      id:          "door-living",
+      type:        "furniture",
+      label:       "Living Room",
+      position:    [-2.5, 1.1,  2.0],
+      size:        [0.9,  2.2,  0.15],
+      color:       0x5C3D1E,
+      interaction: { kind: "scene-change", targetRoomId: "living" },
       modelPath:   MODELS.door,
     },
 

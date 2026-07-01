@@ -1,4 +1,6 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { PALETTE } from "@/lib/palette";
+import { MODELS } from "@/models/registry";
 
 /**
  * The Neighbourhood — 24×12 units.
@@ -71,15 +73,19 @@ export const NEIGHBORHOOD_ROOM: RoomManifest = {
     },
 
     // ── Street props ──────────────────────────────────────────────────────────
+    // Natural: 0.965W × 0.480H × 0.381D, base-at-origin, cY=0.240.
+    // fitSize [1.3, 0.52, 0.42]: autoScale=1.083 → Y=0.240×1.083=0.260.
     {
-      id:          "bench",
-      type:        "furniture",
-      label:       "Bench",
-      position:    [-4.0, 0.4, -2.0],
-      size:        [1.4, 0.8, 0.5],
-      color:       0x7A5C3A,
-      interaction: { kind: "dialog", message: "A neighbourhood bench. Great for people-watching. 🪑" },
-      flagKey:     "tgb_bench_used",
+      id:                "bench",
+      type:              "furniture",
+      label:             "Bench",
+      position:          [-4.0, 0.26, -2.0],
+      size:              [1.3, 0.52, 0.42],
+      color:             PALETTE.woodLight,
+      interaction:       { kind: "dialog", message: "A neighbourhood bench. Great for people-watching. 🪑" },
+      flagKey:           "tgb_bench_used",
+      modelPath:         MODELS.bench,
+      materialOverrides: { Bench_Light_Wood: PALETTE.woodWarm, Bench_Cream_Fabric: PALETTE.fabricCream },
     },
     {
       id:          "fire-hydrant",

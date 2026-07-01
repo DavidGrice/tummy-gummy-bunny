@@ -38,6 +38,13 @@ export class RoomScene extends BaseScene {
   private flagFn:        (key: string)         => void = () => {};
   private playerName = "Bunny";
 
+  /**
+   * Live Set of collected item IDs for this room.
+   * Loaded from localStorage at setup time; mutated in-place by notifyCollected()
+   * so that interaction gate closures always see the current session state.
+   */
+  private _collectedIds!: Set<string>;
+
   // ── Follow-cam state (mobile only) ───────────────────────────────────────
   private followCam:          THREE.PerspectiveCamera | null = null;
   private readonly _camTarget = new THREE.Vector3();
@@ -70,6 +77,11 @@ export class RoomScene extends BaseScene {
     this.mrBunny?.setEquipped(equipped);
   }
 
+  /** Call this when an item is picked up during the session so gate closures see it. */
+  notifyCollected(itemId: string): void {
+    this._collectedIds?.add(itemId);
+  }
+
   // ── Setup ─────────────────────────────────────────────────────────────────
   async setup(scene: THREE.Scene): Promise<void> {
     scene.background = new THREE.Color(this.manifest.background);
@@ -93,6 +105,7 @@ export class RoomScene extends BaseScene {
     this.windows.forEach((w) => scene.add(w));
 
     this.progressFn(65);
+    this._collectedIds = this.loadCollectedIds();
     const callbacks: RoomCallbacks = {
       onDialog:      this.dialogFn,
       onInventory:   this.inventoryFn,
@@ -102,7 +115,7 @@ export class RoomScene extends BaseScene {
       onMap:         this.mapFn,
       onFlag:        this.flagFn,
       playerName:    this.playerName,
-      collectedIds:  this.loadCollectedIds(),
+      collectedIds:  this._collectedIds,
     };
     const loaded = await loadRoomObjects(this.manifest, callbacks);
     this.interactables = loaded.interactables;

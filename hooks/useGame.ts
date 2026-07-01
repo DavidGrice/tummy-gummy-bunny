@@ -114,7 +114,7 @@ export function useGame(
       newScene.setPlayerName(playerName);
       newScene.onDialog((msg) => setDialog(msg));
       newScene.onInventory((src) => setInventorySource(src));
-      newScene.onPickup((itemId) => setPickedUpItemId(itemId));
+      newScene.onPickup((itemId) => { newScene.notifyCollected(itemId); setPickedUpItemId(itemId); });
       newScene.onJournal(() => setJournalTriggered(true));
       newScene.onMap(() => setMapTriggered(true));
       newScene.onSceneChange((targetId) => switchRoom(targetId, id));
@@ -170,7 +170,7 @@ export function useGame(
     scene.onProgress((p)    => { if (mounted) setLoadProgress(p); });
     scene.onDialog((msg)    => { if (mounted) setDialog(msg); });
     scene.onInventory((src) => { if (mounted) setInventorySource(src); });
-    scene.onPickup((id)     => { if (mounted) setPickedUpItemId(id); });
+    scene.onPickup((id)     => { scene.notifyCollected(id); if (mounted) setPickedUpItemId(id); });
     scene.onJournal(()      => { if (mounted) setJournalTriggered(true); });
     scene.onMap(()          => { if (mounted) setMapTriggered(true); });
     scene.onSceneChange((id) => { if (mounted) switchRoom(id, currentRoomIdRef.current); });

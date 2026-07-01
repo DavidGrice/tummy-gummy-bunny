@@ -79,16 +79,23 @@ export const SIBLING_ROOM: RoomManifest = {
     },
 
     // ── North wall, west side — tall bookshelf ────────────────────────────────
-    // North inner face at z = -(7/2 - 0.1) = -3.4. Back face flush: z = -3.4 + 0.5/2 = -3.15
+    // Natural: 2.690W × 4.545H × 0.340D. Auto-scale 0.520 → 1.40×2.36×0.177.
+    // bboxCenterY≈−0.014 (center-at-origin), so position Y=1.18 puts base at y=0.
+    // Back face flush with north inner wall (z=−3.4): center z = −3.4 + 0.177/2 = −3.311.
     {
       id:          "bookshelf",
       type:        "furniture",
       label:       "Bookshelf",
-      position:    [-0.5, 1.1, -3.15],
-      size:        [1.4, 2.2, 0.5],
+      position:    [-0.5, 1.18, -3.31],
+      size:        [1.4, 2.36, 0.18],
       color:       0x6B4A2A,
       interaction: { kind: "dialog", message: "Comics, sketchbooks, and a wobbly tower of puzzle boxes. 📚" },
       modelPath:   MODELS.bookshelf,
+      paletteColors: {
+        prefix: "Book_",
+        colors: [0xC41E3A, 0x1E3AC4, 0x1A8A4A, 0xD68910, 0x7D3C98,
+                 0xE67E22, 0x1A9C8C, 0x8B2020, 0x2060A0, 0xB07828],
+      },
     },
 
     // ── North wall, east side — desk ──────────────────────────────────────────
@@ -105,17 +112,19 @@ export const SIBLING_ROOM: RoomManifest = {
     },
 
     // ── Sketchbook on the desk ────────────────────────────────────────────────
-    // Desk top = 0.45 + 0.9/2 = 0.9. Book center y = 0.9 + 0.04/2 = 0.92
+    // Natural: 0.167W × 0.032H × 0.200D, center-at-origin (Y: −0.016 to 0.016).
+    // GLB is already flat — no rotation needed. Scale to ~0.20W × 0.24D.
+    // Desk top = 0.45 + 0.9/2 = 0.9. Bottom at 0.9: center Y = 0.9 + 0.019 = 0.919.
     {
       id:          "sketchbook",
       type:        "book",
       label:       "Sketchbook",
-      position:    [1.2, 0.92, -3.0],
-      size:        [0.3, 0.04, 0.24],
+      position:    [1.2, 0.919, -3.0],
+      size:        [0.20, 0.038, 0.24],
       color:       0x3A5A7A,
       interaction: { kind: "dialog", message: "Your sibling's sketchbook. Page after page of wild creature doodles. Don't show these to anyone. 🎨" },
-      modelPath:     MODELS.journal,
-      modelRotation: [Math.PI / 2, 0, 0],
+      modelPath:   MODELS.sketchbook,
+      // No modelRotation — GLB is exported flat (already horizontal)
     },
 
     // ── Light switch — west wall, near the south entrance ────────────────────
@@ -134,15 +143,19 @@ export const SIBLING_ROOM: RoomManifest = {
       modelRotation: [0, Math.PI / 2, 0],
     },
 
-    // ── Supply crate — south-east corner ──────────────────────────────────────
+    // ── Toy chest — south-east corner ─────────────────────────────────────────
+    // Natural: 0.800W × 0.460H × 0.415D, base-at-origin, cY=0.230.
+    // fitSize [1.1, 0.6, 0.55]: autoScale 1.304 → 1.043W × 0.600H × 0.541D.
+    // position Y = 0.230 × 1.304 = 0.300.
     {
       id:          "supply-crate",
       type:        "furniture",
-      label:       "Crate",
-      position:    [2.5, 0.3, 2.7],
-      size:        [1.2, 0.6, 0.7],
+      label:       "Toy Chest",
+      position:    [2.5, 0.30, 2.7],
+      size:        [1.1, 0.6, 0.55],
       color:       0x8B6B3A,
-      interaction: { kind: "dialog", message: "A crate stuffed with art supplies and building blocks. Everything has glitter on it. ✨" },
+      interaction: { kind: "dialog", message: "A toy chest stuffed with art supplies and building blocks. Everything has glitter on it. ✨" },
+      modelPath:   MODELS.toychest,
     },
 
     // ── Floor lamp — east wall, centre ───────────────────────────────────────

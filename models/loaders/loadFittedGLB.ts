@@ -32,6 +32,12 @@ export interface FitGLBOptions {
    * on bunny_bed.glb which export as pink from Blender).
    */
   materialOverrides?: Record<string, number>;
+  /**
+   * Assign colours from a repeating palette to every material whose name
+   * starts with `prefix`, cycling round-robin in traversal order.
+   * Use for bookshelves whose spine materials are all named Book_N.
+   */
+  paletteColors?: { prefix: string; colors: number[] };
 }
 
 const _loggedAutoScale = new Set<string>();
@@ -53,6 +59,7 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
     scale,
     tintColor,
     materialOverrides,
+    paletteColors,
   } = opts;
 
   try {
@@ -97,6 +104,7 @@ export async function loadFittedGLB(opts: FitGLBOptions): Promise<THREE.Object3D
 
     if (tintColor !== undefined) tintBlankMaterials(model, tintColor);
     if (materialOverrides)       applyMaterialOverrides(model, materialOverrides);
+    if (paletteColors)           applyPaletteColors(model, paletteColors.prefix, paletteColors.colors);
 
     model.position.set(position[0], position[1] - bboxCenterY, position[2]);
     model.traverse((child) => {
@@ -133,6 +141,38 @@ function applyMaterialOverrides(
       if (key === undefined) return mat;
       const cloned = mat.clone();
       cloned.color.setHex(overrides[key]);
+      return cloned;
+    };
+    child.material = Array.isArray(child.material)
+      ? child.material.map(apply)
+      : apply(child.material);
+  });
+}
+
+/**
+ * Assigns colours from a repeating palette to every mesh material whose name
+ * starts with `prefix`, in traversal order. Each unique material name gets
+ * one colour, cycling through the palette. Useful for bookshelves where every
+ * book spine is a separate material (Book_0, Book_1, …).
+ */
+function applyPaletteColors(
+  model:   THREE.Object3D,
+  prefix:  string,
+  colors:  number[],
+): void {
+  let i = 0;
+  const seen = new Map<string, number>();
+  model.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return;
+    const apply = (mat: THREE.Material): THREE.Material => {
+      if (!(mat instanceof THREE.MeshStandardMaterial)) return mat;
+      if (!mat.name.startsWith(prefix)) return mat;
+      if (!seen.has(mat.name)) {
+        seen.set(mat.name, colors[i % colors.length]);
+        i++;
+      }
+      const cloned = mat.clone();
+      cloned.color.setHex(seen.get(mat.name)!);
       return cloned;
     };
     child.material = Array.isArray(child.material)

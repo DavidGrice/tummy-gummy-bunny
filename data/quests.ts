@@ -65,12 +65,17 @@ export const QUESTS: Quest[] = [
   // ─── 3 ───────────────────────────────────────────────────────────────────────
   {
     id:         "find-the-key",
-    title:      "Find the Key",
-    heading:    "Checking the Door",
+    title:      "Ready to Go",
+    heading:    "Before You Head Out!",
     date:       "Day 1, Morning",
     unlockedBy: "get-dressed",
-    body:       "You're looking sharp! But before you head out, something feels missing.\n\nHave a look around the room before you go. You never know what you might find — something sparkles on the floor…",
+    body:       "You're looking sharp! But before you head out, take a moment to explore your room.\n\nThere's a house map on the desk — grab it so you don't get lost out there. And look carefully around the floor too… something glints in the morning light. 🗺️🔑",
     objectives: [
+      {
+        id:      "find-house-map",
+        label:   "Pick up the house map",
+        trigger: { kind: "item", itemId: "house-map" },
+      },
       {
         id:      "find-golden-key",
         label:   "Find the golden key",
@@ -78,7 +83,10 @@ export const QUESTS: Quest[] = [
       },
     ],
     completed: false,
-    hints:     ["Look carefully around the room — something glints in the morning light!"],
+    hints: [
+      "The house map is on the Desk near the back wall — grab it before you go!",
+      "Something glints on the floor near the door…",
+    ],
   },
 
   // ─── 4 ───────────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import type { RoomManifest } from "@/engine/loaders/types";
+import { PALETTE } from "@/lib/palette";
 import { MODELS } from "@/models/registry";
 
 /**
@@ -13,16 +14,15 @@ import { MODELS } from "@/models/registry";
  *
  * Top-down layout:
  *
- *   ┌─────────────[Dining↑]────────────────────┐
- *   │ [Fridge] [Win][Counter/Sink][Win] [Door] │
- *   │                                           │
- *   │               [Island]                   │
- *   │                                           │
- *   │                         [Lamp][Switch]   │
- *   └───────────────────────────────────────────┘
+ *   ┌───────[Dining↑]──────[Fridge]──────────────┐
+ *   [Win]                                         │
+ *   [Counter/Sink]     [Island]                   │
+ *   [Win]                                         │
+ *   │                           [Lamp] [Switch]   │
+ *   └─────────────────────────────────────────────┘
  *
- * Counter spans the western portion of the north wall; the door to dining
- * sits at the east end (x=2.2), clear of counter collision by 0.62 units.
+ * Counter + sink hug the west wall; fridge is in the north-west corner;
+ * windows face west (to the outside, not into another room).
  */
 export const KITCHEN_ROOM: RoomManifest = {
   id:         "kitchen",
@@ -38,10 +38,10 @@ export const KITCHEN_ROOM: RoomManifest = {
   wallColor:  0xDDE5E8,
   floorColor: 0x8A9E96,
 
-  // Two windows above the counter (western portion of north wall)
+  // Two west-facing windows above the counter — no longer on the north wall
   windows: [
-    { x: -1.8, y: 1.75 },
-    { x: -0.3, y: 1.75 },
+    { x: -1.0, y: 1.75, wall: "west" },
+    { x:  1.0, y: 1.75, wall: "west" },
   ],
   windowModelPath: MODELS.window,
 
@@ -58,7 +58,6 @@ export const KITCHEN_ROOM: RoomManifest = {
   objects: [
     // ── North wall — door back to dining room (east end) ─────────────────────
     // North inner face z = −2.9; center z = −2.9 + 0.4 = −2.5
-    // x = 2.2 clears counter collision (maxX ≈ 1.13) by 0.62 units
     {
       id:          "door-dining",
       type:        "furniture",
@@ -70,53 +69,106 @@ export const KITCHEN_ROOM: RoomManifest = {
       modelPath:   MODELS.door,
     },
 
-    // ── North wall — counter with sink (western portion) ─────────────────────
-    // Width 3.0 centred at x = −0.75 → spans x ∈ [−2.25, 0.75]
-    // Collision maxX = 0.75 + 0.38 = 1.13; door west edge = 2.2 − 0.45 = 1.75 ✓
+    // ── North wall — fridge ───────────────────────────────────────────────────
+    // Natural: 1.200W × 2.118H × 0.759D, base-at-origin, cY=1.059.
+    // fitSize [1.3, 2.3, 0.9]: autoScale=1.083 → 1.300W × 2.294H × 0.822D.
+    // position Y = 1.059 × 1.083 = 1.147. North inner z=−2.9; center z=−2.9+0.411=−2.489≈−2.5.
+    // Rotated π so the door faces south (into the room) — model default faces −Z.
     {
-      id:          "counter",
-      type:        "furniture",
-      label:       "Counter",
-      position:    [-0.75, 0.5, -2.55],
-      size:        [3.0, 1.0, 0.7],
-      color:       0xC8CED0,
-      interaction: { kind: "dialog", message: "The kitchen counter. Covered in crumbs, obviously. 🍞" },
+      id:            "fridge",
+      type:          "furniture",
+      label:         "Fridge",
+      position:      [-1.5, 1.147, -2.5],
+      size:          [1.3, 2.3, 0.9],
+      color:         0xD8E0E4,
+      interaction:   { kind: "dialog", message: "A big family fridge. Someone left the door ajar again. 🧊" },
+      modelPath:     MODELS.refrigerator,
+      modelRotation: [0, Math.PI, 0],
     },
 
-    // Sink — sits on the counter, left of centre
+    // ── West wall — counter ───────────────────────────────────────────────────
+    // Natural: 2.700W × 0.904H × 1.930D, base-at-origin, cY=0.452.
+    // Rotation [0,−π/2,0]: natural Z(1.930)→−X(west/wall), natural X(2.700)→+Z(south along wall).
+    // fitSize [2.0, 1.1, 3.0]: autoScale=min(2.0/1.930, 3.0/2.700)=1.036.
+    // Scaled: 2.0 deep × 0.937H × 2.797 long. Front face(east) at X=−1.4; back(west wall) at X=−3.4.
+    // Counter runs Z: −1.0 (north) to +1.797 (south). Y=0.452×1.036=0.468.
+    {
+      id:            "counter",
+      type:          "furniture",
+      label:         "Counter",
+      position:      [-1.4, 0.468, -1.0],
+      size:          [2.0, 1.1, 3.0],
+      color:         0xC8CED0,
+      interaction:   { kind: "dialog", message: "The kitchen counter. Covered in crumbs, obviously. 🍞" },
+      modelPath:     MODELS.kitchenCounter,
+      modelRotation: [0, -Math.PI / 2, 0],
+    },
+
+    // ── West wall — sink (sits on counter top) ────────────────────────────────
+    // Natural: 0.762W × 0.510H × 0.559D, base-at-origin, cY=0.255.
+    // fitSize [0.6, 0.5, 0.55]: autoScale=0.787 → scaled cY=0.201.
+    // Counter top Y=0.937; sink position Y=0.937+0.201=1.138.
     {
       id:          "sink",
       type:        "furniture",
       label:       "Sink",
-      position:    [-1.5, 1.07, -2.55],
-      size:        [0.7, 0.14, 0.5],
+      position:    [-2.4, 1.138, -0.5],
+      size:        [0.6, 0.5, 0.55],
       color:       0xB0C0C4,
       interaction: { kind: "dialog", message: "A stainless steel sink. Dishes piling up already. 🫧" },
+      modelPath:   MODELS.kitchenSink,
     },
 
-    // ── West wall — refrigerator ──────────────────────────────────────────────
-    // West inner face x = −3.4; width 0.8; center x = −3.4 + 0.4 = −3.0
-    // Placed at z = −0.5 (clear of counter collision at z = −1.82)
+    // ── Centre — kitchen island ───────────────────────────────────────────────
+    // Natural: 2.660W × 0.926H × 1.110D, base-at-origin, cY=0.463.
+    // fitSize [2.4, 1.05, 1.0]: autoScale=0.901 → 2.397W × 0.834H × 1.000D.
+    // position Y = 0.463 × 0.901 = 0.417.
     {
-      id:          "fridge",
-      type:        "furniture",
-      label:       "Fridge",
-      position:    [-3.0, 1.0, -0.5],
-      size:        [0.8, 2.0, 0.8],
-      color:       0xD8E0E4,
-      interaction: { kind: "dialog", message: "A big family fridge. Someone left the door ajar again. 🧊" },
+      id:                "island",
+      type:              "furniture",
+      label:             "Kitchen Island",
+      position:          [0, 0.417, 0.5],
+      size:              [2.4, 1.05, 1.0],
+      color:             PALETTE.woodWarm,
+      interaction:       { kind: "dialog", message: "The kitchen island. Great for breakfast, better for hiding snacks. 🍪" },
+      modelPath:         MODELS.kitchenIsland,
+      materialOverrides: { Island_Light_Oak: PALETTE.woodWarm },
     },
 
-    // ── Centre — kitchen island / prep table ──────────────────────────────────
-    // y = size[1]/2 = 1.0/2 = 0.5
+    // ── Bar stools — south face of the island ────────────────────────────────
+    // Natural: 0.392W × 1.031H × 0.381D, base-at-origin, cY=0.515.
+    // fitSize [0.42, 1.05, 0.42]: autoScale=1.018 → Y=0.515×1.018=0.524.
+    // Island south edge Z=1.0; stool center Z=1.0+0.194=1.194≈1.2.
+    // Model default faces −Z (toward island) — no rotation needed.
     {
-      id:          "island",
+      id:          "barstool-left",
       type:        "furniture",
-      label:       "Kitchen Island",
-      position:    [0, 0.5, 0.5],
-      size:        [1.8, 1.0, 0.9],
-      color:       0xA89070,
-      interaction: { kind: "dialog", message: "The kitchen island. Great for breakfast, better for hiding snacks. 🍪" },
+      label:       "Bar Stool",
+      position:    [-0.7, 0.524, 1.2],
+      size:        [0.42, 1.05, 0.42],
+      color:       0x111111,
+      interaction: { kind: "dialog", message: "A sleek bar stool. Hop up and enjoy the view! 🍳" },
+      modelPath:   MODELS.barstool,
+    },
+    {
+      id:          "barstool-centre",
+      type:        "furniture",
+      label:       "Bar Stool",
+      position:    [0, 0.524, 1.2],
+      size:        [0.42, 1.05, 0.42],
+      color:       0x111111,
+      interaction: { kind: "dialog", message: "A sleek bar stool. Hop up and enjoy the view! 🍳" },
+      modelPath:   MODELS.barstool,
+    },
+    {
+      id:          "barstool-right",
+      type:        "furniture",
+      label:       "Bar Stool",
+      position:    [0.7, 0.524, 1.2],
+      size:        [0.42, 1.05, 0.42],
+      color:       0x111111,
+      interaction: { kind: "dialog", message: "A sleek bar stool. Hop up and enjoy the view! 🍳" },
+      modelPath:   MODELS.barstool,
     },
 
     // ── East wall — door to living room ──────────────────────────────────────
